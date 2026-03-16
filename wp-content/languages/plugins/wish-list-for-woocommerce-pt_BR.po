@@ -1,0 +1,254 @@
+# Translation of Plugins - Wishlist for WooCommerce: Multi Wishlists Per Customer - Stable (latest release) in Portuguese (Brazil)
+# This file is distributed under the same license as the Plugins - Wishlist for WooCommerce: Multi Wishlists Per Customer - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2017-11-07 14:30:23+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: GlotPress/4.0.3\n"
+"Language: pt_BR\n"
+"Project-Id-Version: Plugins - Wishlist for WooCommerce: Multi Wishlists Per Customer - Stable (latest release)\n"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:49
+#: includes/class-alg-wc-wish-list-core.php:1404
+msgid "Share"
+msgstr "Compartilhar"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:73
+msgid "Share options"
+msgstr "Opções de compartilhamento"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:98
+msgid "Admin email(s)"
+msgstr "Email(s) do admin"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:142
+msgid "Share buttons"
+msgstr "Botões de compartilhamento"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:112
+#: templates/share.php:57 templates/share.php:90
+msgid "Email"
+msgstr "E-mail"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:118
+msgid "Share via Email"
+msgstr "Compartilhar por e-mail"
+
+#: includes/free/class-alg-wc-wish-list-email-sharing.php:81
+msgid "E-mail was sent successfully."
+msgstr "E-mail foi enviado com sucesso."
+
+#: includes/free/class-alg-wc-wish-list-email-sharing.php:157
+#: includes/free/class-alg-wc-wish-list-email-sharing.php:181
+msgid "<b>Invalid e-mail</b>. Please, provide a valid email. Separate it with comma for multiple values."
+msgstr "<b>E-mail inválido. </b>. Por favor, entre com um e-mail válido. Use vírgula para inserir vários e-mails"
+
+#: templates/share.php:122
+msgid "Emails (comma separated)"
+msgstr "Emails (separados por vírgula)"
+
+#: templates/share.php:103
+msgid "Message"
+msgstr "Mensagem"
+
+#: includes/admin/class-alg-wc-wish-list-settings-advanced.php:43
+msgid "Advanced"
+msgstr "Avançado"
+
+#: includes/admin/class-alg-wc-wish-list-settings-advanced.php:72
+msgid "Frontend Ajax URL"
+msgstr "Endereço do Ajax no frontend"
+
+#: templates/wish-list.php:430
+msgid "In stock"
+msgstr "Em estoque"
+
+#: templates/wish-list.php:336 templates/wish-list.php:483
+msgid "Remove"
+msgstr "Remover"
+
+#: templates/wish-list.php:331 templates/wish-list.php:469
+msgid "Add to cart"
+msgstr "Comprar"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:188
+#: templates/wish-list.php:306 templates/wish-list.php:429
+msgid "Stock"
+msgstr "Estoque"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:195
+#: templates/wish-list.php:286 templates/wish-list.php:400
+msgid "Price"
+msgstr "Preço"
+
+#: templates/wish-list.php:370
+msgid "Thumbnail"
+msgstr "Imagem"
+
+#: includes/admin/class-alg-wc-wish-list-settings-texts.php:205
+msgid "Share on"
+msgstr "Compartilhar em"
+
+#: includes/class-alg-wc-wish-list-core.php:1252
+msgid "Settings"
+msgstr "Opções"
+
+#: includes/class-alg-wc-wish-list-core.php:1225
+#: includes/free/class-alg-wc-wish-list-ajax.php:415
+#: includes/free/class-alg-wc-wish-list-ajax.php:624
+#: includes/free/class-alg-wc-wish-list-email-sharing.php:197
+#: includes/free/class-alg-wc-wish-list.php:196
+msgid "Sorry, Some error occurred. Please, try again later."
+msgstr "Desculpe, ocorreu algum erro. Tente novamente mais tarde."
+
+#: includes/free/class-alg-wc-wish-list-report.php:429
+#: includes/free/class-alg-wc-wish-list-report.php:457
+msgid "Wish List"
+msgstr "Favoritos"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:148
+msgid "Share on Facebook"
+msgstr "Compartilhar no facebook"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:293
+msgid "After Wish list table"
+msgstr "Depois da lista dos favoritos"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:292
+msgid "Before Wish list table"
+msgstr "Antes da lista dos favoritos"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:288
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:86
+#: includes/admin/class-alg-wc-wish-list-settings-style.php:397
+msgid "Position"
+msgstr "Posição"
+
+#: includes/admin/class-alg-wc-wish-list-settings-notification.php:98
+msgid "Ok Button"
+msgstr "Botão de Ok"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:370
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:405
+#: includes/admin/class-alg-wc-wish-list-settings-notification.php:84
+msgid "Mobile"
+msgstr "Mobile"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:362
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:397
+#: includes/admin/class-alg-wc-wish-list-settings-notification.php:77
+msgid "Desktop"
+msgstr "Desktop"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:202
+msgid "Add to cart button"
+msgstr "Botão de Comprar"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:78
+msgid "Buttons"
+msgstr "Botões"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:103
+#: includes/admin/class-alg-wc-wish-list-settings-style.php:209
+msgid "Default button"
+msgstr "Botão padrão"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:140
+msgid "Single product page"
+msgstr "Página individual do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:141
+msgid "Enable button on single product page"
+msgstr "Ativa o botão na página individual do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:158
+msgid "Default is On single product summary"
+msgstr "O padrão é no resumo individual do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:163
+msgid "On single product summary"
+msgstr "No resumo individual do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:164
+msgid "Before single product summary"
+msgstr "Antes do resumo individual do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:165
+msgid "After single product summary"
+msgstr "Depois do resumo individual do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:166
+msgid "After product thumbnail"
+msgstr "Depois da imagem do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:150
+msgid "Default is 31, right after \"add to cart\" button "
+msgstr "O padrão é 31, logo depois do botão de \"adicionar ao carrinho\""
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:305
+msgid "Product loop"
+msgstr "Looping dos produtos"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:198
+msgid "Enable button on product loop"
+msgstr "Ativa o botão no looping dos produtos"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:222
+#: includes/admin/class-alg-wc-wish-list-settings-style.php:333
+msgid "Thumb button"
+msgstr "Botão da imagem do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:275
+msgid "Product page"
+msgstr "Página do produto"
+
+#: includes/admin/class-alg-wc-wish-list-settings-buttons.php:306
+msgid "Enable the button on product loop"
+msgstr "Ativa o botão no looping dos produtos"
+
+#: includes/admin/class-alg-wc-wish-list-settings-general.php:53
+msgid "General"
+msgstr "Geral"
+
+#: includes/admin/class-alg-wc-wish-list-settings-general.php:78
+msgid "General options"
+msgstr "Opções gerais"
+
+#: includes/admin/class-alg-wc-wish-list-settings-advanced.php:141
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:79
+#: includes/admin/class-alg-wc-wish-list-settings-style.php:479
+msgid "Enable"
+msgstr "Ativar"
+
+#: includes/admin/class-alg-wc-wish-list-settings-general.php:139
+msgid "Load FontAwesome"
+msgstr "Carregar FontAwesome"
+
+#: includes/admin/class-alg-wc-wish-list-settings-list.php:101
+msgid "None"
+msgstr "Nenhum"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:87
+msgid "Places where the share buttons will be loaded"
+msgstr "Locais onde os botões de compartilhamento serão carregados"
+
+#: includes/admin/class-alg-wc-wish-list-settings-social.php:147
+#: templates/share.php:37
+msgid "Facebook"
+msgstr "Facebook"
+
+#: includes/admin/class-alg-wc-wish-list-settings-style.php:727
+#: includes/free/class-alg-wc-wish-list-widget-link.php:118
+msgid "Show icon"
+msgstr "Mostrar ícone"
+
+#: includes/free/class-alg-wc-wish-list-widget-link.php:105
+msgid "Link label:"
+msgstr "Texto do link"
+
+#: includes/free/class-alg-wc-wish-list-widget-link.php:96
+msgid "Title:"
+msgstr "Título"

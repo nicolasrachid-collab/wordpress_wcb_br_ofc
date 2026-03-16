@@ -1,0 +1,1151 @@
+# Translation of Plugins - Cart Abandonment Recovery for WooCommerce – Recover Lost Sales with Automated Emails - Stable (latest release) in Portuguese (Brazil)
+# This file is distributed under the same license as the Plugins - Cart Abandonment Recovery for WooCommerce – Recover Lost Sales with Automated Emails - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2024-01-08 12:21:43+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: GlotPress/4.0.3\n"
+"Language: pt_BR\n"
+"Project-Id-Version: Plugins - Cart Abandonment Recovery for WooCommerce – Recover Lost Sales with Automated Emails - Stable (latest release)\n"
+
+#: classes/class-cartflows-ca-tabs.php:490
+msgid "Product Custom Data: "
+msgstr "Dados personalizados do produto: "
+
+#. translators: %s: html tags
+#: classes/class-cartflows-ca-tabs.php:555
+msgid "Looks like abandonment tracking is disabled! Please enable it from %1$s settings %2$s."
+msgstr "Parece que o rastreamento de abandono está desativado! Ative-o nas configurações %1$s %2$s."
+
+#. translators: %s Message
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:457
+msgid "%s Email Template:"
+msgstr "Modelo de e-mail %s:"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:47
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:161
+#: modules/cart-abandonment/classes/class-cartflows-ca-setting-functions.php:111
+#: modules/cart-abandonment/classes/class-cartflows-ca-setting-functions.php:186
+msgid "Permission denied."
+msgstr "Permissão negada."
+
+#: classes/class-cartflows-ca-settings.php:694
+msgid "Percentage discount"
+msgstr "Percentual de desconto"
+
+#: modules/weekly-email-report/templates/email-recovery-stat.php:276
+msgid "Carts Abandoned"
+msgstr "Carrinhos abandonados"
+
+#: modules/weekly-email-report/templates/email-recovery-stat.php:153
+msgid "Carts Recovered"
+msgstr "Carrinhos recuperados"
+
+#: classes/class-cartflows-ca-settings.php:695
+msgid "Fixed cart discount"
+msgstr "Desconto fixo no carrinho"
+
+#: admin/inc/meta-options.php:218 classes/class-cartflows-ca-settings.php:261
+#: admin/src/components/Settings/RecoveryReport.js:31
+msgid "Email address to send recovery report emails. For multiple emails, add each email address per line."
+msgstr "E-mail para enviar relatórios de recuperação. Para vários e-mails, adicione cada e-mail em 1 linha."
+
+#: modules/weekly-email-report/class-cartflows-ca-admin-report-emails.php:88
+msgid "There"
+msgstr "Há"
+
+#: classes/class-cartflows-ca-settings.php:489
+msgid "Add email address per line."
+msgstr "Adicione o endereço de e-mail por linha"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:307
+msgid "%1$sCoupon Code Settings%2$s"
+msgstr "%1$sConfigurações do Código do Cupom%2$s"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:377
+msgid "%1$sWebhook Settings%2$s"
+msgstr "%1$sConfigurações de Webhook%2$s"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:387
+msgid "%1$sGDPR Settings%2$s"
+msgstr "%1$sConfigurações GDPR%2$s"
+
+#: modules/weekly-email-report/templates/email-cf-block.php:64
+msgid "GET CARTFLOWS NOW"
+msgstr "OBTER CARTFLOWS AGORA"
+
+#: modules/weekly-email-report/templates/email-cf-block.php:29
+msgid "CartFlows Pro can help you to increase conversion and maximize profits."
+msgstr "CartFlows Pro pode ajudá-lo a aumentar a conversão e maximizar lucros."
+
+#: modules/weekly-email-report/class-cartflows-ca-admin-report-emails.php:182
+msgid "You have successfully unsubscribed from our weekly emails list."
+msgstr "Você cancelou sua assinatura em nossa lista de e-mails."
+
+#: modules/weekly-email-report/templates/email-body.php:24
+msgid "Cart Abandonment Recovery Weekly Report"
+msgstr "Relatório semanal de recuperação de carrinho abandonado"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:425
+msgid "%1$sPlugin Settings%2$s"
+msgstr "%1$sConfigurações do plugin%2$s"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:155
+msgid "Don't remind me again."
+msgstr "Não me lembre novamente."
+
+#: admin/inc/meta-options.php:598
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:542
+msgid "Use WooCommerce email style"
+msgstr "Usar estilo de e-mail do WooCommerce"
+
+#: modules/weekly-email-report/templates/email-cf-block.php:46
+msgid "Want to earn 30% more store revenue on autopilot? CartFlows order bumps and upsells help you do just that. Try CartFlows Pro risk-free for 30 days!"
+msgstr "Quer ganhar 30% mais receita da loja no piloto automático? Os aumentos de pedidos e vendas adicionais do CartFlows ajudam você a fazer exatamente isso. Experimente o CartFlows Pro sem riscos por 30 dias!"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:555
+msgid "Email will be sent in WooCommerce email format. Also the sender name and sender email address will be replaced by the Woocommerce Email sender options."
+msgstr "O e-mail será enviado no formato de e-mail WooCommerce. Além disso, o nome do remetente e o endereço de e-mail do remetente serão substituídos pelas opções de remetente do Woocommerce Email."
+
+#: admin/inc/meta-options.php:210 classes/class-cartflows-ca-settings.php:252
+#: admin/build/settings.js:13
+#: admin/src/components/onboarding/screens/UserDetails.js:34
+#: admin/src/components/Settings/RecoveryReport.js:17
+msgid "Enable sending recovery report emails."
+msgstr "Ative o envio de e-mails de relatório de recuperação."
+
+#: admin/inc/meta-options.php:207 classes/class-cartflows-ca-settings.php:248
+#: admin/src/components/Settings/RecoveryReport.js:13
+msgid "Send recovery report emails"
+msgstr "Enviar e-mails de relatório de recuperação"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:241
+msgid "%1$sRecovery Report Emails%2$s"
+msgstr "%1$sE-mails de relatório de recuperação%2$s"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:188
+msgid "%1$sEmail Settings%2$s"
+msgstr "%1$sConfigurações de e-mail%2$s"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:150
+msgid "%1$sCoupons Settings%2$s"
+msgstr "%1$sConfigurações de cupons%2$s"
+
+#. translators: %1$s: html start, %2$s: html end
+#: classes/class-cartflows-ca-settings.php:55
+msgid "%1$sCart Abandonment Settings%2$s"
+msgstr "%1$sConfigurações de carrinho abandonado%2$s"
+
+#: admin/inc/meta-options.php:271 classes/class-cartflows-ca-settings.php:132
+#: admin/src/components/Settings/Advanced.js:11
+msgid "UTM parameters"
+msgstr "Parâmetros UTM"
+
+#: classes/class-cartflows-ca-default-meta.php:599
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:175
+msgid "Admin"
+msgstr "Administrador"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:143
+msgid "Triggering..."
+msgstr "Disparando..."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:144
+msgid "Trigger Failed."
+msgstr "Falha no Disparo."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:145
+msgid "Trigger Success."
+msgstr "Disparado com Sucesso."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:146
+msgid "Please verify webhook URL."
+msgstr "Verifique a URL do Webhook."
+
+#: admin/inc/meta-options.php:98 admin/inc/meta-options.php:808
+#: classes/class-cartflows-ca-settings.php:76
+#: admin/src/components/Settings/General.js:24
+msgid "Cart abandoned cut-off time"
+msgstr "Tempo limite do abandono do carrinho"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:98
+msgid "This coupon is for abandoned cart email templates."
+msgstr "Este cupom é para modelos de e-mail de carrinho abandonado."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:147
+msgid "Webhook URL is required."
+msgstr "URL do webhook é obrigatório."
+
+#: classes/class-cartflows-ca-admin-notices.php:96
+msgid "Ok, you deserve it"
+msgstr "Ok, você merece"
+
+#: classes/class-cartflows-ca-admin-notices.php:98
+msgid "Nope, maybe later"
+msgstr "Não, talvez mais tarde"
+
+#: classes/class-cartflows-ca-admin-notices.php:99
+msgid "I already did"
+msgstr "Eu já fiz"
+
+#: classes/class-cartflows-ca-settings.php:136
+#: admin/src/components/Settings/Advanced.js:15
+msgid "The UTM parameters will be appended to the checkout page links which is available in the recovery emails."
+msgstr "Os parâmetros UTM serão anexados aos links da página de finalização de compra que estão disponíveis nos e-mails de recuperação."
+
+#: classes/class-cartflows-ca-settings.php:506
+msgid "Add UTM parameter per line."
+msgstr "Adicione um parâmetro UTM por linha."
+
+#: classes/class-cartflows-ca-admin-notices.php:94
+msgid "Could you please do us a BIG favor and give it a 5-star rating on WordPress? This would boost our motivation and help other users make a comfortable decision while choosing the CartFlows cart abandonment plugin."
+msgstr "Você poderia, fazer-nos um grande favor e dar-lhe uma classificação de 5 estrelas no WordPress? Isso aumentaria nossa motivação e ajudaria outros usuários a tomar uma decisão confortável ao escolher o plugin de abandono do carrinho CartFlows."
+
+#: classes/class-cartflows-ca-settings.php:80
+msgid "Minutes. <br/><br/> <span class=\"description\"><strong>Note:</strong> Consider cart abandoned after above entered minutes of item being added to cart and order not placed.</span><span class=\"dashicons dashicons-editor-help\" title=\"Please remove the custom code to update cron cut off time, if added.\"></span>"
+msgstr "Minutos. <br/><br/> <span class=\"description\"><strong>Nota:</strong> Considere o carrinho abandonado após os minutos digitados acima após o item ser adicionado ao carrinho e o pedido não ser feito.</span><span class =\"dashicons dashicons-editor-help\" title=\"Remova o código personalizado para atualizar o tempo limite do cron, se adicionado.\"></span>"
+
+#: admin/inc/meta-options.php:299 classes/class-cartflows-ca-settings.php:439
+#: admin/src/components/Settings/Advanced.js:31
+msgid "Enabling this option will delete the plugin data while deleting the Plugin."
+msgstr "Ativar esta opção excluirá os dados do plugin enquanto exclui o plugin."
+
+#: admin/inc/meta-options.php:296 classes/class-cartflows-ca-settings.php:435
+#: admin/src/components/Settings/Advanced.js:27
+msgid "Delete Plugin Data"
+msgstr "Excluir dados plugin"
+
+#: classes/class-cartflows-ca-settings.php:108
+msgid " It will not send future recovery emails to selected order status and will mark as recovered."
+msgstr " Ele não enviará e-mails de recuperação futuros para o status do pedido selecionados e será marcado como recuperado."
+
+#: admin/inc/meta-options.php:128 classes/class-cartflows-ca-settings.php:104
+#: admin/src/components/Settings/General.js:51
+msgid "Exclude email sending For"
+msgstr "Excluir envio de e-mail Para"
+
+#. translators: %s Product title
+#: lib/bsf-analytics/class-bsf-analytics.php:506
+msgid "Allow %s products to track non-sensitive usage tracking data."
+msgstr "Permitir que %s produtos rastreiem dados de rastreamento de uso não confidenciais."
+
+#: lib/bsf-analytics/class-bsf-analytics.php:282
+msgid "Yes! Allow it"
+msgstr "Sim! Permitir"
+
+#: lib/bsf-analytics/class-bsf-analytics.php:514
+msgid "Learn More."
+msgstr "Saber mais."
+
+#: lib/bsf-analytics/class-bsf-analytics.php:509
+msgid " This will be applicable for all sites from the network."
+msgstr " Isto será aplicável a todos os sites da rede."
+
+#: lib/bsf-analytics/class-bsf-analytics.php:461
+msgid "Usage Tracking"
+msgstr "Rastreamento de uso"
+
+#. translators: %s usage doc link
+#: lib/bsf-analytics/class-bsf-analytics.php:272
+msgid " Know More."
+msgstr " Saber mais."
+
+#: lib/bsf-analytics/class-bsf-analytics.php:248
+msgid "This will be applicable for all sites from the network."
+msgstr "Isto será aplicável a todos os sites da rede."
+
+#: lib/astra-notices/class-astra-notices.php:146
+msgid "WordPress Nonce not validated."
+msgstr "WordPress nonce inválido."
+
+#: admin/inc/meta-options.php:141 classes/class-cartflows-ca-settings.php:122
+#: admin/src/components/Settings/General.js:68
+msgid "This option will send an email to admin on new order recovery."
+msgstr "Esta opção enviará um e-mail para o administrador sobre a recuperação de um novo pedido."
+
+#: admin/inc/meta-options.php:138 classes/class-cartflows-ca-settings.php:118
+#: admin/src/components/Settings/General.js:64
+msgid "Notify recovery to admin"
+msgstr "Notificar Recuperação ao Administrador"
+
+#. translators: %d order id
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:128
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:131
+msgid "New Customer Order - Recovered Order ID: %d"
+msgstr "Novo Pedido do Cliente - ID de Pedido Recuperado: "
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:133
+msgid "Search Orders"
+msgstr "Pesquisar Pedidos"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:1080
+msgid "Do you really want to export orders?"
+msgstr "Você deseja exportar os pedidos?"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:132
+msgid "Search by email"
+msgstr "Pesquisar por e-mail"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:1084
+msgid "No such order is found."
+msgstr "Nenhum pedido desse tipo foi encontrado."
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:72
+msgid "Do you really want to reschedule emails?"
+msgstr "Você realmente deseja reagendar e-mails?"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:98
+msgid "Email Sent"
+msgstr "Email enviado"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:67
+msgid "Close"
+msgstr "Fechar"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:30
+msgid "Last Month"
+msgstr "Mês passado"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:26
+msgid "Last Week"
+msgstr "Semana passada"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:22
+msgid "Yesterday"
+msgstr "Ontem"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:18
+msgid "Today"
+msgstr "Hoje"
+
+#: admin/inc/meta-options.php:456 admin/inc/meta-options.php:587
+#: admin/inc/meta-options.php:688 classes/class-cartflows-ca-settings.php:653
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:654
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:751
+msgid "Day(s)"
+msgstr "Dia(s)"
+
+#: admin/inc/meta-options.php:452 admin/inc/meta-options.php:583
+#: admin/inc/meta-options.php:684 classes/class-cartflows-ca-settings.php:652
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:653
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:750
+msgid "Hour(s)"
+msgstr "Hora(s)"
+
+#: admin/inc/meta-options.php:161 classes/class-cartflows-ca-settings.php:171
+#: admin/src/components/Settings/Coupon.js:23
+msgid "Delete Coupons Manually"
+msgstr "Excluir cupons manualmente"
+
+#: admin/inc/meta-options.php:579
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:749
+msgid "Minute(s)"
+msgstr "Minuto(s)"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:130
+msgid "Admin Firstname"
+msgstr "Nome do Administrador"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:140
+msgid "Site URL"
+msgstr "URL do Site"
+
+#. translators: %1$s: Coupons Deleted, %2$s: Deleted coupons count'.
+#: modules/cart-abandonment/classes/class-cartflows-ca-setting-functions.php:139
+msgid "%1$s: %2$d"
+msgstr "%1$s: %2$d"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:31
+msgid "Back to Reports"
+msgstr "Voltar aos Relatórios"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:59
+msgid "Are your sure?"
+msgstr "Certeza?"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:63
+msgid "Reschedule"
+msgstr "Reagendar"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:39
+msgid "Custom Filter"
+msgstr "Filtro Personalizado"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:141
+msgid "Unsubscribe Link"
+msgstr "Link de cancelamento"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:778
+msgid "Send a test email"
+msgstr "Enviar e-mail de teste"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:137
+msgid "Customer Last Name"
+msgstr "Sobrenome do cliente"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:136
+msgid "Customer First Name"
+msgstr "Nome do cliente"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:135
+msgid "Coupon Code"
+msgstr "Código do cupom"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:134
+msgid "Cart Checkout URL"
+msgstr "URL de finalização de compra do carrinho"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:138
+msgid "Customer Full Name"
+msgstr "Nome completo do cliente"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:139
+msgid "Cart Abandonment Date"
+msgstr "Data de abandono do carrinho"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:133
+msgid "Abandoned Product Names"
+msgstr "Nomes de produtos abandonados"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:99
+#: admin/build/settings.js:8 admin/build/settings.js:9
+#: admin/build/settings.js:10
+#: admin/src/components/detailedReport/EmailDetails.js:136
+#: admin/src/components/detailedReport/SmsDetails.js:194
+#: admin/src/components/detailedReport/WhatsappDetails.js:197
+msgid "Scheduled At"
+msgstr "Agendado para"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:72
+#: admin/build/settings.js:8
+#: admin/src/components/detailedReport/EmailDetails.js:101
+msgid "Reschedule Emails"
+msgstr "Reprogramar e-mails"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:52
+msgid "All new activated emails will be reschedule for this abandoned order. New emails will be sent to user according to schedule time."
+msgstr "Todos os novos e-mails ativados serão reprogramados para este pedido abandonado. Novos e-mails serão enviados ao usuário de acordo com o horário agendado."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:793
+msgid "Update Changes"
+msgstr "Atualizar alterações"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:97
+msgid "Email Coupon"
+msgstr "Cupom por e-mail"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:95
+msgid "Scheduled Template"
+msgstr "Modelo agendado"
+
+#: classes/class-cartflows-ca-settings.php:345
+msgid "<br/><br/> <span class=\"description\"><strong>Note: </strong>. Enter zero (0) to restrict coupon from expiring.</span>"
+msgstr "<br/><br/> <span class=\"description\"><strong>Nota: </strong>. Digite zero (0) para impedir que o cupom expire.</span>"
+
+#: admin/inc/meta-options.php:195 classes/class-cartflows-ca-settings.php:217
+#: admin/src/components/Settings/Email.js:35
+#: admin/src/components/Settings/Gdpr.js:28
+msgid "When a user clicks reply, which email address should that reply be sent to?"
+msgstr "Quando um usuário clica em responder, para qual endereço de e-mail essa resposta deve ser enviada?"
+
+#: admin/inc/meta-options.php:187 classes/class-cartflows-ca-settings.php:208
+#: admin/src/components/Settings/Email.js:23
+msgid "Email which send from."
+msgstr "E-mail de onde enviar."
+
+#: admin/inc/meta-options.php:179 classes/class-cartflows-ca-settings.php:199
+#: admin/src/components/Settings/Email.js:11
+msgid "Name will appear in email sent."
+msgstr "O nome aparecerá no e-mail enviado"
+
+#: classes/class-cartflows-ca-settings.php:161
+msgid "Delete coupons automatically on weekly basis.<br><span class=\"description\"><br/><strong>Note:</strong> This option will set a weekly cron to delete all <strong>expired</strong> and <strong>used</strong> coupons automatically in the background.</p>"
+msgstr "Exclua cupons automaticamente semanalmente.<br><span class=\"description\"><br/><strong>Nota:</strong> esta opção definirá um cron semanal para excluir todos os cupons <strong>expirados</strong> e Cupons <strong>usados</strong> automaticamente em segundo plano.</p>"
+
+#: classes/class-cartflows-ca-settings.php:175
+msgid "<br><strong>Note:</strong> This will delete all <strong>expired</strong> and <strong>used</strong> coupons that were created by Woo Cart Abandonment Recovery.</p>"
+msgstr "<br><strong>Nota:</strong> isso excluirá todos os cupons <strong>expirados</strong> e <strong>usados</strong> que foram criados pelo Woo Cart Abandonment Recovery.</p>"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:791
+msgid "Save Changes"
+msgstr "Salvar alterações"
+
+#: admin/inc/meta-options.php:153 classes/class-cartflows-ca-settings.php:157
+#: admin/src/components/Settings/Coupon.js:11
+msgid "Delete Coupons Automatically"
+msgstr "Excluir cupons automaticamente"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:131
+msgid "Admin Company"
+msgstr "Empresa administradora"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:132
+msgid "Abandoned Product Details Table"
+msgstr "Tabela de detalhes dos produtos abandonados"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:1079
+msgid "Do you really want to delete the used and expired coupons created by Cart Abandonment Plugin?"
+msgstr "Você realmente deseja excluir cupons usados ​​​​e expirados criados pelo Cart Abandonment Plugin?"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:179
+msgid "Activated"
+msgstr "Ativado"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:182
+msgid "Deactivated"
+msgstr "Desativado"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:172
+msgid "Something went wrong"
+msgstr "Algo deu errado"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:203
+msgid "Activate Template"
+msgstr "Ativar modelo"
+
+#: classes/class-cartflows-ca-settings.php:94
+msgid " It will ignore selected users from abandonment process when they logged in, and hence they can not receive mail for cart abandoned by themselves."
+msgstr " Ele irá ignorar os usuários selecionados do processo de abandono quando eles estiverem conectados e, portanto, eles não poderão receber mensagens sobre carrinhos abandonados por eles próprios."
+
+#: admin/inc/meta-options.php:118 admin/inc/meta-options.php:828
+#: classes/class-cartflows-ca-settings.php:90
+#: admin/src/components/Settings/General.js:38
+msgid "Disable Tracking For"
+msgstr "Desativar Rastreamento para"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:711
+msgid "Auto Apply Coupon"
+msgstr "Aplicar cupom automaticamente"
+
+#: admin/inc/meta-options.php:725
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:690
+msgid "Individual use only"
+msgstr "Somente uso individual"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:704
+msgid "Check this box if the coupon cannot be used in conjunction with other coupons."
+msgstr "Marque esta caixa se o cupom não puder ser usado em conjunto com outros cupons."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:683
+msgid "Allows you to grant free shipping. A free shipping method must be enabled in your shipping zone and be set to require \"a valid free shipping coupon\". "
+msgstr "Permite conceder frete grátis. Um método de frete grátis deve estar ativado em sua zona de frete e configurado para exigir \"um cupom de frete grátis válido\". "
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:725
+msgid " Automatically add the coupon to the cart at the checkout."
+msgstr " Adicione automaticamente cupom ao carrinho na finalização da compra."
+
+#: admin/inc/meta-options.php:708
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:670
+msgid "Free Shipping"
+msgstr "Frete grátis"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:664
+msgid "Enter zero (0) to restrict coupon from expiring"
+msgstr "Digite zero (0) para impedir que o cupom expire"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:576
+msgid "Allows you to send new coupon only for this template."
+msgstr "Permite enviar novo cupom apenas para este modelo."
+
+#: classes/class-cartflows-ca-tabs.php:54
+#: classes/class-cartflows-ca-tabs.php:55
+msgid "Cart Abandonment"
+msgstr "Carrinho Abandonado"
+
+#: classes/class-cartflows-ca-tabs.php:175
+msgid "Report"
+msgstr "Relatório"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:232
+msgid "Country:"
+msgstr "País:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:226
+msgid "City:"
+msgstr "Cidade:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:203
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:223
+msgid "Address 2:"
+msgstr "Endereço 2:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:200
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:220
+msgid "Address 1:"
+msgstr "Endereço 1:"
+
+#: classes/class-cartflows-ca-tabs.php:507
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:381
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:296
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:187
+msgid "Name"
+msgstr "Nome"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:174
+msgid "User Address Details:"
+msgstr "Detalhes do endereço do usuário:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:134
+msgid "The email has been sent."
+msgstr "O e-mail foi enviado."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:161
+msgid "No Orders Found."
+msgstr "Nenhum pedido encontrado."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:105
+msgid "Total Percentage Of Recovered Orders After Abandonment."
+msgstr "Porcentagem total de pedidos recuperados após o abandono."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:279
+msgid "The Email Template has been successfully updated."
+msgstr "O modelo de email foi atualizado com sucesso."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:270
+msgid "The Email Template has been successfully deleted."
+msgstr "O modelo de email foi excluído com sucesso."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:260
+msgid "The Email Template has been cloned successfully."
+msgstr "O modelo de email foi duplicado com sucesso."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:78
+#: admin/build/settings.js:10 admin/build/settings.js:11
+#: admin/build/settings.js:12
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:879
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:893
+#: admin/src/components/followUpTemplates/smsTemplates/SmsPreview.js:323
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:723
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:737
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappPreview.js:208
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:622
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:636
+msgid "Edit"
+msgstr "Editar"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:250
+msgid "The Email Template has been successfully added."
+msgstr "O modelo de email foi adicionado com sucesso."
+
+#: classes/class-cartflows-ca-tabs.php:525
+msgid "Shipping"
+msgstr "Envio"
+
+#: classes/class-cartflows-ca-tabs.php:520
+#: lib/bsf-analytics/modules/deactivation-survey/classes/class-deactivation-survey-feedback.php:313
+msgid "Other"
+msgstr "Outros"
+
+#: classes/class-cartflows-ca-tabs.php:516
+msgid "Discount"
+msgstr "Desconto"
+
+#: classes/class-cartflows-ca-tabs.php:509
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:383
+msgid "Price"
+msgstr "Preço"
+
+#: classes/class-cartflows-ca-tabs.php:508
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:382
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: classes/class-cartflows-ca-tabs.php:506
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:380
+msgid "Item"
+msgstr "Item"
+
+#: lib/bsf-analytics/class-bsf-analytics.php:293
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:413
+msgid "No Thanks"
+msgstr "Não, obrigado"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:252
+msgid "You have successfully unsubscribed from our email list."
+msgstr "Você cancelou a inscrição em nossa lista de e-mail com sucesso."
+
+#: classes/class-cartflows-ca-tabs.php:233 admin/build/settings.js:1
+#: admin/src/components/common/Header.js:36
+msgid "Settings"
+msgstr "Configurações"
+
+#. translators: %d count
+#: classes/class-cartflows-ca-tabs.php:88
+msgid "Items deleted: %d"
+msgstr "Itens excluídos: %d"
+
+#: classes/class-cartflows-ca-loader.php:190
+msgid "Activate WooCommerce"
+msgstr "Ativar o WooCommerce"
+
+#: classes/class-cartflows-ca-loader.php:198
+msgid "Install WooCommerce"
+msgstr "Instalar WooCommerce"
+
+#: classes/class-cartflows-ca-settings.php:403
+#: admin/src/components/Settings/Gdpr.js:24
+msgid "GDPR Message"
+msgstr "Mensagem GDPR"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:102
+msgid "Clone"
+msgstr "Clonar"
+
+#: admin/inc/meta-options.php:163 classes/class-cartflows-ca-settings.php:870
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:90
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:128
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:118
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:193
+#: admin/build/settings.js:3 admin/build/settings.js:7
+#: admin/build/settings.js:10 admin/build/settings.js:11
+#: admin/build/settings.js:12
+#: admin/src/components/common/ConfirmationModal.js:14
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:504
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:927
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:941
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:484
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:771
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:785
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:445
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:670
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:684
+#: admin/src/pages/Product.js:562 admin/src/pages/Product.js:575
+msgid "Delete"
+msgstr "Excluir"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:104
+#: admin/build/settings.js:7 admin/src/pages/Product.js:537
+#: admin/src/pages/Product.js:550
+msgid "View"
+msgstr "Ver"
+
+#: admin/inc/meta-options.php:171
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:297
+#: admin/build/settings.js:2
+#: admin/src/components/dashboard/RecentEmailLogs.js:58
+#: admin/src/components/Settings/Email.js:8
+msgid "Email"
+msgstr "E-mail"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:300
+msgid "Time"
+msgstr "Hora"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:186
+msgid "Billing Address"
+msgstr "Endereço de Cobrança"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:218
+msgid "Shipping Address"
+msgstr "Endereço de Entrega"
+
+#. Plugin URI of the plugin
+#: woo-cart-abandonment-recovery.php
+msgid "https://cartflows.com/"
+msgstr "https://cartflows.com/"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:59
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:119
+#: admin/build/settings.js:1 admin/build/settings.js:6
+#: admin/src/components/dashboard/Overview.js:108
+#: admin/src/pages/FollowUp.js:132
+msgid "Recovered Orders"
+msgstr "Pedidos recuperados"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:66
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:122
+#: admin/build/settings.js:1 admin/build/settings.js:6
+#: admin/src/components/dashboard/Overview.js:135
+#: admin/src/pages/FollowUp.js:136
+msgid "Lost Orders"
+msgstr "Pedidos perdidos"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:69
+msgid "Total Lost Orders."
+msgstr "Total de pedidos perdidos."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:54
+msgid "Total Recoverable Orders."
+msgstr "Total de pedidos recuperáveis."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:61
+msgid "Total Recovered Orders."
+msgstr "Total de pedidos recuperados."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:50
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:116
+#: admin/build/settings.js:1 admin/src/components/dashboard/Overview.js:127
+msgid "Recoverable Orders"
+msgstr "Pedidos recuperáveis"
+
+#: classes/class-cartflows-ca-settings.php:66
+msgid "Start capturing abandoned carts. <br/><br/> <span class=\"description\"><strong>Note:</strong> Cart will be considered abandoned if order is not completed in cart abandoned cut-off time.</span>"
+msgstr "Inicie a capturar carrinhos abandonados. <br/><br/> <span class=\"description\"><strong>Observação:</strong> O carrinho será considerado abandonado se o pedido não for concluído em <strong>15 minutos</strong>.</span>"
+
+#: admin/inc/meta-options.php:90 admin/inc/meta-options.php:800
+#: classes/class-cartflows-ca-settings.php:62
+#: admin/src/components/Settings/General.js:12
+msgid "Enable Tracking"
+msgstr "Ativar rastreamento"
+
+#: admin/inc/meta-options.php:184 classes/class-cartflows-ca-settings.php:204
+#: admin/src/components/Settings/Email.js:19
+msgid "\"From\" Address"
+msgstr "E-mail do remetente"
+
+#: admin/inc/meta-options.php:176 classes/class-cartflows-ca-settings.php:195
+#: admin/src/components/Settings/Email.js:10
+msgid "\"From\" Name"
+msgstr "Nome do remetente"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:212
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:891
+msgid "This order was abandoned & subsequently recovered."
+msgstr "Este pedido foi abandonado e posteriormente recuperado."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:764
+msgid "after cart is abandoned."
+msgstr "Depois que o carrinho é abandonado."
+
+#: admin/inc/meta-options.php:336 classes/class-cartflows-ca-settings.php:278
+#: admin/src/components/integrations/SMS.js:10
+#: admin/src/components/integrations/Webhook.js:14
+#: admin/src/components/integrations/WhatsApp.js:10
+#: admin/src/components/Settings/Webhook.js:14
+msgid "Enable Webhook"
+msgstr "Ativar webhook"
+
+#: admin/inc/meta-options.php:339 classes/class-cartflows-ca-settings.php:282
+#: admin/src/components/integrations/SMS.js:14
+#: admin/src/components/integrations/Webhook.js:18
+#: admin/src/components/integrations/WhatsApp.js:14
+#: admin/src/components/Settings/Webhook.js:18
+msgid "Allows you to trigger webhook automatically upon cart abandonment and recovery."
+msgstr "Permite gatilho do webhook automaticamente após o abandono e recuperação do carrinho."
+
+#: admin/inc/meta-options.php:192 classes/class-cartflows-ca-settings.php:213
+#: admin/src/components/Settings/Email.js:31
+msgid "\"Reply To\" Address"
+msgstr "Endereço \"Responder para\""
+
+#. Description of the plugin
+#: woo-cart-abandonment-recovery.php
+msgid "Recover your lost revenue. Capture email address of users on the checkout page and send follow up emails if they don't complete the purchase."
+msgstr "Recupere sua receita perdida. Capture os endereços de e-mail dos usuários na página de finalização de compra e envie e-mails de acompanhamento caso eles não tenham concluído a compra."
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:206
+#: admin/build/settings.js:8
+#: admin/src/components/detailedReport/UserAddressDetails.js:132
+#: admin/src/components/detailedReport/UserAddressDetails.js:191
+msgid "Country, City:"
+msgstr "País, cidade:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:209
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:229
+#: admin/build/settings.js:8
+#: admin/src/components/detailedReport/UserAddressDetails.js:141
+#: admin/src/components/detailedReport/UserAddressDetails.js:202
+msgid "State:"
+msgstr "UF:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:243
+msgid "Checkout Link"
+msgstr "Link para finalização de compra"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:195
+msgid "Phone"
+msgstr "Telefone"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:86
+msgid "Total Recoverable Revenue."
+msgstr "Total de Receita recuperável."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:98
+msgid "Total Recovered Revenue."
+msgstr "Total de receita recuperada."
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:258
+msgid "User Order Details:"
+msgstr "Detalhes do pedido usuário:"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:78
+msgid " No Email Scheduled."
+msgstr " Nenhum e-mail agendado."
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:42
+msgid "Email Details:"
+msgstr "Detalhes e-mail:"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:414
+msgid "You won't receive further emails from us, thank you!"
+msgstr "Você não receberá mais e-mails de nós, obrigado!"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:213
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:235
+msgid "Postcode:"
+msgstr "Código postal"
+
+#: classes/class-cartflows-ca-settings.php:257
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:190
+msgid "Email address"
+msgstr "Endereço de e-mail"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-tracking.php:255
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:178
+#: modules/weekly-email-report/class-cartflows-ca-admin-report-emails.php:182
+#: admin/build/settings.js:6 admin/build/settings.js:10
+#: admin/build/settings.js:11
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:685
+#: admin/src/components/followUpTemplates/smsTemplates/SmsPreview.js:260
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:617
+#: admin/src/pages/FollowUp.js:822 admin/src/pages/FollowUp.js:833
+#: admin/src/pages/FollowUp.js:844
+msgid "Unsubscribed"
+msgstr "Inscrição cancelada"
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:138
+msgid "The email has been unscheduled due to the complete order and won't be sent further."
+msgstr "O e-mail foi desmarcado devido ao pedido concluído e não será enviado posteriormente."
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:129
+msgid "Email is in the queue and will be sent at the scheduled time."
+msgstr "O e-mail está na fila e será enviado no horário agendado."
+
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:126
+msgid "The email has been unsubscribed and won't be sent further."
+msgstr "A inscrição do e-mail foi cancelada e não será mais enviada."
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:1118
+#: admin/build/settings.js:10 admin/build/settings.js:11
+#: admin/build/settings.js:12
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:557
+#: admin/src/components/followUpTemplates/smsTemplates/SmsPreview.js:209
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:537
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappPreview.js:144
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:484
+msgid "Create New Template"
+msgstr "Criar novo modelo"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:774
+msgid "Send Test Email To:"
+msgstr "Enviar e-mail de teste para:"
+
+#: admin/inc/meta-options.php:562
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:731
+msgid "Send This Email"
+msgstr "Envie este e-mail"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:633
+msgid "Coupon expiry date"
+msgstr "Data de validade do cupom"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:563
+msgid "Create Coupon"
+msgstr "Criar cupom"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:513
+msgid "Email Body:"
+msgstr "Corpo do e-mail:"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:498
+msgid "Email Subject:"
+msgstr "Assunto do e-mail:"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:483
+msgid "Template Name:"
+msgstr "Nome do modelo:"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:463
+msgid "Activate Template now?"
+msgstr "Ativar modelo agora?"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:289
+msgid "Default Email Templates has been restored successfully."
+msgstr "Os modelos de e-mail padrão foram restaurados com sucesso."
+
+#: classes/class-cartflows-ca-tabs.php:529
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:298
+#: admin/build/settings.js:2 admin/build/settings.js:6
+#: admin/src/components/dashboard/RecentEmailLogs.js:64
+#: admin/src/pages/FollowUp.js:692
+msgid "Cart Total"
+msgstr "Total do carrinho"
+
+#: classes/class-cartflows-ca-tabs.php:510
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:384
+msgid "Line Subtotal"
+msgstr "Subtotal de linha"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:373
+msgid "Cart Total ( Cart Total + Shipping + Tax )"
+msgstr "Total do carrinho (total do carrinho + frete + impostos)"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:136
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:197
+#: modules/weekly-email-report/templates/email-footer.php:55
+#: admin/build/settings.js:6 admin/src/pages/FollowUp.js:796
+#: admin/src/pages/FollowUp.js:809
+msgid "Unsubscribe"
+msgstr "Cancelar assinatura"
+
+#: admin/inc/meta-options.php:519
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:201
+#: modules/cart-abandonment/includes/cartflows-ca-single-report-details.php:96
+#: admin/build/settings.js:8 admin/build/settings.js:10
+#: admin/src/components/detailedReport/EmailDetails.js:124
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:608
+msgid "Email Subject"
+msgstr "Assunto do e-mail"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:107
+msgid "there"
+msgstr "lá"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:202
+#: admin/build/settings.js:10 admin/build/settings.js:11
+#: admin/build/settings.js:12
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:614
+#: admin/src/components/followUpTemplates/smsTemplates/SmsPreview.js:229
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:586
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappPreview.js:164
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:533
+msgid "Trigger After"
+msgstr "Disparar após"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-cron.php:61
+msgid "Every Fifteen Minutes"
+msgstr "A cada quinze minutos"
+
+#: classes/class-cartflows-ca-tabs.php:192
+msgid "Follow-Up Emails"
+msgstr "E-mails de acompanhamento"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:55
+msgid "Mail sending failed!"
+msgstr "Falha no envio de e-mail!"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-schedule.php:53
+msgid "Mail has been sent successfully!"
+msgstr "O e-mail foi enviado com sucesso!"
+
+#: classes/class-cartflows-ca-tabs.php:106
+msgid "User(s) unsubscribed successfully!"
+msgstr "Assinatura do usuário(s) cancelado(s) com sucesso!"
+
+#: admin/inc/meta-options.php:378 admin/inc/meta-options.php:624
+#: classes/class-cartflows-ca-settings.php:323
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:583
+#: admin/src/components/integrations/Webhook.js:56
+#: admin/src/components/Settings/Webhook.js:56
+msgid "Discount Type"
+msgstr "Tipo de desconto"
+
+#: admin/inc/meta-options.php:410 admin/inc/meta-options.php:651
+#: classes/class-cartflows-ca-settings.php:332
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:615
+#: admin/src/components/integrations/Webhook.js:78
+#: admin/src/components/Settings/Webhook.js:78
+msgid "Coupon Amount"
+msgstr "Valor do cupom"
+
+#: admin/inc/meta-options.php:361 admin/inc/meta-options.php:615
+#: classes/class-cartflows-ca-settings.php:314
+#: admin/src/components/integrations/Webhook.js:42
+#: admin/src/components/Settings/Webhook.js:42
+msgid "Create Coupon Code"
+msgstr "Criar código de cupom"
+
+#: admin/inc/meta-options.php:364 classes/class-cartflows-ca-settings.php:318
+#: admin/src/components/integrations/Webhook.js:46
+#: admin/src/components/Settings/Webhook.js:46
+msgid "Auto-create the special coupon for the abandoned cart to send over the emails."
+msgstr "Crie automaticamente o cupom especial para o carrinho abandonado enviar pelos e-mails."
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:103
+#: modules/weekly-email-report/templates/email-recovery-stat.php:310
+#: admin/build/settings.js:1 admin/src/components/dashboard/Overview.js:143
+msgid "Recovery Rate"
+msgstr "Taxa de recuperação"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:91
+#: modules/weekly-email-report/templates/email-recovery-stat.php:119
+#: modules/weekly-email-report/templates/email-recovery-stat.php:479
+#: admin/build/settings.js:1 admin/build/settings.js:2
+#: admin/src/components/dashboard/Overview.js:94
+#: admin/src/components/dashboard/Overview.js:274
+msgid "Recovered Revenue"
+msgstr "Receita recuperada"
+
+#: modules/cart-abandonment/includes/cartflows-cart-abandonment-reports.php:78
+#: admin/build/settings.js:1 admin/build/settings.js:2
+#: admin/src/components/dashboard/Overview.js:117
+#: admin/src/components/dashboard/Overview.js:265
+msgid "Recoverable Revenue"
+msgstr "Receita recuperável"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-order-table.php:299
+#: admin/build/settings.js:2 admin/build/settings.js:6
+#: admin/src/components/dashboard/RecentEmailLogs.js:70
+#: admin/src/pages/FollowUp.js:698
+msgid "Order Status"
+msgstr "Status do pedido"
+
+#: admin/inc/meta-options.php:511
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates-table.php:200
+#: admin/build/settings.js:10 admin/build/settings.js:11
+#: admin/build/settings.js:12
+#: admin/src/components/followUpTemplates/emailTemplates/EmailTemplates.js:600
+#: admin/src/components/followUpTemplates/smsTemplates/SmsPreview.js:223
+#: admin/src/components/followUpTemplates/smsTemplates/SmsTemplates.js:580
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappPreview.js:158
+#: admin/src/components/followUpTemplates/whatsappTemplates/WhatsappTemplates.js:527
+msgid "Template Name"
+msgstr "Nome do modelo"
+
+#: modules/cart-abandonment/classes/class-cartflows-ca-email-templates.php:1121
+msgid " Restore Default Templates"
+msgstr " Restaurar modelos padrão"
+
+#: admin/inc/meta-options.php:344 classes/class-cartflows-ca-settings.php:287
+#: admin/src/components/integrations/Webhook.js:28
+#: admin/src/components/Settings/Webhook.js:28
+msgid "Webhook URL"
+msgstr "URL do webhook"
+
+#: admin/inc/meta-options.php:432 admin/inc/meta-options.php:668
+#: classes/class-cartflows-ca-settings.php:341
+#: admin/src/components/integrations/Webhook.js:90
+#: admin/src/components/Settings/Webhook.js:90
+msgid "Coupon Expires After"
+msgstr "O cupom expira depois"
+
+#: classes/class-cartflows-ca-settings.php:394
+#: admin/src/components/Settings/Gdpr.js:11
+msgid "Enable GDPR Integration"
+msgstr "Ativar a integração GDPR"
+
+#: classes/class-cartflows-ca-settings.php:398
+msgid "Ask confirmation from the user before tracking data. <br/><br/> <span class=\"description\"><strong>Note:</strong> By checking this, it will show up confirmation text below the email id on checkout page.</span>"
+msgstr "Peça a confirmação do usuário antes de rastrear os dados. <br/><br/> <span class=\"description\"><strong>Nota:</strong> Ao marcar esta opção, será mostrado texto de confirmação abaixo do ID do e-mail na página de finalização da compra.</span>"
+
+#: classes/class-cartflows-ca-settings.php:720
+msgid "Coupon code should be numeric and has to be greater than or equals to 1."
+msgstr "O código do cupom deve ser numérico e deve ser maior ou igual a 1."
+
+#: classes/class-cartflows-ca-settings.php:998
+msgid "Invalid email \"Reply\" address field"
+msgstr "Campo de endereço \"Responder\" de e-mail inválido"
+
+#: classes/class-cartflows-ca-settings.php:980
+msgid "Invalid email \"From\" address field"
+msgstr "Campo de endereço \"De\" de e-mail inválido"

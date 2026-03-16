@@ -1,0 +1,83 @@
+# Translation of Plugins - Side Cart Woocommerce | Woocommerce Cart - Stable (latest release) in Portuguese (Brazil)
+# This file is distributed under the same license as the Plugins - Side Cart Woocommerce | Woocommerce Cart - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2025-02-13 13:24:46+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: GlotPress/4.0.1\n"
+"Language: pt_BR\n"
+"Project-Id-Version: Plugins - Side Cart Woocommerce | Woocommerce Cart - Stable (latest release)\n"
+
+#: includes/class-xoo-wsc-frontend.php:143
+msgid "Quantity can only be purchased in multiple of %s%"
+msgstr "Quantidade só pode ser comprada em múltiplos de %s%"
+
+#: includes/class-xoo-wsc-frontend.php:142
+msgid "Only %s% in stock"
+msgstr "Apenas %s% em estoque"
+
+#: includes/class-xoo-wsc-cart.php:157
+msgid "Item updated"
+msgstr "Item atualizado"
+
+#: includes/class-xoo-wsc-cart.php:153
+msgid "Undo?"
+msgstr "Desfazer?"
+
+#: templates/xoo-wsc-body.php:30
+msgid "Empty Cart"
+msgstr "Carrinho vazio"
+
+#. Description of the plugin
+#: xoo-wsc-main.php
+msgid "Manage your cart from just a click away"
+msgstr "Gerencie seu carrinho com apenas um clique"
+
+#. Plugin URI of the plugin
+#: xoo-wsc-main.php
+msgid "http://xootix.com/side-cart-woocommerce"
+msgstr "http://xootix.com/side-cart-woocommerce"
+
+#. Plugin Name of the plugin
+#: xoo-wsc-main.php
+msgid "Side Cart WooCommerce"
+msgstr "Side Cart WooCommerce"
+
+#: includes/class-xoo-wsc-frontend.php:145
+msgid "Please enter promo code"
+msgstr "Digite o código promocional"
+
+#: includes/class-xoo-wsc-cart.php:151
+msgid "Item removed"
+msgstr "Item removido"
+
+#: admin/templates/preview/xoo-wsc-product-card-preview.php:10
+#: admin/templates/preview/xoo-wsc-product-row-preview.php:119
+#: templates/global/body/product-card.php:61
+#: templates/global/body/product.php:129
+msgid "Price: "
+msgstr "Preço: "
+
+#: includes/class-xoo-wsc-frontend.php:144
+msgid "Please use checkout form to calculate shipping"
+msgstr "Use o formulário de finalização de compra para calcular o frete"
+
+#: admin/templates/preview/xoo-wsc-product-card-preview.php:106
+#: admin/templates/preview/xoo-wsc-product-row-preview.php:110
+#: templates/global/body/product-card.php:105
+#: templates/global/body/product.php:120
+msgid "Qty:"
+msgstr "Qtd:"
+
+#. Author of the plugin
+#: xoo-wsc-main.php
+msgid "XootiX"
+msgstr "XootiX"
+
+#. Author URI of the plugin
+#: xoo-wsc-main.php
+msgid "http://xootix.com"
+msgstr "http://xotix.com"

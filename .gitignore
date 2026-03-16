@@ -1,0 +1,64 @@
+# =============================================
+# WordPress .gitignore — White Cloud Brasil
+# =============================================
+
+# Configurações sensíveis
+wp-config.php
+wp-config-local.php
+.env
+.env.*
+
+# Core WordPress (opcional: mantenha se quiser versionar o core)
+# /wp-admin/
+# /wp-includes/
+
+# Uploads (imagens/mídia — pesado, use CDN/backup separado)
+wp-content/uploads/
+
+# Caches de plugins
+wp-content/cache/
+wp-content/w3tc-config/
+wp-content/wflogs/
+
+# Logs
+*.log
+debug.log
+logs/
+
+# Arquivos de compilação / build
+node_modules/
+.sass-cache/
+.cache/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# PHP
+*.phar
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Zip temporários
+*.zip
+*.tar.gz
+*.tar
+
+# WooCommerce logs
+wp-content/plugins/woocommerce/logs/
+
+# Arquivos temporários do XAMPP
+xampp/
