@@ -1,0 +1,527 @@
+/* ================================================================
+   WCB NATIVE FILTER v2 — Premium Clean Design
+   AJAX + Attributes + Dynamic Count
+   ================================================================ */
+
+/* ── Container ──────────────────────────────────────────────── */
+.wcb-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ══ RESULT COUNT (top of filter) ═══════════════════════════ */
+.wcb-filter__result-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  border-bottom: 1px solid #f1f5f9;
+}
+.wcb-filter__result-count svg {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+.wcb-filter__result-count #wcb-filter-count-text {
+  color: #475569;
+  font-weight: 600;
+}
+
+/* Pulse animation for count update */
+@keyframes wcbCountPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); color: #2563eb; }
+  100% { transform: scale(1); }
+}
+.wcb-filter__count--pulse {
+  animation: wcbCountPulse .5s ease;
+}
+
+/* ── Section (cada grupo de filtro) ──────────────────────────── */
+.wcb-filter__section {
+  border-bottom: 1px solid #f1f5f9;
+}
+.wcb-filter__section:last-of-type {
+  border-bottom: none;
+}
+
+/* ── Header do accordion ──────────────────────────────────────── */
+.wcb-filter__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: color .15s;
+}
+.wcb-filter__section-header:hover {
+  color: #2563eb;
+}
+.wcb-filter__section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0f172a;
+}
+.wcb-filter__chevron {
+  color: #94a3b8;
+  transition: transform .25s;
+  flex-shrink: 0;
+}
+.wcb-filter__section-header[aria-expanded="false"] .wcb-filter__chevron {
+  transform: rotate(-90deg);
+}
+
+/* ── Body transition ─────────────────────────────────────────── */
+.wcb-filter__section-body {
+  padding-bottom: 12px;
+  overflow: hidden;
+  transition: max-height .3s ease, opacity .25s ease, padding-bottom .25s;
+}
+
+/* ── Lista de opções ─────────────────────────────────────────── */
+.wcb-filter__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.wcb-filter__sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 22px;
+}
+
+/* Attribute list — compact scrollable */
+.wcb-filter__attr-list {
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+.wcb-filter__attr-list::-webkit-scrollbar {
+  width: 4px;
+}
+.wcb-filter__attr-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.wcb-filter__attr-list::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.wcb-filter__item {
+  margin: 0;
+}
+
+/* ── Checkbox / Radio Labels ─────────────────────────────────── */
+.wcb-filter__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s;
+  font-size: 0.82rem;
+  color: #334155;
+  line-height: 1.4;
+  position: relative;
+}
+.wcb-filter__checkbox-label:hover {
+  background: #f8fafc;
+}
+
+/* Hide native inputs */
+.wcb-filter__checkbox-label input[type="checkbox"],
+.wcb-filter__checkbox-label input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ── Custom Checkbox ─────────────────────────────────────────── */
+.wcb-filter__checkmark {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  background: #fff;
+  flex-shrink: 0;
+}
+.wcb-filter__checkmark::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  transform: scale(0.3);
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+}
+.wcb-filter__checkbox-label input[type="checkbox"]:checked ~ .wcb-filter__checkmark {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: scale(1);
+}
+.wcb-filter__checkbox-label input[type="checkbox"]:checked ~ .wcb-filter__checkmark::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Micro-bounce on check */
+@keyframes wcbCheckBounce {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.wcb-filter__checkbox-label input[type="checkbox"]:checked ~ .wcb-filter__checkmark {
+  animation: wcbCheckBounce .3s ease;
+}
+
+/* ── Custom Radio ────────────────────────────────────────────── */
+.wcb-filter__radio {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+  background: #fff;
+  flex-shrink: 0;
+}
+.wcb-filter__radio::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2563eb;
+  opacity: 0;
+  transform: scale(0);
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+}
+.wcb-filter__checkbox-label input[type="radio"]:checked ~ .wcb-filter__radio {
+  border-color: #2563eb;
+}
+.wcb-filter__checkbox-label input[type="radio"]:checked ~ .wcb-filter__radio::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Checked label style */
+.wcb-filter__checkbox-label:has(input:checked) {
+  color: #0f172a;
+  font-weight: 600;
+  background: #eff6ff;
+}
+
+/* ── Count badge ─────────────────────────────────────────────── */
+.wcb-filter__count {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 1px 7px;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
+  transition: all .2s;
+}
+.wcb-filter__checkbox-label:has(input:checked) .wcb-filter__count {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+/* ── Stock dot ───────────────────────────────────────────────── */
+.wcb-filter__stock-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.wcb-filter__stock-dot--in  { background: #22c55e; }
+.wcb-filter__stock-dot--out { background: #ef4444; }
+
+/* ── Text label ──────────────────────────────────────────────── */
+.wcb-filter__text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ================================================================
+   PRICE RANGE SLIDER
+   ================================================================ */
+.wcb-filter__price-range {
+  padding: 4px 2px 0;
+}
+
+.wcb-filter__price-slider {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.wcb-filter__price-track {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.wcb-filter__price-fill {
+  position: absolute;
+  height: 4px;
+  background: #2563eb;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: left .1s, width .1s;
+}
+
+/* Range inputs */
+.wcb-filter__range {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+  outline: none;
+}
+
+.wcb-filter__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  cursor: grab;
+  pointer-events: all;
+  position: relative;
+  z-index: 2;
+  transition: box-shadow .15s, transform .1s;
+}
+.wcb-filter__range::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px rgba(37,99,235,.12), 0 1px 4px rgba(0,0,0,.12);
+}
+.wcb-filter__range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 6px rgba(37,99,235,.15), 0 2px 6px rgba(0,0,0,.15);
+}
+
+.wcb-filter__range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  cursor: grab;
+  pointer-events: all;
+}
+
+/* Price labels */
+.wcb-filter__price-labels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.wcb-filter__price-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 3px 10px;
+  border-radius: 6px;
+  min-width: 65px;
+  text-align: center;
+  transition: border-color .15s;
+}
+.wcb-filter__price-sep {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+}
+
+/* ================================================================
+   ACTIONS (APPLY / CLEAR)
+   ================================================================ */
+.wcb-filter__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.wcb-filter__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background .15s, color .15s, transform .1s;
+  text-decoration: none !important;
+  border: none;
+  font-family: inherit;
+  text-align: center;
+}
+
+.wcb-filter__btn--apply {
+  background: #2563eb;
+  color: #fff;
+}
+.wcb-filter__btn--apply:hover {
+  background: #1d4ed8;
+}
+
+/* Loading state */
+.wcb-filter__btn--loading {
+  opacity: .7;
+  pointer-events: none;
+  position: relative;
+}
+.wcb-filter__btn--loading::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: wcbSpin .6s linear infinite;
+  margin-left: 6px;
+}
+
+@keyframes wcbSpin {
+  to { transform: rotate(360deg); }
+}
+
+.wcb-filter__btn--clear {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+.wcb-filter__btn--clear:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* ================================================================
+   AJAX LOADING STATE — product grid
+   ================================================================ */
+.wcb-shop__main {
+  transition: opacity .2s ease, transform .2s ease;
+}
+.wcb-filter--loading {
+  opacity: .5 !important;
+  pointer-events: none;
+}
+
+/* ================================================================
+   NO RESULTS — premium empty state
+   ================================================================ */
+.wcb-filter__no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  min-height: 300px;
+}
+.wcb-filter__no-results-icon {
+  margin-bottom: 20px;
+  opacity: .5;
+}
+.wcb-filter__no-results h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px;
+}
+.wcb-filter__no-results p {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ================================================================
+   ACTIVE FILTER CHIPS (above product grid)
+   ================================================================ */
+.wcb-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.wcb-filter-chips:empty {
+  display: none;
+}
+.wcb-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-decoration: none !important;
+  transition: background .15s;
+}
+.wcb-filter-chip:hover {
+  background: #dbeafe;
+}
+.wcb-filter-chip svg { flex-shrink: 0; }
+
+.wcb-filter-chip--clear {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+.wcb-filter-chip--clear:hover {
+  background: #f8fafc;
+  color: #ef4444;
+}

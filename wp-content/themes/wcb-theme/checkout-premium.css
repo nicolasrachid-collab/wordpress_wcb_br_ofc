@@ -1,0 +1,143 @@
+/* ============================================================
+   CartFlows Checkout — WCB Premium Overrides
+   Progress bar, logo sizing, icon colors, and refinements
+   ============================================================ */
+
+/* --- Progress Bar: prevent text wrapping (Spectra UAGB blocks) --- */
+.uagb-icon-list__label {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+}
+
+.wcf-checkout-header-progress-bar .step-name,
+.wcf-checkout-header-progress-bar span {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+}
+
+/* --- Logo: proper sizing --- */
+img[src*="white-cloud-brasil-logo"] {
+    width: 150px !important;
+    height: auto !important;
+}
+
+.wcf-checkout-header-image img {
+    max-height: 60px !important;
+    min-height: 40px !important;
+    width: auto !important;
+    object-fit: contain;
+}
+
+/* --- Icons & Progress Dots: WCB Blue (#155DFD) --- */
+.wp-block-uagb-icon-list .uagb-icon-list__source-icon svg {
+    fill: var(--wcb-blue) !important;
+    color: var(--wcb-blue) !important;
+}
+
+.wp-block-uagb-icon-list .uagb-icon-list__source-icon svg path {
+    fill: var(--wcb-blue) !important;
+}
+
+/* Progress bar active dot border/ring */
+.uagb-icon-list__source-wrap {
+    color: var(--wcb-blue) !important;
+}
+
+/* ==========================================================
+   WCB INJECTED HEADER — CartFlows Canvas pages
+   CartFlows Canvas applies transform/position overrides that
+   push elements off-screen. Force static positioning so our
+   injected nav renders at the top of the page.
+   ========================================================== */
+.cartflows-canvas .wcb-topbar,
+.cartflows-canvas .wcb-header,
+.cartflows-canvas .wcb-nav,
+.cartflows-canvas .wcb-mobile-menu,
+.cartflows-canvas .wcb-mobile-overlay {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: revert !important;
+    z-index: auto !important;
+}
+
+/* Ensure the CartFlows canvas body doesn't clip our injected header */
+.cartflows-canvas body,
+body.cartflows-canvas {
+    overflow-x: hidden;
+}
+
+/* Stack: injected nav first, then CartFlows native logo+steps header */
+.cartflows-canvas .wcb-topbar {
+    display: flex !important;
+}
+.cartflows-canvas .wcb-header {
+    display: block !important;
+}
+.cartflows-canvas .wcb-nav {
+    display: block !important;
+}
+
+/* Prevent CartFlows progress bar from overlapping */
+.cartflows-canvas .wcf-checkout-header {
+    margin-top: 0 !important;
+}
+
+/* Hide mobile sidebar menu by default on CartFlows pages
+   (it opens via JS which may not be fully loaded in Canvas template) */
+.cartflows-canvas .wcb-mobile-menu {
+    display: none !important;
+    transform: translateX(-100%) !important;
+}
+.cartflows-canvas .wcb-mobile-overlay {
+    display: none !important;
+}
+
+/* ==========================================================
+   PAYMENT LOGOS — above the submit button
+   ========================================================== */
+.wcb-payment-logos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 14px 0 10px;
+    border-top: 1px solid var(--wcb-gray-200);
+}
+.wcb-payment-logos__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--wcb-gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.wcb-payment-logos__label::before {
+    content: "🔒";
+    font-size: 12px;
+}
+.wcb-payment-logos__icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.wcb-pay-icon {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    transition: transform 0.15s;
+}
+.wcb-pay-icon:hover {
+    transform: translateY(-1px);
+}

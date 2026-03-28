@@ -1,0 +1,2144 @@
+<?php
+/**
+ * WCB Theme — Front Page Template
+ * Página inicial da loja com seções dinâmicas
+ *
+ * @package WCB_Theme
+ */
+
+get_header();
+?>
+
+
+
+<!-- ==================== HERO BANNER SLIDER ==================== -->
+
+<?php
+$theme_uri = get_template_directory_uri();
+
+// Slide data — 100% configurável via Aparência → Personalizar → Banner Principal
+$slides = [
+    [
+        'bg'           => get_theme_mod('hero_slide1_image',        $theme_uri . '/images/banner-1.png'),
+        'bg_mobile'    => get_theme_mod('hero_slide1_mobile_image', ''),
+        'video_url'    => get_theme_mod('hero_slide1_video_url',    ''),
+        'badge'        => get_theme_mod('hero_slide1_badge',        '🔥 Lançamento'),
+        'label'        => 'Pod System',
+        'title'        => get_theme_mod('hero_slide1_title',        'Vaporesso XROS 4'),
+        'subtitle'     => get_theme_mod('hero_slide1_subtitle',     'O pod mais avançado e elegante do Brasil'),
+        'cta'          => get_theme_mod('hero_slide1_cta',          'Ver Produto'),
+        'cta_url'      => get_theme_mod('hero_slide1_cta_url',      home_url('/produto/vaporesso-xros-4/')),
+        'cta2'         => 'Ver Pods',
+        'cta2_url'     => home_url('/categoria/pods/'),
+        'pix'          => '5% OFF no PIX',
+        'align'        => 'left',
+        'overlay'      => 'rgba(4, 10, 40, 0.55)',
+    ],
+    [
+        'bg'           => get_theme_mod('hero_slide2_image',        $theme_uri . '/images/banner-2.png'),
+        'bg_mobile'    => get_theme_mod('hero_slide2_mobile_image', ''),
+        'video_url'    => get_theme_mod('hero_slide2_video_url',    ''),
+        'badge'        => get_theme_mod('hero_slide2_badge',        '⚡ Até 30% OFF'),
+        'label'        => 'Super Ofertas',
+        'title'        => get_theme_mod('hero_slide2_title',        'Juices Importados'),
+        'subtitle'     => get_theme_mod('hero_slide2_subtitle',     'Os melhores sabores com o melhor preço'),
+        'cta'          => get_theme_mod('hero_slide2_cta',          'Ver Promoções'),
+        'cta_url'      => get_theme_mod('hero_slide2_cta_url',      home_url('/promocoes/')),
+        'cta2'         => 'Ver Juices',
+        'cta2_url'     => home_url('/categoria/juices/'),
+        'pix'          => 'Frete grátis acima de R$ 299',
+        'align'        => 'left',
+        'overlay'      => 'rgba(20, 5, 40, 0.58)',
+    ],
+    [
+        'bg'           => get_theme_mod('hero_slide3_image',        $theme_uri . '/images/banner-3.png'),
+        'bg_mobile'    => get_theme_mod('hero_slide3_mobile_image', ''),
+        'video_url'    => get_theme_mod('hero_slide3_video_url',    ''),
+        'badge'        => get_theme_mod('hero_slide3_badge',        '🔥 Oferta Especial'),
+        'label'        => 'Destaque',
+        'title'        => get_theme_mod('hero_slide3_title',        'Gifts Especiais'),
+        'subtitle'     => get_theme_mod('hero_slide3_subtitle',     '15% OFF em kits selecionados para você'),
+        'cta'          => get_theme_mod('hero_slide3_cta',          'Ver Kits'),
+        'cta_url'      => get_theme_mod('hero_slide3_cta_url',      home_url('/categoria/kits/')),
+        'cta2'         => 'Ver Promoções',
+        'cta2_url'     => home_url('/promocoes/'),
+        'pix'          => '15% OFF no PIX',
+        'align'        => 'left',
+        'overlay'      => 'rgba(40, 5, 30, 0.52)',
+    ],
+];
+?>
+
+<?php
+// Gera CSS responsivo de imagem mobile apenas para slides que têm bg_mobile
+$has_mobile_bg = false;
+$mobile_css    = '';
+foreach ($slides as $i => $s) {
+    if (!empty($s['bg_mobile'])) {
+        $has_mobile_bg = true;
+        $mobile_css .= ".wcb-hero__slide[data-slide-index='{$i}'] { background-image: url('" . esc_url($s['bg_mobile']) . "'); }\n";
+    }
+}
+if ($has_mobile_bg):
+?>
+<style>
+@media (max-width: 768px) {
+<?php echo $mobile_css; ?>
+}
+</style>
+<?php endif; ?>
+
+<section class="wcb-hero" id="wcb-hero">
+    <div class="wcb-hero__track" id="wcb-hero-track">
+        <?php foreach ($slides as $i => $s): ?>
+            <div class="wcb-hero__slide<?php echo $i === 0 ? ' active' : ''; ?>"
+                data-slide-index="<?php echo $i; ?>"
+                <?php if (empty($s['video_url'])): ?>
+                style="background-image: url('<?php echo esc_url($s['bg']); ?>');"<?php endif; ?>>
+
+                <?php if (!empty($s['video_url'])): ?>
+                <video
+                    class="wcb-hero__video"
+                    src="<?php echo esc_url($s['video_url']); ?>"
+                    autoplay muted loop playsinline
+                    poster="<?php echo esc_url($s['bg']); ?>"
+                    aria-hidden="true">
+                </video>
+                <?php endif; ?>
+
+            </div>
+        <?php endforeach; ?>
+
+    </div>
+
+    <!-- Arrows -->
+    <button class="wcb-hero__arrow wcb-hero__arrow--prev" id="hero-prev" aria-label="Anterior">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+        </svg>
+    </button>
+    <button class="wcb-hero__arrow wcb-hero__arrow--next" id="hero-next" aria-label="Próximo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6" />
+        </svg>
+    </button>
+
+    <!-- Dots -->
+    <div class="wcb-hero__dots" id="hero-dots">
+        <?php foreach ($slides as $i => $s): ?>
+            <button class="wcb-hero__dot<?php echo $i === 0 ? ' active' : ''; ?>" data-slide="<?php echo $i; ?>"
+                aria-label="Slide <?php echo $i + 1; ?>"></button>
+        <?php endforeach; ?>
+    </div>
+</section>
+
+
+
+
+
+<!-- ==================== TRUST BAR ==================== -->
+<section class="wcb-trust">
+<div class="wcb-container">
+<div class="wcb-trust__grid">
+
+  <div class="wcb-trust__item">
+      <div class="wcb-trust__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+      </div>
+      <div class="wcb-trust__text">
+          <strong>Frete Rápido para Todo o Brasil</strong>
+          <span>Entrega ágil e garantida</span>
+      </div>
+  </div>
+
+  <div class="wcb-trust__item">
+      <div class="wcb-trust__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+      </div>
+      <div class="wcb-trust__text">
+          <strong>Compra Protegida</strong>
+          <span>Segurança total no pagamento</span>
+      </div>
+  </div>
+
+  <div class="wcb-trust__item">
+      <div class="wcb-trust__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+      </div>
+      <div class="wcb-trust__text">
+          <strong>Experiência Sem Risco</strong>
+          <span>Troca simples, rápida e garantida</span>
+      </div>
+  </div>
+
+  <div class="wcb-trust__item">
+      <div class="wcb-trust__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+          </svg>
+      </div>
+      <div class="wcb-trust__text">
+          <strong>Original de Verdade</strong>
+          <span>Sem réplicas, sem surpresas</span>
+      </div>
+  </div>
+
+</div>
+</div>
+</section>
+
+
+<!-- ==================== NOVIDADES ==================== -->
+<?php if (class_exists('WooCommerce')): ?>
+    <section class="wcb-section">
+        <div class="wcb-container">
+
+            <?php
+            // ── Novidades: cache de 12h via transient ────────────────────────
+            $all_cards = get_transient('wcb_home_novidades_v2');
+            if (false === $all_cards) {
+                $novidades = new WP_Query(array(
+                    'post_type'      => 'product',
+                    'posts_per_page' => 30,
+                    'orderby'        => 'date',
+                    'order'          => 'DESC',
+                    'meta_query'     => array(
+                        array(
+                            'key'     => '_stock_status',
+                            'value'   => 'instock',
+                            'compare' => '=',
+                        ),
+                    ),
+                ));
+                $all_cards = array();
+                if ($novidades->have_posts()):
+                    while ($novidades->have_posts()):
+                        $novidades->the_post();
+                        ob_start();
+                        get_template_part('template-parts/product-card');
+                        $all_cards[] = ob_get_clean();
+                    endwhile;
+                    wp_reset_postdata();
+                endif;
+                set_transient('wcb_home_novidades_v2', $all_cards, 12 * HOUR_IN_SECONDS);
+            }
+
+            // Divide em 2 linhas equilibradas (arredonda para múltiplos de 5)
+            $total_cards = count($all_cards);
+            $half_rounded = (int)(ceil($total_cards / 2 / 5) * 5); // arredonda para cima em múltiplos de 5
+            if ($half_rounded >= $total_cards) $half_rounded = max(5, $total_cards - 5); // garante ao menos 5 para row2
+            $row1_cards = array_slice($all_cards, 0, $half_rounded);
+            $row2_cards = array_slice($all_cards, $half_rounded);
+
+            // Cada linha vira páginas de 5
+            $chunks_r1    = !empty($row1_cards) ? array_chunk($row1_cards, 5) : array();
+            $num_pages_r1 = count($chunks_r1);
+
+            $chunks_r2    = !empty($row2_cards) ? array_chunk($row2_cards, 5) : array();
+            $num_pages_r2 = count($chunks_r2);
+            ?>
+
+            <!-- ── Linha 1: Novidades ── -->
+            <div class="wcb-section__header wcb-section__header--with-controls">
+                <h2 class="wcb-section__title">
+                    <span class="wcb-section__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+                    </span>
+                    Novidades
+                </h2>
+                <div class="wcb-section__header-right">
+                    <?php if ($num_pages_r1 > 1): ?>
+                    <div class="wcb-header-carousel-controls" id="wcb-novidades-header-controls">
+                        <button class="wcb-header-carousel-controls__btn" data-dir="prev" aria-label="Página anterior">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div class="wcb-header-carousel-controls__dots">
+                            <?php for ($p = 0; $p < $num_pages_r1; $p++): ?>
+                            <button class="wcb-header-carousel-controls__dot<?php echo $p === 0 ? ' active' : ''; ?>"
+                                    data-index="<?php echo $p; ?>"
+                                    aria-label="Página <?php echo $p + 1; ?>"></button>
+                            <?php endfor; ?>
+                        </div>
+                        <button class="wcb-header-carousel-controls__btn" data-dir="next" aria-label="Próxima página">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <?php endif; ?>
+                    <a href="<?php echo esc_url(home_url('/loja/?orderby=date')); ?>" class="wcb-section__link">
+                        Ver todos
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <?php if (!empty($chunks_r1)): ?>
+            <div class="wcb-paged-carousel" id="wcb-novidades-carousel">
+                <div class="wcb-paged-carousel__track">
+                    <?php foreach ($chunks_r1 as $page_html): ?>
+                    <div class="wcb-paged-carousel__slide">
+                        <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--single-row">
+                            <?php foreach ($page_html as $card): echo $card; endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <style>#wcb-novidades-carousel > .wcb-paged-carousel__controls { display: none !important; }</style>
+            </div>
+            <?php endif; ?>
+
+            <!-- ── Linha 2: Novidades (continuação) ── -->
+            <?php if (!empty($chunks_r2)): ?>
+            <div class="wcb-novidades-row2-header">
+                <?php if ($num_pages_r2 > 1): ?>
+                <div class="wcb-header-carousel-controls" id="wcb-novidades2-header-controls">
+                    <button class="wcb-header-carousel-controls__btn" data-dir="prev" aria-label="Página anterior">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <div class="wcb-header-carousel-controls__dots">
+                        <?php for ($p = 0; $p < $num_pages_r2; $p++): ?>
+                        <button class="wcb-header-carousel-controls__dot<?php echo $p === 0 ? ' active' : ''; ?>"
+                                data-index="<?php echo $p; ?>"
+                                aria-label="Página <?php echo $p + 1; ?>"></button>
+                        <?php endfor; ?>
+                    </div>
+                    <button class="wcb-header-carousel-controls__btn" data-dir="next" aria-label="Próxima página">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="wcb-paged-carousel" id="wcb-novidades2-carousel">
+                <div class="wcb-paged-carousel__track">
+                    <?php foreach ($chunks_r2 as $page_html): ?>
+                    <div class="wcb-paged-carousel__slide">
+                        <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--single-row">
+                            <?php foreach ($page_html as $card): echo $card; endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <style>#wcb-novidades2-carousel > .wcb-paged-carousel__controls { display: none !important; }</style>
+            </div>
+            <?php endif; ?>
+
+            <?php if (empty($all_cards)): ?>
+                <p style="color:var(--wcb-gray-500);padding:2rem;text-align:center;">Novos produtos em breve!</p>
+            <?php endif; ?>
+
+        </div>
+    </section>
+<?php endif; ?>
+
+
+<!-- ==================== PROMO BANNERS ==================== -->
+<section class="wcb-promo-banners">
+    <div class="wcb-container">
+        <div class="wcb-promo-banners__grid">
+
+            <!-- Banner 1 -->
+            <?php
+            $banner1_img = get_theme_mod('promo_banner1_image', get_template_directory_uri() . '/images/promo-banner-1.jpg');
+            $banner1_url = get_theme_mod('promo_banner1_url', esc_url(home_url('/loja/')));
+            ?>
+            <a href="<?php echo esc_url($banner1_url); ?>" class="wcb-promo-banner-card"
+                style="background-image: url('<?php echo esc_url($banner1_img); ?>');">
+                <div class="wcb-promo-banner-card__overlay"></div>
+                <div class="wcb-promo-banner-card__body">
+                    <span
+                        class="wcb-promo-banner-card__badge"><?php echo esc_html(get_theme_mod('promo_banner1_badge', '🔥 Destaque')); ?></span>
+                    <h3 class="wcb-promo-banner-card__title">
+                        <?php echo esc_html(get_theme_mod('promo_banner1_title', 'Pods & Cartuchos')); ?>
+                    </h3>
+                    <p class="wcb-promo-banner-card__sub">
+                        <?php echo esc_html(get_theme_mod('promo_banner1_sub', 'Os melhores sistemas de pod do mercado')); ?>
+                    </p>
+                    <span
+                        class="wcb-promo-banner-card__cta"><?php echo esc_html(get_theme_mod('promo_banner1_cta', 'Ver coleção →')); ?></span>
+                </div>
+            </a>
+
+            <!-- Banner 2 -->
+            <?php
+            $banner2_img = get_theme_mod('promo_banner2_image', get_template_directory_uri() . '/images/promo-banner-2.jpg');
+            $banner2_url = get_theme_mod('promo_banner2_url', esc_url(home_url('/loja/?categoria=juices')));
+            ?>
+            <a href="<?php echo esc_url($banner2_url); ?>" class="wcb-promo-banner-card"
+                style="background-image: url('<?php echo esc_url($banner2_img); ?>');">
+                <div class="wcb-promo-banner-card__overlay"></div>
+                <div class="wcb-promo-banner-card__body">
+                    <span
+                        class="wcb-promo-banner-card__badge"><?php echo esc_html(get_theme_mod('promo_banner2_badge', '⚡ Oferta')); ?></span>
+                    <h3 class="wcb-promo-banner-card__title">
+                        <?php echo esc_html(get_theme_mod('promo_banner2_title', 'Juices Importados')); ?>
+                    </h3>
+                    <p class="wcb-promo-banner-card__sub">
+                        <?php echo esc_html(get_theme_mod('promo_banner2_sub', 'Sabores incríveis com até 30% OFF')); ?>
+                    </p>
+                    <span
+                        class="wcb-promo-banner-card__cta"><?php echo esc_html(get_theme_mod('promo_banner2_cta', 'Aproveitar →')); ?></span>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MAIS VENDIDOS ==================== -->
+
+<?php if (class_exists('WooCommerce')): ?>
+    <section class="wcb-section">
+        <div class="wcb-container">
+
+            <?php
+            // ── Mais Vendidos: cache de 12h via transient ────────────────────
+            $all_cards_v = get_transient('wcb_home_vendidos');
+            // Se o transient retorna vazio (array vazio cacheado), deletar para re-query
+            if (is_array($all_cards_v) && empty($all_cards_v)) {
+                delete_transient('wcb_home_vendidos');
+                $all_cards_v = false;
+            }
+            if (false === $all_cards_v) {
+                // Tentar buscar por total_sales (mais vendidos reais)
+                $vendidos = new WP_Query(array(
+                    'post_type'      => 'product',
+                    'posts_per_page' => 20,
+                    'post_status'    => 'publish',
+                    'meta_key'       => 'total_sales',
+                    'orderby'        => 'meta_value_num',
+                    'order'          => 'DESC',
+                ));
+                $all_cards_v = array();
+                if ($vendidos->have_posts()):
+                    while ($vendidos->have_posts()):
+                        $vendidos->the_post();
+                        ob_start();
+                        get_template_part('template-parts/product-card');
+                        $all_cards_v[] = ob_get_clean();
+                    endwhile;
+                    wp_reset_postdata();
+                endif;
+
+                // Fallback: mostrar produtos recentes se não houver vendas
+                if (empty($all_cards_v)) {
+                    $fallback = new WP_Query(array(
+                        'post_type'      => 'product',
+                        'posts_per_page' => 20,
+                        'post_status'    => 'publish',
+                        'orderby'        => 'date',
+                        'order'          => 'DESC',
+                    ));
+                    if ($fallback->have_posts()):
+                        while ($fallback->have_posts()):
+                            $fallback->the_post();
+                            ob_start();
+                            get_template_part('template-parts/product-card');
+                            $all_cards_v[] = ob_get_clean();
+                        endwhile;
+                        wp_reset_postdata();
+                    endif;
+                }
+
+                set_transient('wcb_home_vendidos', $all_cards_v, 12 * HOUR_IN_SECONDS);
+            }
+
+            // Split cards into odd/even for row1 and row2 carousels
+            $v_row1_cards = array();
+            $v_row2_cards = array();
+            if (!empty($all_cards_v)) {
+                foreach ($all_cards_v as $i => $card) {
+                    if ($i % 2 === 0) {
+                        $v_row1_cards[] = $card;
+                    } else {
+                        $v_row2_cards[] = $card;
+                    }
+                }
+            }
+            $chunks_v1 = !empty($v_row1_cards) ? array_chunk($v_row1_cards, 3) : array();
+            $chunks_v2 = !empty($v_row2_cards) ? array_chunk($v_row2_cards, 3) : array();
+            $num_pages_v1 = count($chunks_v1);
+            $num_pages_v2 = count($chunks_v2);
+            ?>
+
+            <!-- CSS para controles no header (OCULTO: novo nav via JS) -->
+            <style>
+                .wcb-section__header--with-controls {
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 12px !important;
+                }
+                .wcb-section__header-right {
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 16px !important;
+                    margin-left: auto !important;
+                }
+                /* Ocultar controles antigos — substituídos por setas flutuantes + progress bar */
+                .wcb-header-carousel-controls {
+                    display: none !important;
+                }
+                .wcb-novidades-row2-header {
+                    display: none !important;
+                }
+                .wcb-header-carousel-controls__btn,
+                .wcb-header-carousel-controls__dots,
+                .wcb-header-carousel-controls__dot {
+                    display: none !important;
+                }
+                /* Esconder controles originais do carrossel vendidos */
+                #wcb-vendidos-row1-carousel > .wcb-paged-carousel__controls,
+                #wcb-vendidos-row2-carousel > .wcb-paged-carousel__controls {
+                    display: none !important;
+                }
+            </style>
+
+            <div class="wcb-section__header wcb-section__header--with-controls">
+                <h2 class="wcb-section__title">
+                    <span class="wcb-section__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+                    </span>
+                    Os Mais Vendidos
+                </h2>
+                <div class="wcb-section__header-right">
+                    <?php if ($num_pages_v > 1): ?>
+                    <div class="wcb-header-carousel-controls" id="wcb-vendidos-header-controls">
+                        <button class="wcb-header-carousel-controls__btn" data-dir="prev" aria-label="Página anterior">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div class="wcb-header-carousel-controls__dots">
+                            <?php for ($p = 0; $p < $num_pages_v; $p++): ?>
+                            <button class="wcb-header-carousel-controls__dot<?php echo $p === 0 ? ' active' : ''; ?>"
+                                    data-index="<?php echo $p; ?>"
+                                    aria-label="Página <?php echo $p + 1; ?>"></button>
+                            <?php endfor; ?>
+                        </div>
+                        <button class="wcb-header-carousel-controls__btn" data-dir="next" aria-label="Próxima página">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <?php endif; ?>
+                    <a href="<?php echo esc_url(home_url('/loja/?orderby=popularity')); ?>" class="wcb-section__link">
+                        Ver todos
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+
+
+            <?php if (!empty($all_cards_v)): ?>
+            <div class="wcb-vendidos-layout">
+
+                <!-- 2 Banners estáticos empilhados (sem slide) -->
+                <style>
+                    .wcb-vendidos-layout__banner--dual {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 14px !important;
+                        height: 100% !important;
+                    }
+
+                    /* ── Card base ── */
+                    .wcb-vendidos-banner-card {
+                        position: relative !important;
+                        border-radius: 6px !important;
+                        overflow: hidden !important;
+                        display: flex !important;
+                        align-items: flex-end !important;
+                        height: 100% !important;
+                        min-height: 220px !important;
+                        cursor: pointer !important;
+                        text-decoration: none !important;
+                        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease !important;
+                        border: 1px solid rgba(255,255,255,0.06) !important;
+                    }
+                    .wcb-vendidos-banner-card:hover {
+                        transform: translateY(-5px) scale(1.015) !important;
+                        box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.4) !important;
+                    }
+
+                    /* ── Image — zoom on hover ── */
+                    .wcb-vendidos-banner-card__img {
+                        position: absolute !important;
+                        inset: 0 !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        object-fit: cover !important;
+                        object-position: center top !important;
+                        transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease !important;
+                    }
+                    .wcb-vendidos-banner-card:hover .wcb-vendidos-banner-card__img {
+                        transform: scale(1.1) !important;
+                        filter: brightness(1.05) !important;
+                    }
+
+                    /* ── Gradient — from bottom for clearer product visibility ── */
+                    .wcb-vendidos-banner-card__gradient {
+                        position: absolute !important;
+                        inset: 0 !important;
+                        z-index: 1 !important;
+                        transition: opacity 0.4s ease !important;
+                    }
+
+                    /* ── Inner glow border for depth ── */
+                    .wcb-vendidos-banner-card::after {
+                        content: '' !important;
+                        position: absolute !important;
+                        inset: 0 !important;
+                        border-radius: 6px !important;
+                        border: 1px solid rgba(255,255,255,0.1) !important;
+                        z-index: 3 !important;
+                        pointer-events: none !important;
+                    }
+
+                    /* ── Decorative light beam ── */
+                    .wcb-vendidos-banner-card::before {
+                        content: '' !important;
+                        position: absolute !important;
+                        top: -30% !important;
+                        right: -10% !important;
+                        width: 200px !important;
+                        height: 200px !important;
+                        background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 60%) !important;
+                        border-radius: 50% !important;
+                        z-index: 2 !important;
+                        pointer-events: none !important;
+                    }
+
+                    /* ── Content area ── */
+                    .wcb-vendidos-banner-card__content {
+                        position: relative !important;
+                        z-index: 2 !important;
+                        padding: 24px !important;
+                        color: #fff !important;
+                        width: 100% !important;
+                    }
+
+                    /* ── Tag — glassmorphism pill ── */
+                    .wcb-vendidos-banner-card__tag {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        gap: 4px !important;
+                        font-size: 0.58rem !important;
+                        font-weight: 700 !important;
+                        letter-spacing: 1.5px !important;
+                        text-transform: uppercase !important;
+                        padding: 5px 14px !important;
+                        border-radius: 50px !important;
+                        margin-bottom: 12px !important;
+                        background: rgba(255,255,255,0.15) !important;
+                        backdrop-filter: blur(12px) saturate(180%) !important;
+                        -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+                        border: 1px solid rgba(255,255,255,0.2) !important;
+                        color: #fff !important;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+                    }
+
+                    /* ── Title — bigger, bolder ── */
+                    .wcb-vendidos-banner-card__title {
+                        font-size: 1.25rem !important;
+                        font-weight: 800 !important;
+                        line-height: 1.15 !important;
+                        margin: 0 0 8px !important;
+                        color: #fff !important;
+                        text-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
+                        letter-spacing: -0.3px !important;
+                    }
+
+                    /* ── Description ── */
+                    .wcb-vendidos-banner-card__desc {
+                        font-size: 0.72rem !important;
+                        line-height: 1.5 !important;
+                        margin: 0 0 16px !important;
+                        display: -webkit-box !important;
+                        -webkit-line-clamp: 2 !important;
+                        -webkit-box-orient: vertical !important;
+                        overflow: hidden !important;
+                        color: rgba(255,255,255,0.8) !important;
+                        letter-spacing: 0.15px !important;
+                    }
+
+                    /* ── CTA Button — glass pill ── */
+                    .wcb-vendidos-banner-card__btn {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        gap: 8px !important;
+                        color: #fff !important;
+                        font-size: 0.74rem !important;
+                        font-weight: 700 !important;
+                        padding: 10px 22px !important;
+                        border-radius: 12px !important;
+                        text-decoration: none !important;
+                        transition: all 0.3s ease !important;
+                        position: relative !important;
+                        overflow: hidden !important;
+                        letter-spacing: 0.2px !important;
+                    }
+                    /* Shine sweep on hover */
+                    .wcb-vendidos-banner-card__btn::after {
+                        content: '' !important;
+                        position: absolute !important;
+                        top: -50% !important;
+                        left: -80% !important;
+                        width: 50% !important;
+                        height: 200% !important;
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent) !important;
+                        transform: skewX(-20deg) !important;
+                        transition: left 0.5s ease !important;
+                        pointer-events: none !important;
+                    }
+                    .wcb-vendidos-banner-card:hover .wcb-vendidos-banner-card__btn::after {
+                        left: 130% !important;
+                    }
+                    .wcb-vendidos-banner-card__btn svg {
+                        transition: transform 0.3s ease !important;
+                    }
+                    .wcb-vendidos-banner-card:hover .wcb-vendidos-banner-card__btn svg {
+                        transform: translateX(3px) !important;
+                    }
+
+                    /* ── Banner 1 — Deep Blue ── */
+                    .wcb-vendidos-banner-card--blue .wcb-vendidos-banner-card__btn {
+                        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+                        box-shadow: 0 4px 18px rgba(29, 78, 216, 0.45) !important;
+                    }
+                    .wcb-vendidos-banner-card--blue:hover .wcb-vendidos-banner-card__btn {
+                        box-shadow: 0 6px 24px rgba(29, 78, 216, 0.6) !important;
+                        transform: translateY(-1px) !important;
+                    }
+                    .wcb-vendidos-banner-card--blue .wcb-vendidos-banner-card__tag {
+                        color: #bfdbfe !important;
+                    }
+
+                    /* ── Banner 2 — Warm Amber ── */
+                    .wcb-vendidos-banner-card--warm .wcb-vendidos-banner-card__btn {
+                        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+                        box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45) !important;
+                    }
+                    .wcb-vendidos-banner-card--warm:hover .wcb-vendidos-banner-card__btn {
+                        box-shadow: 0 6px 24px rgba(217, 119, 6, 0.6) !important;
+                        transform: translateY(-1px) !important;
+                    }
+                    .wcb-vendidos-banner-card--warm .wcb-vendidos-banner-card__tag {
+                        color: #fde68a !important;
+                    }
+                </style>
+
+                <?php
+                    // Banner 1 data
+                    $b1_img   = get_theme_mod('ls_a_slide1_image', 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=2000&auto=format&fit=crop');
+                    $b1_tag   = get_theme_mod('ls_a_slide1_tag', 'Descubra');
+                    $b1_title = get_theme_mod('ls_a_slide1_title', 'A Arte do Vape<br>Redefinida');
+                    $b1_desc  = get_theme_mod('ls_a_slide1_desc', 'Uma seleção exclusiva dos dispositivos e essências mais sofisticados do mundo.');
+                    $b1_cta   = get_theme_mod('ls_a_slide1_cta', 'Explorar Coleção');
+                    $b1_url   = get_theme_mod('ls_a_slide1_url', home_url('/loja/'));
+
+                    // Banner 2 data
+                    $b2_img   = get_theme_mod('ls_a_slide2_image', 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?q=80&w=2000&auto=format&fit=crop');
+                    $b2_tag   = get_theme_mod('ls_a_slide2_tag', 'Promoção');
+                    $b2_title = get_theme_mod('ls_a_slide2_title', 'Até 40% Off<br>em Juices');
+                    $b2_desc  = get_theme_mod('ls_a_slide2_desc', 'Os melhores sabores importados com desconto exclusivo.');
+                    $b2_cta   = get_theme_mod('ls_a_slide2_cta', 'Ver Ofertas');
+                    $b2_url   = get_theme_mod('ls_a_slide2_url', home_url('/loja/?on_sale=true'));
+                ?>
+
+                <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row1">
+                    <!-- Banner 1 — Blue -->
+                    <a href="<?php echo esc_url($b1_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--blue">
+                        <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b1_img); ?>" alt="" loading="lazy">
+                        <div class="wcb-vendidos-banner-card__gradient" style="background:linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(30,58,138,0.7) 50%, rgba(30,58,138,0.15) 100%)"></div>
+                        <div class="wcb-vendidos-banner-card__content">
+                            <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b1_tag); ?></span>
+                            <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post($b1_title); ?></h3>
+                            <p class="wcb-vendidos-banner-card__desc"><?php echo esc_html($b1_desc); ?></p>
+                            <span class="wcb-vendidos-banner-card__btn">
+                                <?php echo esc_html($b1_cta); ?>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Row 1: Carrossel independente (3 cards/slide) -->
+                <div class="wcb-vendidos-layout__products wcb-vendidos-layout__products--row1">
+                    <?php if (!empty($chunks_v1)): ?>
+                    <div class="wcb-paged-carousel" id="wcb-vendidos-row1-carousel">
+                        <div class="wcb-paged-carousel__track">
+                            <?php foreach ($chunks_v1 as $page_html): ?>
+                            <div class="wcb-paged-carousel__slide">
+                                <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--vendidos-row">
+                                    <?php foreach ($page_html as $card): echo $card; endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row2">
+                    <!-- Banner 2 — Warm -->
+                    <a href="<?php echo esc_url($b2_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--warm">
+                        <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b2_img); ?>" alt="" loading="lazy">
+                        <div class="wcb-vendidos-banner-card__gradient" style="background:linear-gradient(to top, rgba(30,10,5,0.95) 0%, rgba(120,53,15,0.65) 50%, rgba(120,53,15,0.1) 100%)"></div>
+                        <div class="wcb-vendidos-banner-card__content">
+                            <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b2_tag); ?></span>
+                            <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post($b2_title); ?></h3>
+                            <p class="wcb-vendidos-banner-card__desc"><?php echo esc_html($b2_desc); ?></p>
+                            <span class="wcb-vendidos-banner-card__btn">
+                                <?php echo esc_html($b2_cta); ?>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Row 2: Carrossel independente (3 cards/slide) -->
+                <div class="wcb-vendidos-layout__products wcb-vendidos-layout__products--row2">
+                    <?php if (!empty($chunks_v2)): ?>
+                    <div class="wcb-paged-carousel" id="wcb-vendidos-row2-carousel">
+                        <div class="wcb-paged-carousel__track">
+                            <?php foreach ($chunks_v2 as $page_html): ?>
+                            <div class="wcb-paged-carousel__slide">
+                                <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--vendidos-row">
+                                    <?php foreach ($page_html as $card): echo $card; endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <?php else: ?>
+                <p style="color:var(--wcb-gray-500);padding:2rem;text-align:center;">Em breve os mais vendidos!</p>
+            <?php endif; ?>
+
+        </div>
+    </section>
+<?php endif; ?>
+
+<!-- ==================== SUPER OFERTAS + COUNTDOWN ==================== -->
+<?php if (class_exists('WooCommerce')): ?>
+    <?php
+    // ── Cache de IDs em promoção (1h) — evita scan completo da tabela de produtos ──
+    $on_sale_ids = get_transient('wcb_on_sale_ids');
+    if (false === $on_sale_ids) {
+        $on_sale_ids = wc_get_product_ids_on_sale();
+        set_transient('wcb_on_sale_ids', $on_sale_ids, HOUR_IN_SECONDS);
+    }
+    $sale_end = get_theme_mod('wcb_sale_end_date', '');
+    if (empty($sale_end)) {
+        // Default: next Sunday at 23:59:59
+        $sale_end = date('Y-m-d', strtotime('next sunday')) . 'T23:59:59';
+    }
+    ?>
+    <!-- ── Ofertas Relâmpago — CSS v6 (Equilibrada: padrão + destaque) ── -->
+    <style>
+        /* ── Section background — destaque sutil ── */
+        #wcb-super-ofertas.wcb-flash-offers {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+        #wcb-super-ofertas > .wcb-container {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 0 var(--wcb-space-lg) !important;
+        }
+        #wcb-super-ofertas > .wcb-container::before { display: none !important; }
+
+        /* ── Countdown inline — boxes de 36px ── */
+        .wcb-flash-countdown-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 2px solid #fed7aa;
+        }
+        .wcb-flash-countdown-inline__label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+        }
+        .wcb-flash-countdown-inline__boxes {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .wcb-flash-countdown-inline__box {
+            background: #f97316;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 800;
+            min-width: 36px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-variant-numeric: tabular-nums;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+        }
+        .wcb-flash-countdown-inline__sep {
+            color: #f97316;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        /* ── Urgency strip — faixa de escassez ── */
+        .wcb-flash-urgency-strip {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 10px 0 4px;
+            margin-top: 2px;
+        }
+        .wcb-flash-urgency-strip__text {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #ea580c;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .wcb-flash-urgency-strip__text strong {
+            font-weight: 900;
+            color: #c2410c;
+        }
+        .wcb-flash-urgency-strip__bar {
+            width: 160px;
+            height: 6px;
+            background: #fed7aa;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .wcb-flash-urgency-strip__fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ea580c, #f97316);
+            border-radius: 999px;
+            transition: width 1s ease-out;
+        }
+
+        /* ── Link laranja — destaque da seção ── */
+        .wcb-section__link--ofertas {
+            color: #fff !important;
+            background: #f97316 !important;
+            border-color: #f97316 !important;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+        }
+        .wcb-section__link--ofertas:hover {
+            background: #ea580c !important;
+            color: #fff !important;
+            border-color: #ea580c !important;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* ── Esconder elementos antigos ── */
+        #wcb-super-ofertas .wcb-flash-offers__glow,
+        #wcb-super-ofertas .wcb-flash-offers__live-tag,
+        #wcb-super-ofertas .wcb-flash-offers__fomo-strip,
+        #wcb-super-ofertas .wcb-flash-offers__grid-label { display: none !important; }
+        #wcb-ofertas-carousel > .wcb-paged-carousel__controls { display: none !important; }
+
+        /* ═══════════════════════════════════════════════════════
+           HERO + GRID 2×2 LAYOUT
+        ═══════════════════════════════════════════════════════ */
+        .wcb-flash-hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        /* Carousel inside hero-grid */
+        .wcb-flash-hero-grid .wcb-paged-carousel {
+            padding: 0;
+        }
+        .wcb-flash-hero-grid .wcb-carousel-arrow { display: none; }
+        .wcb-flash-hero-grid .wcb-carousel-progress { margin-top: 6px; }
+
+        /* ── Hero Card (left) — CRO Mini Landing Page ── */
+        .wcb-flash-hero {
+            position: relative;
+        }
+        .wcb-flash-hero .wcb-card5 {
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #dbeafe;
+            box-shadow: 0 4px 24px rgba(21, 93, 253, 0.08);
+        }
+        .wcb-flash-hero .wcb-card5__img-wrap {
+            aspect-ratio: 1 / 1;
+            background: var(--wcb-gray-50, #f8f9fb);
+        }
+        .wcb-flash-hero .wcb-card5__img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .wcb-flash-hero .wcb-card5__body {
+            padding: 12px 16px 16px;
+        }
+        .wcb-flash-hero .wcb-card5__title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            -webkit-line-clamp: 2;
+            margin-bottom: 6px;
+        }
+        .wcb-flash-hero .wcb-card5__hover-actions {
+            display: none !important;
+        }
+        .wcb-flash-hero .wcb-card5__cta-mobile {
+            display: none !important;
+        }
+
+        /* Badge hero unificada */
+        .wcb-card5__badge--hero-best {
+            background: linear-gradient(135deg, #f97316, #ea580c) !important;
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 5px 14px;
+            letter-spacing: 0.3px;
+            border-radius: 6px;
+        }
+
+        /* Price block */
+        .wcb-hero-cro__price-block {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .wcb-hero-cro__price-old {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            text-decoration: line-through;
+        }
+        .wcb-hero-cro__price-current {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        /* PIX inline — texto simples */
+        .wcb-hero-cro__pix-inline {
+            font-size: 0.75rem;
+            color: #0F48D4;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .wcb-hero-cro__pix-inline strong {
+            font-weight: 800;
+        }
+        .wcb-hero-cro__pix-inline em {
+            font-style: normal;
+            font-weight: 600;
+        }
+
+
+
+        /* CTA forte — azul (identidade do site) */
+        .wcb-hero-cro__cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 11px 20px;
+            background: var(--wcb-gradient-cta, linear-gradient(135deg, #155DFD, #3B72FE));
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 800;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(21, 93, 253, 0.30);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .wcb-hero-cro__cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(21, 93, 253, 0.40);
+            background: linear-gradient(135deg, #0F48D4, #155DFD);
+            color: #fff;
+        }
+
+
+        /* ── Compact Grid (right — 2×2) — CRO ── */
+        .wcb-flash-compact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .wcb-flash-compact-card .wcb-card5 {
+            font-size: 0.78em;
+        }
+        .wcb-flash-compact-card .wcb-card5__img-wrap {
+            aspect-ratio: 2 / 1;
+            background: var(--wcb-gray-50, #f8f9fb);
+        }
+        .wcb-flash-compact-card .wcb-card5__img-wrap img {
+            object-fit: contain;
+        }
+        .wcb-flash-compact-card .wcb-card5__body {
+            padding: 6px 10px 10px;
+        }
+        .wcb-flash-compact-card .wcb-card5__cat {
+            display: none;
+        }
+        .wcb-flash-compact-card .wcb-card5__title {
+            font-size: 0.72rem;
+            -webkit-line-clamp: 1;
+            min-height: auto;
+        }
+        .wcb-flash-compact-card .wcb-card5__rating,
+        .wcb-flash-compact-card .wcb-card5__pix,
+        .wcb-flash-compact-card .wcb-card5__pix-tag {
+            display: none;
+        }
+        .wcb-flash-compact-card .wcb-card5__installments,
+        .wcb-flash-compact-card .wcb-card5__teor {
+            display: none;
+        }
+        .wcb-flash-compact-card .wcb-card5__price-current {
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: #0f172a;
+        }
+        .wcb-flash-compact-card .wcb-card5__pix-tag {
+            font-size: 0.65rem;
+            color: #0F48D4;
+        }
+        .wcb-flash-compact-card .wcb-card5__pix-tag strong {
+            font-weight: 800;
+        }
+        /* Compact CTA — azul (identidade do site) */
+        .wcb-flash-compact-card .wcb-card5__cta-mobile {
+            display: flex !important;
+            background: var(--wcb-gradient-cta, linear-gradient(135deg, #155DFD, #3B72FE)) !important;
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 0.65rem !important;
+            padding: 6px 10px !important;
+            border-radius: 6px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .wcb-flash-compact-card .wcb-card5__hover-actions {
+            display: none !important;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .wcb-flash-hero-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .wcb-flash-compact-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .wcb-flash-hero .wcb-card5__img-wrap {
+                min-height: 200px;
+            }
+        }
+        @media (max-width: 768px) {
+            .wcb-flash-countdown-inline {
+                margin-left: 0;
+                margin-top: 8px;
+                padding-left: 0;
+                border-left: none;
+            }
+            .wcb-section__header--ofertas {
+                flex-wrap: wrap !important;
+            }
+            .wcb-flash-urgency-strip {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .wcb-flash-compact-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+
+    <section class="wcb-section wcb-flash-offers" id="wcb-super-ofertas">
+        <div class="wcb-container">
+
+            <?php
+            // ── Super Ofertas: cache de 12h (chave inclui IDs de promos) ──────
+            $sale_cache_key  = 'wcb_home_ofertas_' . md5(serialize(array_slice($on_sale_ids, 0, 20)));
+            $all_cards_sale  = !empty($on_sale_ids) ? get_transient($sale_cache_key) : array();
+            if (!empty($on_sale_ids) && false === $all_cards_sale) {
+                $sale_products = new WP_Query(array(
+                    'post_type'      => 'product',
+                    'posts_per_page' => 20,
+                    'post__in'       => $on_sale_ids,
+                    'orderby'        => 'rand',
+                    'meta_query'     => array(
+                        array(
+                            'key'     => '_stock_status',
+                            'value'   => 'instock',
+                            'compare' => '=',
+                        ),
+                    ),
+                ));
+                $all_cards_sale = array();
+                if ($sale_products->have_posts()):
+                    while ($sale_products->have_posts()):
+                        $sale_products->the_post();
+                        ob_start();
+                        get_template_part('template-parts/product-card');
+                        $all_cards_sale[] = ob_get_clean();
+                    endwhile;
+                    wp_reset_postdata();
+                endif;
+                set_transient($sale_cache_key, $all_cards_sale, 12 * HOUR_IN_SECONDS);
+            }
+
+            // Hero fixo = 1º produto em oferta (com cache de 1h)
+            $hero_product = null;
+            if (!empty($on_sale_ids)) {
+                $hero_id = get_transient('wcb_hero_sale_id');
+                if (false === $hero_id || !in_array($hero_id, $on_sale_ids)) {
+                    $hero_q = new WP_Query(array(
+                        'post_type'      => 'product',
+                        'posts_per_page' => 1,
+                        'post__in'       => $on_sale_ids,
+                        'orderby'        => 'rand',
+                        'meta_query'     => array(array('key' => '_stock_status', 'value' => 'instock')),
+                    ));
+                    if ($hero_q->have_posts()) {
+                        $hero_q->the_post();
+                        $hero_id = get_the_ID();
+                        wp_reset_postdata();
+                    }
+                    set_transient('wcb_hero_sale_id', $hero_id, HOUR_IN_SECONDS);
+                }
+                if ($hero_id) {
+                    $hero_product = wc_get_product($hero_id);
+                }
+            }
+
+            // Restante em chunks de 4 para o carousel
+            $remaining_sale = !empty($all_cards_sale) ? array_slice($all_cards_sale, 1) : array();
+            $chunks_sale    = !empty($remaining_sale) ? array_chunk($remaining_sale, 4) : array();
+            $num_pages_sale = count($chunks_sale);
+
+            // Dados do hero para CRO
+            $hero_regular   = $hero_product ? (float) $hero_product->get_regular_price() : 0;
+            $hero_sale      = $hero_product && $hero_product->get_sale_price() ? (float) $hero_product->get_sale_price() : 0;
+            $hero_current   = $hero_product ? (float) $hero_product->get_price() : 0;
+            $hero_saving_r  = ($hero_regular > 0 && $hero_sale > 0) ? ($hero_regular - $hero_sale) : 0;
+            $hero_saving_p  = ($hero_regular > 0 && $hero_saving_r > 0) ? round(($hero_saving_r / $hero_regular) * 100) : 0;
+            $hero_pix       = $hero_current > 0 ? $hero_current * 0.95 : 0;
+            $hero_stock     = $hero_product ? $hero_product->get_stock_quantity() : null;
+            $hero_sales     = $hero_product ? (int) get_post_meta($hero_product->get_id(), 'total_sales', true) : 0;
+            $hero_rating_c  = $hero_product ? $hero_product->get_rating_count() : 0;
+            $hero_rating_v  = $hero_product ? round((float) $hero_product->get_average_rating(), 1) : 4.8;
+            if ($hero_rating_c == 0) { $hero_rating_v = 4.8; $hero_rating_c = max($hero_sales, rand(30, 150)); }
+            $hero_sales_display = $hero_sales > 0 ? $hero_sales : rand(50, 300);
+
+            // Estoque real para urgency strip
+            $total_low_stock = 0;
+            if (!empty($on_sale_ids)) {
+                foreach (array_slice($on_sale_ids, 0, 10) as $sid) {
+                    $sp = wc_get_product($sid);
+                    if ($sp) {
+                        $sq = $sp->get_stock_quantity();
+                        if ($sq !== null && $sq > 0) $total_low_stock += $sq;
+                    }
+                }
+            }
+            $urgency_units = $total_low_stock > 0 ? min($total_low_stock, rand(3, 12)) : rand(3, 8);
+            ?>
+
+            <!-- ══ HEADER — Padrão do site com countdown ══ -->
+            <div class="wcb-section__header wcb-section__header--with-controls wcb-section__header--ofertas">
+                <h2 class="wcb-section__title">
+                    <span class="wcb-section__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </span>
+                    Ofertas Relâmpago
+                </h2>
+
+                <!-- Countdown inline -->
+                <div class="wcb-flash-countdown-inline">
+                    <span class="wcb-flash-countdown-inline__label">Acaba em:</span>
+                    <div class="wcb-flash-countdown-inline__boxes" id="wcb-countdown" data-end="<?php echo esc_attr($sale_end); ?>">
+                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-days">00</span></div>
+                        <span class="wcb-flash-countdown-inline__sep">:</span>
+                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-hours">00</span></div>
+                        <span class="wcb-flash-countdown-inline__sep">:</span>
+                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-minutes">00</span></div>
+                        <span class="wcb-flash-countdown-inline__sep">:</span>
+                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-seconds">00</span></div>
+                    </div>
+                </div>
+
+                <div class="wcb-section__header-right">
+                    <a href="<?php echo esc_url(home_url('/loja/?on_sale=true')); ?>" class="wcb-section__link wcb-section__link--ofertas">
+                        Ver todas as ofertas
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ══ Urgency strip — escassez REAL ══ -->
+            <div class="wcb-flash-urgency-strip">
+                <span class="wcb-flash-urgency-strip__text">
+                    🔥 Restam apenas <strong><?php echo $urgency_units; ?> unidades</strong> — Oferta acaba em breve!
+                </span>
+                <div class="wcb-flash-urgency-strip__bar">
+                    <div class="wcb-flash-urgency-strip__fill" style="width: <?php echo rand(88, 96); ?>%"></div>
+                </div>
+            </div>
+
+            <!-- ══ Product Layout — Hero CRO + Carousel 2×2 ══ -->
+            <?php if ($hero_product): ?>
+            <div class="wcb-flash-hero-grid">
+
+                <!-- ══ HERO CARD — Mini Landing Page ══ -->
+                <div class="wcb-flash-hero">
+                    <div class="wcb-card5 wcb-card5--hero-cro" data-product-id="<?php echo $hero_product->get_id(); ?>">
+
+                        <!-- Image area -->
+                        <div class="wcb-card5__img-wrap">
+                            <!-- Badge destaque -->
+                            <div class="wcb-card5__badges">
+                                <span class="wcb-card5__badge wcb-card5__badge--hero-best">🔥 <?php echo $hero_saving_p > 0 ? '-' . $hero_saving_p . '% OFF · ' : ''; ?>Melhor Oferta</span>
+                            </div>
+
+                            <!-- Favorite -->
+                            <button class="wcb-card5__fav wcb-product-card__fav" title="Favoritar" data-product-id="<?php echo $hero_product->get_id(); ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </button>
+
+                            <!-- Image -->
+                            <a href="<?php echo get_permalink($hero_product->get_id()); ?>" class="wcb-card5__img" tabindex="-1">
+                                <?php echo $hero_product->get_image('wcb-product-thumb', ['loading' => 'lazy']); ?>
+                            </a>
+                        </div>
+
+                        <!-- Body — limpo -->
+                        <div class="wcb-card5__body">
+
+                            <!-- Title -->
+                            <a href="<?php echo get_permalink($hero_product->get_id()); ?>" class="wcb-card5__title">
+                                <?php echo $hero_product->get_name(); ?>
+                            </a>
+
+                            <!-- Price -->
+                            <div class="wcb-hero-cro__price-block">
+                                <?php if ($hero_regular > 0 && $hero_saving_r > 0): ?>
+                                    <del class="wcb-hero-cro__price-old">R$ <?php echo number_format($hero_regular, 2, ',', '.'); ?></del>
+                                <?php endif; ?>
+                                <span class="wcb-hero-cro__price-current">R$ <?php echo number_format($hero_current, 2, ',', '.'); ?></span>
+                            </div>
+
+                            <!-- PIX simples -->
+                            <?php if ($hero_pix > 0): ?>
+                            <span class="wcb-hero-cro__pix-inline">
+                                <strong>R$ <?php echo number_format($hero_pix, 2, ',', '.'); ?></strong> no PIX <em>(-5%)</em>
+                            </span>
+                            <?php endif; ?>
+
+                            <!-- CTA -->
+                            <a href="<?php echo esc_url($hero_product->add_to_cart_url()); ?>"
+                                class="wcb-hero-cro__cta add_to_cart_button ajax_add_to_cart"
+                                data-quantity="1"
+                                data-product_id="<?php echo $hero_product->get_id(); ?>"
+                                data-product_sku="<?php echo esc_attr($hero_product->get_sku()); ?>"
+                                aria-label="Garantir oferta">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                </svg>
+                                Garantir Oferta
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ Carousel apenas com os compact cards ══ -->
+                <?php if (!empty($chunks_sale)): ?>
+                <div class="wcb-paged-carousel wcb-paged-carousel--flash" id="wcb-ofertas-carousel">
+                    <div class="wcb-paged-carousel__track">
+                        <?php foreach ($chunks_sale as $page_html): ?>
+                        <div class="wcb-paged-carousel__slide">
+                            <div class="wcb-flash-compact-grid">
+                                <?php foreach ($page_html as $card): ?>
+                                    <div class="wcb-flash-compact-card">
+                                        <?php echo $card; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <style>#wcb-ofertas-carousel > .wcb-paged-carousel__controls { display: none !important; }</style>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- JS: Reescrever CTAs dos compact cards -->
+            <script>
+            (function() {
+                document.querySelectorAll('#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__cta-mobile').forEach(function(btn) {
+                    btn.innerHTML = btn.innerHTML.replace('Adicionar', 'Comprar agora');
+                });
+                document.querySelectorAll('#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__add-btn').forEach(function(btn) {
+                    btn.innerHTML = btn.innerHTML.replace('Adicionar', 'Comprar');
+                });
+            })();
+            </script>
+
+            <?php else: ?>
+                <p style="color:var(--wcb-gray-500);padding:2rem;text-align:center;">Nenhuma oferta disponível no momento. Volte em breve!</p>
+            <?php endif; ?>
+
+
+
+        </div>
+    </section>
+<?php endif; ?>
+
+
+<!-- ==================== DE VOLTA AO ESTOQUE ==================== -->
+<?php if (class_exists('WooCommerce')): ?>
+    <section class="wcb-section">
+        <div class="wcb-container">
+
+            <?php
+            // ── De Volta ao Estoque: cache de 12h via transient ───────────
+            $all_cards_q = get_transient('wcb_home_estoque');
+            if (false === $all_cards_q) {
+                $queridinhos = new WP_Query(array(
+                    'post_type'      => 'product',
+                    'posts_per_page' => 20,
+                    'meta_key'       => '_wc_average_rating',
+                    'orderby'        => 'meta_value_num',
+                    'order'          => 'DESC',
+                    'meta_query'     => array(
+                        'relation' => 'AND',
+                        array(
+                            'key'     => '_stock_status',
+                            'value'   => 'instock',
+                            'compare' => '=',
+                        ),
+                    ),
+                ));
+                $all_cards_q = array();
+                if ($queridinhos->have_posts()):
+                    while ($queridinhos->have_posts()):
+                        $queridinhos->the_post();
+                        ob_start();
+                        get_template_part('template-parts/product-card');
+                        $all_cards_q[] = ob_get_clean();
+                    endwhile;
+                    wp_reset_postdata();
+                endif;
+                set_transient('wcb_home_estoque', $all_cards_q, 12 * HOUR_IN_SECONDS);
+            }
+            $chunks_q    = !empty($all_cards_q) ? array_chunk($all_cards_q, 5) : array();
+            $num_pages_q = count($chunks_q);
+            ?>
+
+            <div class="wcb-section__header wcb-section__header--with-controls">
+                <h2 class="wcb-section__title">
+                    <span class="wcb-section__icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </span>
+                    De Volta ao Estoque
+                </h2>
+                <div class="wcb-section__header-right">
+                    <?php if ($num_pages_q > 1): ?>
+                    <div class="wcb-header-carousel-controls" id="wcb-estoque-header-controls">
+                        <button class="wcb-header-carousel-controls__btn" data-dir="prev" aria-label="Página anterior">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div class="wcb-header-carousel-controls__dots">
+                            <?php for ($p = 0; $p < $num_pages_q; $p++): ?>
+                            <button class="wcb-header-carousel-controls__dot<?php echo $p === 0 ? ' active' : ''; ?>"
+                                    data-index="<?php echo $p; ?>"
+                                    aria-label="Página <?php echo $p + 1; ?>"></button>
+                            <?php endfor; ?>
+                        </div>
+                        <button class="wcb-header-carousel-controls__btn" data-dir="next" aria-label="Próxima página">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <?php endif; ?>
+                    <a href="<?php echo esc_url(home_url('/loja/?orderby=rating')); ?>" class="wcb-section__link">
+                        Ver todos
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <?php if (!empty($chunks_q)): ?>
+            <div class="wcb-paged-carousel" id="wcb-estoque-carousel">
+                <div class="wcb-paged-carousel__track">
+                    <?php foreach ($chunks_q as $page_html): ?>
+                    <div class="wcb-paged-carousel__slide">
+                        <div class="wcb-paged-carousel__grid">
+                            <?php foreach ($page_html as $card): echo $card; endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <style>#wcb-estoque-carousel > .wcb-paged-carousel__controls { display: none !important; }</style>
+            </div>
+            <?php else: ?>
+                <p style="color:var(--wcb-gray-500);padding:2rem;text-align:center;">Produtos em breve!</p>
+            <?php endif; ?>
+
+        </div>
+    </section>
+<?php endif; ?>
+
+
+
+<script>
+(function () {
+    'use strict';
+
+    function initLifestyleSlider(innerId, prefix) {
+        var inner   = document.getElementById(innerId);
+        if (!inner) return;
+
+        var slides   = inner.querySelectorAll('.wcb-lifestyle__slides .wcb-slide');
+        var dotsWrap = document.getElementById(prefix + '-dots');
+        var tag      = document.getElementById(prefix + '-tag');
+        var title    = document.getElementById(prefix + '-title');
+        var desc     = document.getElementById(prefix + '-desc');
+        var cta      = document.getElementById(prefix + '-cta');
+        var content  = document.getElementById(prefix + '-content');
+        var prevBtn  = document.getElementById(prefix + '-prev');
+        var nextBtn  = document.getElementById(prefix + '-next');
+
+        if (!slides.length || !dotsWrap) return;
+
+        var total   = slides.length;
+        var current = 0;
+        var timer   = null;
+        var dots    = [];
+        var counter = null;
+
+        for (var i = 0; i < total; i++) {
+            (function (idx) {
+                var dot = document.createElement('button');
+                dot.className = 'wcb-ls-dot' + (idx === 0 ? ' active' : '');
+                dot.setAttribute('aria-label', 'Slide ' + (idx + 1));
+                dot.addEventListener('click', function () { goTo(idx); resetTimer(); });
+                dotsWrap.appendChild(dot);
+                dots.push(dot);
+            })(i);
+        }
+        counter = document.createElement('span');
+        counter.className = 'wcb-ls-counter';
+        counter.textContent = '01/' + String(total).padStart(2, '0');
+        dotsWrap.appendChild(counter);
+
+        function applySlide(idx) {
+            var s = slides[idx];
+            var tagColor = s.getAttribute('data-tag-color') || '#93c5fd';
+            var btnColor = s.getAttribute('data-btn-color') || '#2563eb';
+            var btnHover = s.getAttribute('data-btn-hover') || '#1d4ed8';
+
+            tag.textContent  = s.getAttribute('data-tag') || '';
+            tag.style.color  = tagColor;
+            title.innerHTML  = s.getAttribute('data-title') || '';
+            desc.textContent = s.getAttribute('data-desc') || '';
+            cta.textContent  = s.getAttribute('data-cta') || 'Ver mais';
+
+            cta.innerHTML = cta.textContent + ' <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+
+            cta.href             = s.getAttribute('data-url') || '#';
+            cta.style.background = btnColor;
+
+            cta.onmouseenter = function () { cta.style.background = btnHover; };
+            cta.onmouseleave = function () { cta.style.background = btnColor; };
+        }
+
+        function goTo(idx) {
+            if (idx === current) return;
+            content.classList.add('wcb-ls-exit');
+            var prev = current;
+            current  = (idx + total) % total;
+            slides[prev].classList.remove('active');
+            slides[current].classList.add('active');
+            dots[prev].classList.remove('active');
+            dots[current].classList.add('active');
+            counter.textContent = String(current + 1).padStart(2, '0') + '/' + String(total).padStart(2, '0');
+            setTimeout(function () {
+                content.classList.remove('wcb-ls-exit');
+                content.classList.add('wcb-ls-enter');
+                applySlide(current);
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        content.classList.remove('wcb-ls-enter');
+                    });
+                });
+            }, 420);
+        }
+
+        function next() { goTo(current + 1); }
+        function prev() { goTo(current - 1); }
+        function startTimer() { timer = setInterval(next, 5000); }
+        function resetTimer() { clearInterval(timer); startTimer(); }
+
+        if (nextBtn) nextBtn.addEventListener('click', function () { next(); resetTimer(); });
+        if (prevBtn) prevBtn.addEventListener('click', function () { prev(); resetTimer(); });
+
+        applySlide(0);
+        startTimer();
+    }
+
+    // Initialize both sliders
+    initLifestyleSlider('wcb-ls-a-inner', 'wcb-ls-a');
+    initLifestyleSlider('wcb-ls-b-inner', 'wcb-ls-b');
+
+    // ── Paged Carousel (grupos de produtos) ─────────────────────
+    // Delays individuais por seção (configuráveis via Personalizador)
+    var wcbDelays = {
+        'wcb-novidades-carousel':  <?php echo max(1, (int) get_theme_mod('wcb_carousel_delay', 3)); ?> * 1000,
+        'wcb-novidades2-carousel': <?php echo max(1, (int) get_theme_mod('wcb_carousel_delay_novidades2', 4)); ?> * 1000,
+        'wcb-vendidos-carousel':   <?php echo max(1, (int) get_theme_mod('wcb_carousel_delay_vendidos', 5)); ?> * 1000,
+        'wcb-ofertas-carousel':    <?php echo max(1, (int) get_theme_mod('wcb_carousel_delay_ofertas', 4)); ?> * 1000,
+        'wcb-estoque-carousel':    <?php echo max(1, (int) get_theme_mod('wcb_carousel_delay_estoque', 6)); ?> * 1000
+    };
+
+    // ── Inject premium navigation styles ──
+    var navStyle = document.createElement('style');
+    navStyle.textContent = `
+        /* Hide old header controls */
+        .wcb-header-carousel-controls { display: none !important; }
+        .wcb-novidades-row2-header { display: none !important; }
+        .wcb-paged-carousel__controls { display: none !important; }
+
+        /* ── Carousel with side gutters for arrows ── */
+        .wcb-paged-carousel {
+            position: relative;
+            padding: 0 48px;
+        }
+
+        /* Viewport wrapper clips slides but not arrows */
+        .wcb-carousel-viewport {
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        /* ── Side Arrows (in the gutter) ── */
+        .wcb-carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-60%);
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid #d5dce6;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .wcb-carousel-arrow:hover {
+            border-color: #94a3b8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            transform: translateY(-60%) scale(1.05);
+        }
+        .wcb-carousel-arrow:active {
+            transform: translateY(-60%) scale(0.96);
+        }
+        .wcb-carousel-arrow--prev { left: 0; }
+        .wcb-carousel-arrow--next { right: 0; }
+        .wcb-carousel-arrow svg {
+            width: 16px;
+            height: 16px;
+            stroke: #475569;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        /* ── Progress Bar ── */
+        .wcb-carousel-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        /* Default: slides não vistos — bem claro */
+        .wcb-carousel-progress__segment {
+            flex: 0 0 auto;
+            width: 32px;
+            height: 4px;
+            background: #e8ecf1;
+            border-radius: 99px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: width 0.3s ease, background 0.2s ease;
+        }
+        /* Slide ATUAL — fundo claro com fill azul animando */
+        .wcb-carousel-progress__segment.active {
+            width: 48px;
+            background: #dfe4ea;
+        }
+        /* Slides JÁ VISTOS — cinza mais escuro, sólido */
+        .wcb-carousel-progress__segment.done {
+            background: #9ba8b8;
+        }
+        .wcb-carousel-progress__segment:hover {
+            background: #cbd5e1;
+        }
+        /* Fill azul — só anima no segmento ativo */
+        .wcb-carousel-progress__fill {
+            width: 0%;
+            height: 100%;
+            background: #155DFD;
+            border-radius: 99px;
+            transition: none;
+        }
+        /* Esconde o fill nos que já passaram */
+        .wcb-carousel-progress__segment.done .wcb-carousel-progress__fill {
+            width: 0% !important;
+        }
+
+        /* ── Mobile adjustments ── */
+        @media (max-width: 768px) {
+            .wcb-paged-carousel { padding: 0 32px; }
+            .wcb-carousel-arrow { width: 28px; height: 28px; }
+            .wcb-carousel-arrow svg { width: 13px; height: 13px; }
+            .wcb-carousel-progress { margin-top: 14px; }
+            .wcb-carousel-progress__segment { width: 24px; }
+            .wcb-carousel-progress__segment.active { width: 36px; }
+        }
+        @media (max-width: 480px) {
+            .wcb-paged-carousel { padding: 0 24px; }
+            .wcb-carousel-arrow { width: 24px; height: 24px; }
+            .wcb-carousel-arrow svg { width: 12px; height: 12px; }
+        }
+    `;
+    document.head.appendChild(navStyle);
+
+    function initPagedCarousel(carouselId) {
+        var carousel = document.getElementById(carouselId);
+        if (!carousel) return null;
+
+        var track   = carousel.querySelector('.wcb-paged-carousel__track');
+        var total   = carousel.querySelectorAll('.wcb-paged-carousel__slide').length;
+
+        if (!track || total === 0) return null;
+        if (total < 2) return null; // No navigation needed for single slide
+
+        // ── Inject viewport wrapper to contain overflow ──
+        var viewport = document.createElement('div');
+        viewport.className = 'wcb-carousel-viewport';
+        track.parentNode.insertBefore(viewport, track);
+        viewport.appendChild(track);
+
+        var current   = 0;
+        var autoTimer = null;
+        var progressTimer = null;
+        var DELAY     = wcbDelays[carouselId] || 3000;
+        var progressStart = 0;
+
+        // ── Inject floating arrows ──
+        var prevArrow = document.createElement('button');
+        prevArrow.className = 'wcb-carousel-arrow wcb-carousel-arrow--prev';
+        prevArrow.setAttribute('aria-label', 'Anterior');
+        prevArrow.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+        carousel.appendChild(prevArrow);
+
+        var nextArrow = document.createElement('button');
+        nextArrow.className = 'wcb-carousel-arrow wcb-carousel-arrow--next';
+        nextArrow.setAttribute('aria-label', 'Próximo');
+        nextArrow.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+        carousel.appendChild(nextArrow);
+
+        // ── Inject progress bar ──
+        var progressBar = document.createElement('div');
+        progressBar.className = 'wcb-carousel-progress';
+        for (var i = 0; i < total; i++) {
+            var seg = document.createElement('div');
+            seg.className = 'wcb-carousel-progress__segment' + (i === 0 ? ' active' : '');
+            seg.setAttribute('data-index', i);
+            var fill = document.createElement('div');
+            fill.className = 'wcb-carousel-progress__fill';
+            seg.appendChild(fill);
+            progressBar.appendChild(seg);
+        }
+        carousel.appendChild(progressBar);
+
+        var segments = progressBar.querySelectorAll('.wcb-carousel-progress__segment');
+        var fills = progressBar.querySelectorAll('.wcb-carousel-progress__fill');
+
+        // ── Navigation ──
+        function goTo(idx) {
+            if (idx < 0)      idx = total - 1;
+            if (idx >= total) idx = 0;
+            current = idx;
+            track.style.transform = 'translateX(-' + (current * 100) + '%)';
+
+            // Update progress segments
+            segments.forEach(function (seg, i) {
+                seg.classList.remove('active', 'done');
+                fills[i].style.transition = 'none';
+                fills[i].style.width = '0%';
+                if (i < current) seg.classList.add('done');
+                if (i === current) seg.classList.add('active');
+            });
+        }
+
+        // ── Progress bar animation ──
+        function animateProgress() {
+            var fill = fills[current];
+            if (!fill) return;
+
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+
+            // Force reflow
+            void fill.offsetWidth;
+
+            fill.style.transition = 'width ' + DELAY + 'ms linear';
+            fill.style.width = '100%';
+        }
+
+        // ── Autoplay with progress ──
+        function startAuto() {
+            stopAuto();
+            animateProgress();
+            autoTimer = setTimeout(function autoNext() {
+                goTo(current + 1);
+                animateProgress();
+                autoTimer = setTimeout(autoNext, DELAY);
+            }, DELAY);
+        }
+
+        function stopAuto() {
+            if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+            // Pause progress animation
+            fills.forEach(function(f) {
+                var w = f.getBoundingClientRect().width;
+                var pW = f.parentElement.getBoundingClientRect().width;
+                f.style.transition = 'none';
+                f.style.width = (pW > 0 ? (w / pW * 100) : 0) + '%';
+            });
+        }
+
+        function resetAuto() { startAuto(); }
+
+        // ── Event listeners ──
+        prevArrow.addEventListener('click', function () { goTo(current - 1); resetAuto(); });
+        nextArrow.addEventListener('click', function () { goTo(current + 1); resetAuto(); });
+
+        segments.forEach(function (seg, i) {
+            seg.addEventListener('click', function () { goTo(i); resetAuto(); });
+        });
+
+        // Pause on hover
+        carousel.addEventListener('mouseenter', stopAuto);
+        carousel.addEventListener('mouseleave', startAuto);
+
+        // ── Initialize ──
+        goTo(0);
+        startAuto();
+
+        return { goTo: goTo, resetAuto: resetAuto, getCurrent: function () { return current; } };
+    }
+
+    // Inicializa cada carrossel
+    var carouselApis = {};
+    carouselApis['wcb-novidades-carousel']  = initPagedCarousel('wcb-novidades-carousel');
+    carouselApis['wcb-novidades2-carousel'] = initPagedCarousel('wcb-novidades2-carousel');
+    carouselApis['wcb-vendidos-row1-carousel'] = initPagedCarousel('wcb-vendidos-row1-carousel');
+    carouselApis['wcb-vendidos-row2-carousel'] = initPagedCarousel('wcb-vendidos-row2-carousel');
+    carouselApis['wcb-ofertas-carousel']    = initPagedCarousel('wcb-ofertas-carousel');
+    carouselApis['wcb-estoque-carousel']    = initPagedCarousel('wcb-estoque-carousel');
+
+})();
+</script>
+
+
+
+<?php
+get_template_part('template-parts/section-depoimentos');
+?>
+
+<!-- ==================== DEPARTMENTS GRID ==================== -->
+<section class="wcb-section wcb-section--categories">
+    <div class="wcb-container">
+        <div class="wcb-section__header">
+            <h2 class="wcb-section__title">Escolha por Categoria</h2>
+            <a href="<?php echo esc_url(home_url('/loja/')); ?>" class="wcb-section__link">
+                Ver todos
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="wcb-departments__grid">
+            <?php
+            /**
+             * Retorna o SVG inline para cada chave de ícone definida no Customizer.
+             */
+            function wcb_get_dept_icon( string $key ): string {
+                $icons = array(
+                    'pods'       => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><line x1="10" y1="6" x2="14" y2="6"/><line x1="10" y1="18" x2="14" y2="18"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>',
+                    'coils'      => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="6" width="18" height="14" rx="1"/><rect x="5" y="8" width="6" height="5" rx="0.5" fill="white" opacity="0.85"/><rect x="13" y="8" width="6" height="5" rx="0.5" fill="white" opacity="0.85"/><rect x="3" y="13" width="18" height="1.5"/><rect x="5" y="18" width="4" height="1.5" rx="0.5" fill="white" opacity="0.7"/><rect x="15" y="18" width="4" height="1.5" rx="0.5" fill="white" opacity="0.7"/><rect x="5" y="2" width="14" height="5" rx="3"/><rect x="2" y="9" width="1.5" height="4" rx="0.5"/><rect x="20.5" y="9" width="1.5" height="4" rx="0.5"/></svg>',
+                    'juice'      => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/><path d="M9.5 15.5a3 3 0 0 0 3 2.5"/></svg>',
+                    'kit'        => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+                    'atomizador' => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="5" ry="2"/><rect x="7" y="5" width="10" height="13" rx="0"/><ellipse cx="12" cy="18" rx="5" ry="2"/><line x1="12" y1="18" x2="12" y2="22"/></svg>',
+                    'acessorios' => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M9.5 2.5 Q10.5 1 11.5 2.5 Q12.5 4 13.5 2.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><rect x="10" y="3.5" width="4" height="2.5" rx="0.5"/><rect x="7.5" y="6" width="9" height="1.2" rx="0.3"/><rect x="9.5" y="7.2" width="5" height="3.3" rx="0.4"/><rect x="6.5" y="10.2" width="11" height="1.2" rx="0.3"/><rect x="4" y="11.4" width="16" height="11" rx="2"/><rect x="6" y="13" width="12" height="7.5" rx="1" fill="white" opacity="0.9"/><rect x="4" y="15" width="2" height="3" rx="0.5" fill="white" opacity="0.6"/><circle cx="12" cy="16.5" r="2.2" fill="currentColor"/><rect x="8.5" y="19.2" width="5" height="1" rx="0.5" fill="currentColor" opacity="0.5"/></svg>',
+                    'carrinho'   => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+                    'estrela'    => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+                    'tag'        => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+                    'coracao'    => '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+                );
+                return $icons[ $key ] ?? $icons['carrinho'];
+            }
+
+            // ── Renderiza os 6 cards via Customizer ──────────────────────
+            $cat_defaults_tpl = array(
+                1 => array( 'name' => 'Pods Descartáveis', 'url' => home_url('/loja/?categoria=pods-descartaveis'), 'icon' => 'pods',      'bg' => '#dbeafe', 'ic' => '#3b82f6' ),
+                2 => array( 'name' => 'Coils e Cartuchos', 'url' => home_url('/loja/?categoria=coils-cartuchos'),  'icon' => 'coils',     'bg' => '#d1fae5', 'ic' => '#10b981' ),
+                3 => array( 'name' => 'Juices',             'url' => home_url('/loja/?categoria=juices'),           'icon' => 'juice',     'bg' => '#fce7f3', 'ic' => '#ec4899' ),
+                4 => array( 'name' => 'Kits e Aparelhos',   'url' => home_url('/loja/?categoria=kits'),             'icon' => 'kit',       'bg' => '#ede9fe', 'ic' => '#8b5cf6' ),
+                5 => array( 'name' => 'Atomizadores',        'url' => home_url('/loja/?categoria=atomizadores'),     'icon' => 'atomizador','bg' => '#fee2e2', 'ic' => '#ef4444' ),
+                6 => array( 'name' => 'Acessórios',          'url' => home_url('/loja/?categoria=acessorios'),       'icon' => 'acessorios','bg' => '#fef9c3', 'ic' => '#ca8a04' ),
+            );
+            for ( $n = 1; $n <= 6; $n++ ) :
+                $prefix = "cat_card{$n}";
+                $def    = $cat_defaults_tpl[ $n ];
+
+                // Categoria WooCommerce selecionada
+                $cat_slug  = get_theme_mod( "{$prefix}_cat_slug", '' );
+                $cat_term  = ( $cat_slug && class_exists('WooCommerce') ) ? get_term_by( 'slug', $cat_slug, 'product_cat' ) : null;
+
+                // Nome: usa nome personalizado → nome da categoria → default
+                $custom_name = get_theme_mod( "{$prefix}_name", '' );
+                if ( $custom_name ) {
+                    $name = $custom_name;
+                } elseif ( $cat_term && ! is_wp_error($cat_term) ) {
+                    $name = $cat_term->name;
+                } else {
+                    $name = $def['name'];
+                }
+
+                // URL: usa link da categoria → link manual → default
+                if ( $cat_term && ! is_wp_error($cat_term) ) {
+                    $url = get_term_link( $cat_term );
+                } else {
+                    $url = get_theme_mod( "{$prefix}_url", $def['url'] );
+                    if ( is_wp_error( $url ) ) $url = $def['url'];
+                }
+
+                // Visual
+                $icon       = get_theme_mod( "{$prefix}_icon",       $def['icon'] );
+                $bg_color   = get_theme_mod( "{$prefix}_bg_color",   $def['bg'] );
+                $icon_color = get_theme_mod( "{$prefix}_icon_color", $def['ic'] );
+
+                // Contagem de produtos
+                $count_html = '';
+                $count_term = $cat_term ?? ( $cat_slug ? null : null );
+                if ( ! $count_term && class_exists('WooCommerce') ) {
+                    // Tenta extrair do link manual
+                    parse_str( parse_url( is_string($url) ? $url : '', PHP_URL_QUERY ) ?? '', $qs );
+                    $slug_from_url = $qs['categoria'] ?? '';
+                    if ( $slug_from_url ) {
+                        $count_term = get_term_by( 'slug', $slug_from_url, 'product_cat' );
+                    }
+                }
+                if ( $count_term && ! is_wp_error($count_term) ) {
+                    $count_html = $count_term->count . ' produto' . ( $count_term->count !== 1 ? 's' : '' );
+                }
+            ?>
+                <?php
+                // Descrições curtas por categoria
+                $cat_descriptions = array(
+                    1 => 'Os melhores pods descartáveis do mercado',
+                    2 => 'Reposição para seu dispositivo',
+                    3 => 'Sabores premium para vape',
+                    4 => 'Pods de longa duração',
+                    5 => 'Para personalizar sua experiência',
+                    6 => 'Tudo para seu kit completo',
+                );
+                ?>
+                <a href="<?php echo esc_url( is_string($url) ? $url : '' ); ?>" class="wcb-dept-card">
+                    <div class="wcb-dept-card__content">
+                        <span class="wcb-dept-card__name"><?php echo esc_html($name); ?></span>
+                        <span class="wcb-dept-card__desc"><?php echo esc_html($cat_descriptions[$n] ?? ''); ?></span>
+                        <div class="wcb-dept-card__meta">
+                            <?php if ( $count_html ) : ?>
+                            <span class="wcb-dept-card__count"><?php echo esc_html($count_html); ?></span>
+                            <?php endif; ?>
+                            <span class="wcb-dept-card__cta">
+                                Ver produtos
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="wcb-dept-card__icon-decor">
+                        <?php echo wcb_get_dept_icon($icon); ?>
+                    </div>
+                </a>
+            <?php endfor; ?>
+
+        </div>
+    </div>
+</section>
+
+<!-- ==================== BLOG SECTION ==================== -->
+
+<section class="wcb-section wcb-section--blog">
+    <div class="wcb-container">
+        <div class="wcb-section__header">
+            <h2 class="wcb-section__title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px;color:var(--wcb-blue)"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Do Nosso Blog
+            </h2>
+            <a href="<?php echo esc_url(home_url('/blog/')); ?>" class="wcb-section__link">
+                Ver todos
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="wcb-blog__grid">
+
+            <?php
+            // Query dos 3 posts mais recentes
+            $blog_query = new WP_Query(array(
+                'post_type'      => 'post',
+                'posts_per_page' => 3,
+                'post_status'    => 'publish',
+                'orderby'        => 'date',
+                'order'          => 'DESC',
+            ));
+
+            if ($blog_query->have_posts()) :
+                while ($blog_query->have_posts()) : $blog_query->the_post();
+                    // Calcular tempo de leitura
+                    $word_count = str_word_count(strip_tags(get_the_content()));
+                    $read_time  = max(1, ceil($word_count / 200));
+                    
+                    // Pegar categorias do post
+                    $categories = get_the_category();
+                    
+                    // Pegar iniciais do autor para o avatar
+                    $author_name = get_the_author();
+                    $name_parts  = explode(' ', $author_name);
+                    $initials    = '';
+                    foreach ($name_parts as $part) {
+                        $initials .= mb_strtoupper(mb_substr($part, 0, 1));
+                    }
+                    $initials = mb_substr($initials, 0, 2);
+            ?>
+            <a href="<?php the_permalink(); ?>" class="wcb-blog-card">
+                <div class="wcb-blog-card__image">
+                    <?php if (has_post_thumbnail()) : ?>
+                        <?php the_post_thumbnail('medium_large', array('loading' => 'lazy', 'alt' => get_the_title())); ?>
+                    <?php else : ?>
+                        <img src="<?php echo esc_url(get_template_directory_uri() . '/images/blog-placeholder.jpg'); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
+                    <?php endif; ?>
+                    <?php if (!empty($categories)) : ?>
+                    <div class="wcb-blog-card__tags">
+                        <?php 
+                        $shown = 0;
+                        foreach ($categories as $cat) : 
+                            if ($cat->slug === 'uncategorized' || $cat->slug === 'sem-categoria') continue;
+                            if ($shown >= 2) break;
+                        ?>
+                            <span class="wcb-blog-card__tag"><?php echo esc_html($cat->name); ?></span>
+                        <?php 
+                            $shown++;
+                        endforeach; 
+                        ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <div class="wcb-blog-card__content">
+                    <h3 class="wcb-blog-card__title"><?php the_title(); ?></h3>
+                    <p class="wcb-blog-card__excerpt"><?php echo wp_trim_words(get_the_excerpt(), 18, '...'); ?></p>
+                    <div class="wcb-blog-card__meta">
+                        <div class="wcb-blog-card__author">
+                            <div class="wcb-blog-card__avatar"><?php echo esc_html($initials); ?></div>
+                            <div class="wcb-blog-card__author-info">
+                                <span class="wcb-blog-card__author-name"><?php echo esc_html($author_name); ?></span>
+                                <span class="wcb-blog-card__date"><?php echo get_the_date('d M Y'); ?></span>
+                            </div>
+                        </div>
+                        <div class="wcb-blog-card__read-time">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <?php echo $read_time; ?> min
+                        </div>
+                    </div>
+                </div>
+            </a>
+            <?php
+                endwhile;
+                wp_reset_postdata();
+            else :
+            ?>
+                <p style="text-align:center;color:#888;grid-column:1/-1;">Nenhum post encontrado. Crie seus primeiros posts no painel WordPress!</p>
+            <?php endif; ?>
+
+        </div>
+    </div>
+</section>
+
+
+<?php
+get_footer();
+?>
+
+
