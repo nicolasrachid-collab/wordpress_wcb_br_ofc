@@ -145,12 +145,12 @@ function wcb_customize_register( $wp_customize ) {
     ) );
 
     $cat_defaults = array(
-        1 => array( 'name' => 'Pods Descartáveis', 'url' => '/loja/?categoria=pods-descartaveis', 'icon' => 'pods',      'color' => '#dbeafe' ),
-        2 => array( 'name' => 'Coils e Cartuchos', 'url' => '/loja/?categoria=coils-cartuchos',  'icon' => 'coils',     'color' => '#d1fae5' ),
-        3 => array( 'name' => 'Juices',             'url' => '/loja/?categoria=juices',           'icon' => 'juice',     'color' => '#fce7f3' ),
-        4 => array( 'name' => 'Kits e Aparelhos',   'url' => '/loja/?categoria=kits',             'icon' => 'kit',       'color' => '#ede9fe' ),
-        5 => array( 'name' => 'Atomizadores',        'url' => '/loja/?categoria=atomizadores',     'icon' => 'atomizador','color' => '#fee2e2' ),
-        6 => array( 'name' => 'Acessórios',          'url' => '/loja/?categoria=acessorios',       'icon' => 'acessorios','color' => '#fef9c3' ),
+        1 => array( 'name' => 'Pods Descartáveis', 'url' => '/loja/?categoria=pods-descartaveis', 'icon' => 'pods',      'color' => '#eff6ff' ),
+        2 => array( 'name' => 'Coils e Cartuchos', 'url' => '/loja/?categoria=coils-cartuchos',  'icon' => 'coils',     'color' => '#dbeafe' ),
+        3 => array( 'name' => 'Juices',             'url' => '/loja/?categoria=juices',           'icon' => 'juice',     'color' => '#e0f2fe' ),
+        4 => array( 'name' => 'Kits e Aparelhos',   'url' => '/loja/?categoria=kits',             'icon' => 'kit',       'color' => '#dbeafe' ),
+        5 => array( 'name' => 'Atomizadores',        'url' => '/loja/?categoria=atomizadores',     'icon' => 'atomizador','color' => '#e0f2fe' ),
+        6 => array( 'name' => 'Acessórios',          'url' => '/loja/?categoria=acessorios',       'icon' => 'acessorios','color' => '#eff6ff' ),
     );
 
     $icon_choices = array(

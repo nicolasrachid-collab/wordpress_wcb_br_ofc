@@ -43,8 +43,8 @@ while (have_posts()):
     $all_image_ids = array_merge((array) $thumb_id, $gallery_ids);
     $all_image_ids = array_unique(array_filter($all_image_ids));
 
-    // ─── Installments ─────────────────────────────────────────
-    $installment_val = ($current_price >= 100) ? $current_price / 12 : 0;
+    // ─── Parcelamento (copy fixa: sem valor por parcela na PDP) ─
+    $show_installments_line = ($current_price >= 100);
 
     // ─── ACF / Custom Fields (opcionais — fallback seguro) ────
     // Se ACF estiver ativo, puxamos "how_to_use". Caso contrário, fallback.
@@ -206,10 +206,7 @@ while (have_posts()):
                                 </div>
                             <?php else: ?>
                                 <div class="wcb-pdp-buybox__urgency wcb-pdp-buybox__urgency--ok">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2.5">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
+                                    <span class="wcb-pdp-buybox__urgency-dot" aria-hidden="true"></span>
                                     Em estoque — pronta entrega
                                 </div>
                             <?php endif; ?>
@@ -258,9 +255,8 @@ while (have_posts()):
                                         </span>
                                     </p>
                                     <p class="wcb-pdp-buybox__installments" id="wcb-pdp-installments"
-                                        style="<?php echo ($installment_val <= 0) ? 'display:none' : ''; ?>">
-                                        em até 12x de R$ <span
-                                            id="wcb-pdp-installments-val"><?php echo number_format($installment_val, 2, ',', '.'); ?></span>
+                                        style="<?php echo $show_installments_line ? '' : 'display:none'; ?>">
+                                        No máximo, até 12x no cartão
                                     </p>
                                 </div>
                             </div>
@@ -456,10 +452,37 @@ while (have_posts()):
                                 </div>
                             </div>
 
-                            <!-- Lista de Reviews (WooCommerce nativo) -->
+                            <!-- Lista de Reviews (WooCommerce nativo + toolbar ordenar/filtrar) -->
                             <?php if (have_comments()): ?>
                                 <div class="wcb-pdp-reviews-list">
-                                    <h3>O que nossos clientes dizem</h3>
+                                    <div class="wcb-pdp-reviews-list__head">
+                                        <h3><?php esc_html_e('O que nossos clientes dizem', 'wcb-theme'); ?></h3>
+                                        <div class="wcb-pdp-reviews-toolbar" role="group"
+                                            aria-label="<?php esc_attr_e('Ordenar e filtrar avaliações', 'wcb-theme'); ?>">
+                                            <div class="wcb-pdp-reviews-toolbar__field">
+                                                <label for="wcb-pdp-reviews-sort"
+                                                    class="wcb-pdp-reviews-toolbar__label"><?php esc_html_e('Ordenar', 'wcb-theme'); ?></label>
+                                                <select id="wcb-pdp-reviews-sort" class="wcb-pdp-reviews-toolbar__select">
+                                                    <option value="recent"><?php esc_html_e('Mais recentes', 'wcb-theme'); ?></option>
+                                                    <option value="rating-high"><?php esc_html_e('Melhor nota', 'wcb-theme'); ?></option>
+                                                    <option value="rating-low"><?php esc_html_e('Menor nota', 'wcb-theme'); ?></option>
+                                                    <option value="helpful"><?php esc_html_e('Mais úteis', 'wcb-theme'); ?></option>
+                                                </select>
+                                            </div>
+                                            <div class="wcb-pdp-reviews-toolbar__field">
+                                                <label for="wcb-pdp-reviews-filter"
+                                                    class="wcb-pdp-reviews-toolbar__label"><?php esc_html_e('Estrelas', 'wcb-theme'); ?></label>
+                                                <select id="wcb-pdp-reviews-filter" class="wcb-pdp-reviews-toolbar__select">
+                                                    <option value="0"><?php esc_html_e('Todas', 'wcb-theme'); ?></option>
+                                                    <option value="5">5 ★</option>
+                                                    <option value="4">4 ★</option>
+                                                    <option value="3">3 ★</option>
+                                                    <option value="2">2 ★</option>
+                                                    <option value="1">1 ★</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <?php wp_list_comments(apply_filters('woocommerce_product_review_list_args', [
                                         'callback' => 'woocommerce_comments',
                                     ])); ?>
@@ -535,10 +558,17 @@ while (have_posts()):
     </div><!-- /.wcb-pdp -->
 
     <!-- ════════════════════════════════════════════════════
-         7. STICKY BUY BAR (Fixa no topo ao rolar)
+         7. STICKY BUY CARD (canto inferior esquerdo quando a buybox sai de vista)
          ════════════════════════════════════════════════════ -->
-    <div class="wcb-pdp-sticky" id="wcb-pdp-sticky">
+    <div class="wcb-pdp-sticky" id="wcb-pdp-sticky" data-product-id="<?php echo esc_attr((string) $product_id); ?>"
+        role="complementary" aria-label="<?php echo esc_attr__('Resumo rápido do produto', 'wcb-theme'); ?>">
         <div class="wcb-pdp-sticky__inner">
+            <button type="button" class="wcb-pdp-sticky__close" aria-label="<?php esc_attr_e('Fechar', 'wcb-theme'); ?>">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
             <div class="wcb-pdp-sticky__info">
                 <?php if ($thumb_id): ?>
                     <div class="wcb-pdp-sticky__thumb">
@@ -566,14 +596,10 @@ while (have_posts()):
             </div>
             <div class="wcb-pdp-sticky__action">
                 <?php if ($is_in_stock): ?>
-                    <button class="wcb-pdp-sticky__btn"
+                    <button type="button" class="wcb-pdp-sticky__btn"
                         onclick="document.getElementById('wcb-pdp-buy-area').scrollIntoView({behavior:'smooth', block:'center'})">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <path d="M16 10a4 4 0 0 1-8 0" />
-                        </svg>
-                        Adicionar ao Carrinho
+                        <span class="wcb-pdp-sticky__btn-text"><?php echo esc_html($product->single_add_to_cart_text()); ?></span>
+                        <?php echo function_exists('wcb_pdp_cta_arrow_svg') ? wcb_pdp_cta_arrow_svg() : ''; ?>
                     </button>
                 <?php else: ?>
                     <span class="wcb-pdp-sticky__unavailable">Indisponível</span>
@@ -907,7 +933,6 @@ while (have_posts()):
                         var pixEl = document.getElementById('wcb-pdp-pix-value');
                         var economizeEl = document.getElementById('wcb-pdp-economize-pix');
                         var discEl = document.getElementById('wcb-pdp-discount');
-                        var installEl = document.getElementById('wcb-pdp-installments-val');
                         var installWrap = document.getElementById('wcb-pdp-installments');
 
                         var price = parseFloat(variation.display_price) || 0;
@@ -949,14 +974,8 @@ while (have_posts()):
                             }
                         }
 
-                        if (installEl && installWrap) {
-                            if (price >= 100) {
-                                var inst = price / 12;
-                                installEl.textContent = wcbFormatMoney(inst);
-                                installWrap.style.display = '';
-                            } else {
-                                installWrap.style.display = 'none';
-                            }
+                        if (installWrap) {
+                            installWrap.style.display = price >= 100 ? '' : 'none';
                         }
 
                         // Update PIX wrapper visibility
@@ -995,6 +1014,10 @@ while (have_posts()):
                             var baseReg = parseFloat(priceBlock.getAttribute('data-base-regular')) || 0;
                             var currentEl = document.getElementById('wcb-pdp-price-current');
                             if (currentEl) currentEl.textContent = 'R$ ' + base.toFixed(2).replace('.', ',');
+                            var installReset = document.getElementById('wcb-pdp-installments');
+                            if (installReset) {
+                                installReset.style.display = base >= 100 ? '' : 'none';
+                            }
                         }
 
                         // Hide subtotal on reset

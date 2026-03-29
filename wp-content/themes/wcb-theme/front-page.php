@@ -724,17 +724,17 @@ if ($has_mobile_bg):
                         color: #bfdbfe !important;
                     }
 
-                    /* ── Banner 2 — Warm Amber ── */
-                    .wcb-vendidos-banner-card--warm .wcb-vendidos-banner-card__btn {
-                        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-                        box-shadow: 0 4px 18px rgba(217, 119, 6, 0.45) !important;
+                    /* ── Banner 2 — Azul índigo (contrasta com o banner 1, sem âmbar/amarelo) ── */
+                    .wcb-vendidos-banner-card--indigo .wcb-vendidos-banner-card__btn {
+                        background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+                        box-shadow: 0 4px 18px rgba(79, 70, 229, 0.45) !important;
                     }
-                    .wcb-vendidos-banner-card--warm:hover .wcb-vendidos-banner-card__btn {
-                        box-shadow: 0 6px 24px rgba(217, 119, 6, 0.6) !important;
+                    .wcb-vendidos-banner-card--indigo:hover .wcb-vendidos-banner-card__btn {
+                        box-shadow: 0 6px 24px rgba(79, 70, 229, 0.55) !important;
                         transform: translateY(-1px) !important;
                     }
-                    .wcb-vendidos-banner-card--warm .wcb-vendidos-banner-card__tag {
-                        color: #fde68a !important;
+                    .wcb-vendidos-banner-card--indigo .wcb-vendidos-banner-card__tag {
+                        color: #c7d2fe !important;
                     }
                 </style>
 
@@ -791,10 +791,10 @@ if ($has_mobile_bg):
                 </div>
 
                 <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row2">
-                    <!-- Banner 2 — Warm -->
-                    <a href="<?php echo esc_url($b2_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--warm">
+                    <!-- Banner 2 — Índigo -->
+                    <a href="<?php echo esc_url($b2_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--indigo">
                         <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b2_img); ?>" alt="" loading="lazy">
-                        <div class="wcb-vendidos-banner-card__gradient" style="background:linear-gradient(to top, rgba(30,10,5,0.95) 0%, rgba(120,53,15,0.65) 50%, rgba(120,53,15,0.1) 100%)"></div>
+                        <div class="wcb-vendidos-banner-card__gradient" style="background:linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(55,48,163,0.72) 50%, rgba(67,56,202,0.14) 100%)"></div>
                         <div class="wcb-vendidos-banner-card__content">
                             <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b2_tag); ?></span>
                             <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post($b2_title); ?></h3>
@@ -848,348 +848,6 @@ if ($has_mobile_bg):
         $sale_end = date('Y-m-d', strtotime('next sunday')) . 'T23:59:59';
     }
     ?>
-    <!-- ── Ofertas Relâmpago — CSS v6 (Equilibrada: padrão + destaque) ── -->
-    <style>
-        /* ── Section background — destaque sutil ── */
-        #wcb-super-ofertas.wcb-flash-offers {
-            background: transparent !important;
-            border: none !important;
-            padding: 0 !important;
-        }
-        #wcb-super-ofertas > .wcb-container {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            padding: 0 var(--wcb-space-lg) !important;
-        }
-        #wcb-super-ofertas > .wcb-container::before { display: none !important; }
-
-        /* ── Countdown inline — boxes de 36px ── */
-        .wcb-flash-countdown-inline {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: 20px;
-            padding-left: 20px;
-            border-left: 2px solid #fed7aa;
-        }
-        .wcb-flash-countdown-inline__label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            white-space: nowrap;
-        }
-        .wcb-flash-countdown-inline__boxes {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .wcb-flash-countdown-inline__box {
-            background: #f97316;
-            color: #fff;
-            font-size: 0.95rem;
-            font-weight: 800;
-            min-width: 36px;
-            height: 34px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-variant-numeric: tabular-nums;
-            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
-        }
-        .wcb-flash-countdown-inline__sep {
-            color: #f97316;
-            font-weight: 800;
-            font-size: 0.9rem;
-        }
-
-        /* ── Urgency strip — faixa de escassez ── */
-        .wcb-flash-urgency-strip {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            padding: 10px 0 4px;
-            margin-top: 2px;
-        }
-        .wcb-flash-urgency-strip__text {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: #ea580c;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .wcb-flash-urgency-strip__text strong {
-            font-weight: 900;
-            color: #c2410c;
-        }
-        .wcb-flash-urgency-strip__bar {
-            width: 160px;
-            height: 6px;
-            background: #fed7aa;
-            border-radius: 999px;
-            overflow: hidden;
-        }
-        .wcb-flash-urgency-strip__fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ea580c, #f97316);
-            border-radius: 999px;
-            transition: width 1s ease-out;
-        }
-
-        /* ── Link laranja — destaque da seção ── */
-        .wcb-section__link--ofertas {
-            color: #fff !important;
-            background: #f97316 !important;
-            border-color: #f97316 !important;
-            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
-        }
-        .wcb-section__link--ofertas:hover {
-            background: #ea580c !important;
-            color: #fff !important;
-            border-color: #ea580c !important;
-            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
-            transform: translateY(-1px);
-        }
-
-        /* ── Esconder elementos antigos ── */
-        #wcb-super-ofertas .wcb-flash-offers__glow,
-        #wcb-super-ofertas .wcb-flash-offers__live-tag,
-        #wcb-super-ofertas .wcb-flash-offers__fomo-strip,
-        #wcb-super-ofertas .wcb-flash-offers__grid-label { display: none !important; }
-        #wcb-ofertas-carousel > .wcb-paged-carousel__controls { display: none !important; }
-
-        /* ═══════════════════════════════════════════════════════
-           HERO + GRID 2×2 LAYOUT
-        ═══════════════════════════════════════════════════════ */
-        .wcb-flash-hero-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 14px;
-            align-items: start;
-        }
-
-        /* Carousel inside hero-grid */
-        .wcb-flash-hero-grid .wcb-paged-carousel {
-            padding: 0;
-        }
-        .wcb-flash-hero-grid .wcb-carousel-arrow { display: none; }
-        .wcb-flash-hero-grid .wcb-carousel-progress { margin-top: 6px; }
-
-        /* ── Hero Card (left) — CRO Mini Landing Page ── */
-        .wcb-flash-hero {
-            position: relative;
-        }
-        .wcb-flash-hero .wcb-card5 {
-            display: flex;
-            flex-direction: column;
-            border: 2px solid #dbeafe;
-            box-shadow: 0 4px 24px rgba(21, 93, 253, 0.08);
-        }
-        .wcb-flash-hero .wcb-card5__img-wrap {
-            aspect-ratio: 1 / 1;
-            background: var(--wcb-gray-50, #f8f9fb);
-        }
-        .wcb-flash-hero .wcb-card5__img-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .wcb-flash-hero .wcb-card5__body {
-            padding: 12px 16px 16px;
-        }
-        .wcb-flash-hero .wcb-card5__title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            -webkit-line-clamp: 2;
-            margin-bottom: 6px;
-        }
-        .wcb-flash-hero .wcb-card5__hover-actions {
-            display: none !important;
-        }
-        .wcb-flash-hero .wcb-card5__cta-mobile {
-            display: none !important;
-        }
-
-        /* Badge hero unificada */
-        .wcb-card5__badge--hero-best {
-            background: linear-gradient(135deg, #f97316, #ea580c) !important;
-            color: #fff;
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 5px 14px;
-            letter-spacing: 0.3px;
-            border-radius: 6px;
-        }
-
-        /* Price block */
-        .wcb-hero-cro__price-block {
-            display: flex;
-            align-items: baseline;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 4px;
-        }
-        .wcb-hero-cro__price-old {
-            font-size: 0.78rem;
-            color: #94a3b8;
-            text-decoration: line-through;
-        }
-        .wcb-hero-cro__price-current {
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: #0f172a;
-            letter-spacing: -0.5px;
-        }
-
-        /* PIX inline — texto simples */
-        .wcb-hero-cro__pix-inline {
-            font-size: 0.75rem;
-            color: #0F48D4;
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: block;
-        }
-        .wcb-hero-cro__pix-inline strong {
-            font-weight: 800;
-        }
-        .wcb-hero-cro__pix-inline em {
-            font-style: normal;
-            font-weight: 600;
-        }
-
-
-
-        /* CTA forte — azul (identidade do site) */
-        .wcb-hero-cro__cta {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 11px 20px;
-            background: var(--wcb-gradient-cta, linear-gradient(135deg, #155DFD, #3B72FE));
-            color: #fff;
-            font-size: 0.85rem;
-            font-weight: 800;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(21, 93, 253, 0.30);
-            transition: all 0.2s ease;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .wcb-hero-cro__cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(21, 93, 253, 0.40);
-            background: linear-gradient(135deg, #0F48D4, #155DFD);
-            color: #fff;
-        }
-
-
-        /* ── Compact Grid (right — 2×2) — CRO ── */
-        .wcb-flash-compact-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-        .wcb-flash-compact-card .wcb-card5 {
-            font-size: 0.78em;
-        }
-        .wcb-flash-compact-card .wcb-card5__img-wrap {
-            aspect-ratio: 2 / 1;
-            background: var(--wcb-gray-50, #f8f9fb);
-        }
-        .wcb-flash-compact-card .wcb-card5__img-wrap img {
-            object-fit: contain;
-        }
-        .wcb-flash-compact-card .wcb-card5__body {
-            padding: 6px 10px 10px;
-        }
-        .wcb-flash-compact-card .wcb-card5__cat {
-            display: none;
-        }
-        .wcb-flash-compact-card .wcb-card5__title {
-            font-size: 0.72rem;
-            -webkit-line-clamp: 1;
-            min-height: auto;
-        }
-        .wcb-flash-compact-card .wcb-card5__rating,
-        .wcb-flash-compact-card .wcb-card5__pix,
-        .wcb-flash-compact-card .wcb-card5__pix-tag {
-            display: none;
-        }
-        .wcb-flash-compact-card .wcb-card5__installments,
-        .wcb-flash-compact-card .wcb-card5__teor {
-            display: none;
-        }
-        .wcb-flash-compact-card .wcb-card5__price-current {
-            font-size: 0.9rem;
-            font-weight: 900;
-            color: #0f172a;
-        }
-        .wcb-flash-compact-card .wcb-card5__pix-tag {
-            font-size: 0.65rem;
-            color: #0F48D4;
-        }
-        .wcb-flash-compact-card .wcb-card5__pix-tag strong {
-            font-weight: 800;
-        }
-        /* Compact CTA — azul (identidade do site) */
-        .wcb-flash-compact-card .wcb-card5__cta-mobile {
-            display: flex !important;
-            background: var(--wcb-gradient-cta, linear-gradient(135deg, #155DFD, #3B72FE)) !important;
-            color: #fff !important;
-            font-weight: 700 !important;
-            font-size: 0.65rem !important;
-            padding: 6px 10px !important;
-            border-radius: 6px !important;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .wcb-flash-compact-card .wcb-card5__hover-actions {
-            display: none !important;
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 1024px) {
-            .wcb-flash-hero-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            .wcb-flash-compact-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            .wcb-flash-hero .wcb-card5__img-wrap {
-                min-height: 200px;
-            }
-        }
-        @media (max-width: 768px) {
-            .wcb-flash-countdown-inline {
-                margin-left: 0;
-                margin-top: 8px;
-                padding-left: 0;
-                border-left: none;
-            }
-            .wcb-section__header--ofertas {
-                flex-wrap: wrap !important;
-            }
-            .wcb-flash-urgency-strip {
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-            .wcb-flash-compact-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
 
     <section class="wcb-section wcb-flash-offers" id="wcb-super-ofertas">
         <div class="wcb-container">
@@ -1282,18 +940,21 @@ if ($has_mobile_bg):
             $urgency_units = $total_low_stock > 0 ? min($total_low_stock, rand(3, 12)) : rand(3, 8);
             ?>
 
-            <!-- ══ HEADER — Padrão do site com countdown ══ -->
+            <!-- ══ HEADER — título + countdown + CTA (estilos em style.css) ══ -->
             <div class="wcb-section__header wcb-section__header--with-controls wcb-section__header--ofertas">
-                <h2 class="wcb-section__title">
-                    <span class="wcb-section__icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    </span>
-                    Ofertas Relâmpago
-                </h2>
+                <div class="wcb-flash-ofertas-head">
+                    <span class="wcb-flash-ofertas-kicker"><?php esc_html_e( 'Oferta por tempo limitado', 'wcb-theme' ); ?></span>
+                    <h2 class="wcb-section__title wcb-flash-ofertas-title">
+                        <span class="wcb-section__icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </span>
+                        <?php esc_html_e( 'Ofertas Relâmpago', 'wcb-theme' ); ?>
+                    </h2>
+                    <p class="wcb-flash-ofertas-sub"><?php esc_html_e( 'Descontos reais enquanto durar o estoque — pague menos no PIX.', 'wcb-theme' ); ?></p>
+                </div>
 
-                <!-- Countdown inline -->
                 <div class="wcb-flash-countdown-inline">
-                    <span class="wcb-flash-countdown-inline__label">Acaba em:</span>
+                    <span class="wcb-flash-countdown-inline__label"><?php esc_html_e( 'Acaba em', 'wcb-theme' ); ?></span>
                     <div class="wcb-flash-countdown-inline__boxes" id="wcb-countdown" data-end="<?php echo esc_attr($sale_end); ?>">
                         <div class="wcb-flash-countdown-inline__box"><span id="countdown-days">00</span></div>
                         <span class="wcb-flash-countdown-inline__sep">:</span>
@@ -1307,7 +968,7 @@ if ($has_mobile_bg):
 
                 <div class="wcb-section__header-right">
                     <a href="<?php echo esc_url(home_url('/loja/?on_sale=true')); ?>" class="wcb-section__link wcb-section__link--ofertas">
-                        Ver todas as ofertas
+                        <?php esc_html_e( 'Ver todas as ofertas', 'wcb-theme' ); ?>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M5 12h14M12 5l7 7-7 7" />
@@ -1316,10 +977,16 @@ if ($has_mobile_bg):
                 </div>
             </div>
 
-            <!-- ══ Urgency strip — escassez REAL ══ -->
-            <div class="wcb-flash-urgency-strip">
+            <div class="wcb-flash-urgency-strip" role="status">
+                <span class="wcb-flash-urgency-strip__pulse" aria-hidden="true"></span>
                 <span class="wcb-flash-urgency-strip__text">
-                    🔥 Restam apenas <strong><?php echo $urgency_units; ?> unidades</strong> — Oferta acaba em breve!
+                    <?php
+                    printf(
+                        /* translators: %d: approximate units remaining */
+                        esc_html__( 'Restam cerca de %d unidades em oferta — garanta antes que acabe.', 'wcb-theme' ),
+                        (int) $urgency_units
+                    );
+                    ?>
                 </span>
                 <div class="wcb-flash-urgency-strip__bar">
                     <div class="wcb-flash-urgency-strip__fill" style="width: <?php echo rand(88, 96); ?>%"></div>
@@ -1338,7 +1005,7 @@ if ($has_mobile_bg):
                         <div class="wcb-card5__img-wrap">
                             <!-- Badge destaque -->
                             <div class="wcb-card5__badges">
-                                <span class="wcb-card5__badge wcb-card5__badge--hero-best">🔥 <?php echo $hero_saving_p > 0 ? '-' . $hero_saving_p . '% OFF · ' : ''; ?>Melhor Oferta</span>
+                                <span class="wcb-card5__badge wcb-card5__badge--hero-best"><?php echo $hero_saving_p > 0 ? '-' . (int) $hero_saving_p . '% · ' : ''; ?><?php esc_html_e( 'Destaque', 'wcb-theme' ); ?></span>
                             </div>
 
                             <!-- Favorite -->
@@ -1411,7 +1078,6 @@ if ($has_mobile_bg):
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <style>#wcb-ofertas-carousel > .wcb-paged-carousel__controls { display: none !important; }</style>
                 </div>
                 <?php endif; ?>
             </div>
@@ -1914,9 +1580,12 @@ get_template_part('template-parts/section-depoimentos');
 <section class="wcb-section wcb-section--categories">
     <div class="wcb-container">
         <div class="wcb-section__header">
-            <h2 class="wcb-section__title">Escolha por Categoria</h2>
+            <div class="wcb-section__headline">
+                <h2 class="wcb-section__title"><?php esc_html_e('Escolha por Categoria', 'wcb-theme'); ?></h2>
+                <p class="wcb-section__subtitle"><?php esc_html_e('Navegue pelas categorias mais procuradas da loja.', 'wcb-theme'); ?></p>
+            </div>
             <a href="<?php echo esc_url(home_url('/loja/')); ?>" class="wcb-section__link">
-                Ver todos
+                <?php esc_html_e('Ver todos', 'wcb-theme'); ?>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
@@ -1947,12 +1616,12 @@ get_template_part('template-parts/section-depoimentos');
 
             // ── Renderiza os 6 cards via Customizer ──────────────────────
             $cat_defaults_tpl = array(
-                1 => array( 'name' => 'Pods Descartáveis', 'url' => home_url('/loja/?categoria=pods-descartaveis'), 'icon' => 'pods',      'bg' => '#dbeafe', 'ic' => '#3b82f6' ),
-                2 => array( 'name' => 'Coils e Cartuchos', 'url' => home_url('/loja/?categoria=coils-cartuchos'),  'icon' => 'coils',     'bg' => '#d1fae5', 'ic' => '#10b981' ),
-                3 => array( 'name' => 'Juices',             'url' => home_url('/loja/?categoria=juices'),           'icon' => 'juice',     'bg' => '#fce7f3', 'ic' => '#ec4899' ),
-                4 => array( 'name' => 'Kits e Aparelhos',   'url' => home_url('/loja/?categoria=kits'),             'icon' => 'kit',       'bg' => '#ede9fe', 'ic' => '#8b5cf6' ),
-                5 => array( 'name' => 'Atomizadores',        'url' => home_url('/loja/?categoria=atomizadores'),     'icon' => 'atomizador','bg' => '#fee2e2', 'ic' => '#ef4444' ),
-                6 => array( 'name' => 'Acessórios',          'url' => home_url('/loja/?categoria=acessorios'),       'icon' => 'acessorios','bg' => '#fef9c3', 'ic' => '#ca8a04' ),
+                1 => array( 'name' => 'Pods Descartáveis', 'url' => home_url('/loja/?categoria=pods-descartaveis'), 'icon' => 'pods',      'bg' => '#eff6ff', 'ic' => '#155dfd' ),
+                2 => array( 'name' => 'Coils e Cartuchos', 'url' => home_url('/loja/?categoria=coils-cartuchos'),  'icon' => 'coils',     'bg' => '#dbeafe', 'ic' => '#2563eb' ),
+                3 => array( 'name' => 'Juices',             'url' => home_url('/loja/?categoria=juices'),           'icon' => 'juice',     'bg' => '#e0f2fe', 'ic' => '#0ea5e9' ),
+                4 => array( 'name' => 'Kits e Aparelhos',   'url' => home_url('/loja/?categoria=kits'),             'icon' => 'kit',       'bg' => '#dbeafe', 'ic' => '#1d4ed8' ),
+                5 => array( 'name' => 'Atomizadores',        'url' => home_url('/loja/?categoria=atomizadores'),     'icon' => 'atomizador','bg' => '#e0f2fe', 'ic' => '#0369a1' ),
+                6 => array( 'name' => 'Acessórios',          'url' => home_url('/loja/?categoria=acessorios'),       'icon' => 'acessorios','bg' => '#eff6ff', 'ic' => '#3b82f6' ),
             );
             for ( $n = 1; $n <= 6; $n++ ) :
                 $prefix = "cat_card{$n}";
@@ -2010,8 +1679,38 @@ get_template_part('template-parts/section-depoimentos');
                     5 => 'Para personalizar sua experiência',
                     6 => 'Tudo para seu kit completo',
                 );
+                $icon_color_s = sanitize_hex_color( $icon_color );
+                $bg_color_s   = sanitize_hex_color( $bg_color );
+
+                // Juices: não usar fundo dourado/âmbar guardado no Customizer — volta ao azul do tema.
+                $wcb_dept_gold_bgs = array( '#dd9221', '#d97706', '#ca8a04', '#f59e0b', '#eab308', '#fbbf24', '#b45309', '#d4a574' );
+                if ( $bg_color_s && in_array( strtolower( $bg_color_s ), $wcb_dept_gold_bgs, true ) ) {
+                    $wcb_is_juice_card = ( $n === 3 )
+                        || ( $icon === 'juice' )
+                        || ( $cat_term && ! is_wp_error( $cat_term ) && in_array( $cat_term->slug, array( 'juices', 'juice' ), true ) )
+                        || ( is_string( $url ) && preg_match( '/[?&]categoria=juices\b/', $url ) );
+                    if ( $wcb_is_juice_card ) {
+                        $bg_color_s   = sanitize_hex_color( $def['bg'] );
+                        $icon_color_s = sanitize_hex_color( $def['ic'] );
+                    }
+                }
+
+                $card_vars    = '';
+                if ( $icon_color_s ) {
+                    $card_vars .= '--dept-user-accent:' . $icon_color_s . ';';
+                }
+                if ( $bg_color_s ) {
+                    $card_vars .= '--dept-user-bg:' . $bg_color_s . ';';
+                }
+                $card_style_attr = $card_vars !== '' ? ' style="' . esc_attr( $card_vars ) . '"' : '';
+                $aria_label      = $name;
+                if ( $count_html ) {
+                    $aria_label .= ' — ' . $count_html;
+                }
+                $aria_label .= '. ' . __( 'Abrir categoria na loja', 'wcb-theme' );
                 ?>
-                <a href="<?php echo esc_url( is_string($url) ? $url : '' ); ?>" class="wcb-dept-card">
+                <a href="<?php echo esc_url( is_string($url) ? $url : '' ); ?>" class="wcb-dept-card"<?php echo $card_style_attr; ?>
+                    aria-label="<?php echo esc_attr( $aria_label ); ?>">
                     <div class="wcb-dept-card__content">
                         <span class="wcb-dept-card__name"><?php echo esc_html($name); ?></span>
                         <span class="wcb-dept-card__desc"><?php echo esc_html($cat_descriptions[$n] ?? ''); ?></span>

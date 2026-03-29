@@ -62,6 +62,27 @@ function wcb_enqueue_assets() {
         'nonce'   => wp_create_nonce( 'wcb_nonce' ),
     ) );
 
+    // PDP — avaliações: ordenar, filtrar, voto "Útil"
+    if ( function_exists( 'is_product' ) && is_product() ) {
+        wp_enqueue_script(
+            'wcb-pdp-reviews',
+            WCB_URI . '/js/pdp-reviews.js',
+            array(),
+            WCB_VERSION,
+            true
+        );
+        wp_localize_script(
+            'wcb-pdp-reviews',
+            'wcbPdpReviews',
+            array(
+                'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+                'i18n'    => array(
+                    'error' => __( 'Não foi possível registrar. Tente de novo.', 'wcb-theme' ),
+                ),
+            )
+        );
+    }
+
     // My Account premium styles (only on account pages)
     if ( is_account_page() ) {
         wp_enqueue_style(

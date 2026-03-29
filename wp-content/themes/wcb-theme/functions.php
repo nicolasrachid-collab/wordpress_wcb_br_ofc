@@ -11,6 +11,7 @@
  *  inc/translations.php     — Gettext filters & checkout field labels
  *  inc/cart-checkout.php    — Cart page header/footer & JS translation fallback
  *  inc/woocommerce.php      — WC helpers, AJAX, side cart, gift bar, live search
+ *  inc/pdp-reviews.php      — PDP: avaliações (útil, toolbar ordenar/filtrar)
  *  inc/customizer.php       — Hero Banner & Super Ofertas customizer
  *  inc/newsletter.php       — Rodapé newsletter (AJAX, opção wcb_nl4_emails)
  *  inc/widgets-sidebar.php  — Widget area registration
@@ -21,7 +22,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WCB_VERSION', '1.2.3' );
+define( 'WCB_VERSION', '1.2.17' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
 
@@ -33,6 +34,7 @@ require_once WCB_DIR . '/inc/enqueue.php';
 require_once WCB_DIR . '/inc/translations.php';
 require_once WCB_DIR . '/inc/cart-checkout.php';
 require_once WCB_DIR . '/inc/woocommerce.php';
+require_once WCB_DIR . '/inc/pdp-reviews.php';
 require_once WCB_DIR . '/inc/wcb-attribute-swatches.php';
 require_once WCB_DIR . '/inc/customizer.php';
 require_once WCB_DIR . '/inc/newsletter.php';

@@ -509,12 +509,39 @@
     /* ============================================================
        SINGLE PRODUCT — STICKY BUY BAR (Suporta v1 e v2)
        ============================================================ */
-    // v2 (PDP Premium — fixa no topo)
+    // v2 (PDP Premium — card fixo no canto inferior ao rolar)
     const pdpSticky = document.getElementById('wcb-pdp-sticky');
     const pdpBuybox = document.getElementById('wcb-pdp-buybox');
 
     if (pdpSticky && pdpBuybox) {
+        const storageKey = 'wcb_pdp_sticky_dismiss_' + (pdpSticky.dataset.productId || '0');
+        let stickyDismissed = false;
+        try {
+            stickyDismissed = sessionStorage.getItem(storageKey) === '1';
+        } catch (e) {
+            stickyDismissed = false;
+        }
+        if (stickyDismissed) {
+            pdpSticky.classList.add('is-dismissed');
+        }
+
+        const stickyClose = pdpSticky.querySelector('.wcb-pdp-sticky__close');
+        if (stickyClose) {
+            stickyClose.addEventListener('click', function () {
+                pdpSticky.classList.remove('is-visible');
+                pdpSticky.classList.add('is-dismissed');
+                try {
+                    sessionStorage.setItem(storageKey, '1');
+                } catch (err) {
+                    /* ignore quota / private mode */
+                }
+            });
+        }
+
         const obs = new IntersectionObserver((entries) => {
+            if (pdpSticky.classList.contains('is-dismissed')) {
+                return;
+            }
             if (!entries[0].isIntersecting) {
                 pdpSticky.classList.add('is-visible');
             } else {
@@ -607,7 +634,6 @@
         const elPixValue = document.getElementById('wcb-pdp-pix-value');
         const elPixWrap = document.getElementById('wcb-pdp-pix');
         const elInstallments = document.getElementById('wcb-pdp-installments');
-        const elInstallmentsVal = document.getElementById('wcb-pdp-installments-val');
         const elEconomizePix = document.getElementById('wcb-pdp-economize-pix');
         const elStickyPrice = document.querySelector('.wcb-pdp-sticky__price');
 
@@ -659,13 +685,9 @@
                 if (elEconomizePix) elEconomizePix.style.display = 'none';
             }
 
-            // Parcelas (12x)
-            if (price >= 100) {
-                const parcela = price / 12;
-                if (elInstallmentsVal) elInstallmentsVal.textContent = formatBRL(parcela);
-                if (elInstallments) elInstallments.style.display = '';
-            } else {
-                if (elInstallments) elInstallments.style.display = 'none';
+            // Parcelas — copy fixa no HTML ("No máximo, até 12x no cartão"); só mostrar/ocultar
+            if (elInstallments) {
+                elInstallments.style.display = price >= 100 ? '' : 'none';
             }
 
             // Sticky bar — destaque no PIX

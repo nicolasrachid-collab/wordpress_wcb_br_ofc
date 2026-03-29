@@ -68,7 +68,7 @@ function wcb_is_side_cart_active()
  */
 function wcb_pdp_cta_arrow_svg()
 {
-    return '<svg class="wcb-pdp-cta-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>';
+    return '<svg class="wcb-pdp-cta-arrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
 }
 
 add_filter(
@@ -2315,9 +2315,16 @@ function wcb_gift_progress_bar()
             }
 
             function sideCartUiMissing() {
-                return !document.getElementById('wcb-gift-bar')
-                    || !document.getElementById('wcb-ship-bar')
-                    || !document.getElementById('wcb-coupon-block')
+                var rail = document.getElementById('wcb-incentive-rail');
+                var gift = document.getElementById('wcb-gift-bar');
+                var ship = document.getElementById('wcb-ship-bar');
+                if (!rail || !gift || !ship) {
+                    return true;
+                }
+                if (!rail.contains(gift) || !rail.contains(ship)) {
+                    return true;
+                }
+                return !document.getElementById('wcb-coupon-block')
                     || !document.getElementById('wcb-cep-block');
             }
 
@@ -2420,6 +2427,169 @@ function wcb_gift_progress_bar()
                     '</div>';
             }
 
+            /* Brinde + frete — carrossel 1 slide por vez (JS + largura do viewport) */
+            function buildIncentiveRail(d) {
+                return '<div id="wcb-incentive-rail" class="wcb-incentive-rail" role="region" aria-label="<?php echo esc_js(__('Brinde e frete grátis', 'wcb-theme')); ?>">' +
+                    '<div class="wcb-incentive-rail__viewport">' +
+                    '<div class="wcb-incentive-rail__track">' +
+                    '<div class="wcb-incentive-rail__slide" role="group" aria-label="<?php echo esc_js(__('Brinde', 'wcb-theme')); ?>">' + buildGiftBar(d) + '</div>' +
+                    '<div class="wcb-incentive-rail__slide" role="group" aria-label="<?php echo esc_js(__('Frete grátis', 'wcb-theme')); ?>">' + buildShipBar(d) + '</div>' +
+                    '</div></div>' +
+                    '<div class="wcb-incentive-rail__dots">' +
+                    '<button type="button" class="wcb-incentive-rail__dot wcb-incentive-rail__dot--active" aria-label="<?php echo esc_js(__('Ver barra de brinde', 'wcb-theme')); ?>" aria-current="true"></button>' +
+                    '<button type="button" class="wcb-incentive-rail__dot" aria-label="<?php echo esc_js(__('Ver barra de frete grátis', 'wcb-theme')); ?>" aria-current="false"></button>' +
+                    '</div></div>';
+            }
+
+            function wcbDestroyIncentiveRailCarousel() {
+                var rail = document.getElementById('wcb-incentive-rail');
+                if (rail && typeof rail._wcbRailTeardown === 'function') {
+                    rail._wcbRailTeardown();
+                    rail._wcbRailTeardown = null;
+                }
+            }
+
+            function wcbInitIncentiveRailCarousel() {
+                wcbDestroyIncentiveRailCarousel();
+                var rail = document.getElementById('wcb-incentive-rail');
+                if (!rail) return;
+                var reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+                var vp = rail.querySelector('.wcb-incentive-rail__viewport');
+                var track = rail.querySelector('.wcb-incentive-rail__track');
+                if (!vp || !track) return;
+                var slides = track.querySelectorAll('.wcb-incentive-rail__slide');
+                if (slides.length < 2) return;
+
+                var dots = rail.querySelectorAll('.wcb-incentive-rail__dot');
+                var idx = 0;
+                var timerId = null;
+                var ac = new AbortController();
+                var sig = { signal: ac.signal };
+
+                /* CSS fixa trilho 200% + slides 50% (1 card visível); não forçar px (evita empilhar se width=0) */
+                track.style.width = '';
+                track.style.transform = '';
+                for (var sc = 0; sc < slides.length; sc++) {
+                    slides[sc].style.flex = '';
+                    slides[sc].style.width = '';
+                    slides[sc].style.maxWidth = '';
+                    slides[sc].style.minWidth = '';
+                }
+
+                function slidePct() {
+                    return 100 / slides.length;
+                }
+
+                function updateDots(i) {
+                    for (var di = 0; di < dots.length; di++) {
+                        var on = di === i;
+                        dots[di].classList.toggle('wcb-incentive-rail__dot--active', on);
+                        dots[di].setAttribute('aria-current', on ? 'true' : 'false');
+                    }
+                    for (var sj = 0; sj < slides.length; sj++) {
+                        slides[sj].setAttribute('aria-hidden', sj === i ? 'false' : 'true');
+                    }
+                }
+
+                function goTo(i) {
+                    var n = slides.length;
+                    var target = ((i % n) + n) % n;
+                    idx = target;
+                    /* % em relação à largura do próprio .wcb-incentive-rail__track (spec CSS) */
+                    track.style.transform = 'translateX(-' + (target * slidePct()) + '%)';
+                    updateDots(target);
+                }
+
+                function tick() {
+                    goTo(idx + 1);
+                }
+
+                function startTimer() {
+                    if (timerId) return;
+                    timerId = window.setInterval(tick, 6000);
+                }
+
+                function stopTimer() {
+                    if (timerId) {
+                        clearInterval(timerId);
+                        timerId = null;
+                    }
+                }
+
+                goTo(0);
+                if (!reducedMotion) {
+                    startTimer();
+                }
+
+                var ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function () {
+                    goTo(idx);
+                }) : null;
+                if (ro) ro.observe(vp);
+
+                function pause() { stopTimer(); }
+                function resume() { startTimer(); }
+
+                rail.addEventListener('mouseenter', pause, sig);
+                rail.addEventListener('mouseleave', resume, sig);
+
+                /* Swipe horizontal no viewport (touch): esquerda = próximo, direita = anterior */
+                var touchStartX = 0;
+                var touchStartY = 0;
+                var touchTracking = false;
+                vp.addEventListener('touchstart', function (e) {
+                    if (!e.touches || e.touches.length !== 1) return;
+                    touchTracking = true;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }, { passive: true, signal: ac.signal });
+                vp.addEventListener('touchmove', function (e) {
+                    if (!touchTracking || !e.touches || e.touches.length !== 1) return;
+                    var mx = e.touches[0].clientX - touchStartX;
+                    var my = e.touches[0].clientY - touchStartY;
+                    if (Math.abs(mx) > Math.abs(my) && Math.abs(mx) > 14) {
+                        e.preventDefault();
+                    }
+                }, { passive: false, signal: ac.signal });
+                vp.addEventListener('touchend', function (e) {
+                    if (!touchTracking) return;
+                    touchTracking = false;
+                    var ch = e.changedTouches && e.changedTouches[0];
+                    if (!ch) return;
+                    var dx = ch.clientX - touchStartX;
+                    var dy = ch.clientY - touchStartY;
+                    var minSwipe = 42;
+                    if (Math.abs(dx) < minSwipe || Math.abs(dx) < Math.abs(dy)) return;
+                    stopTimer();
+                    if (dx < 0) {
+                        goTo(idx + 1);
+                    } else {
+                        goTo(idx - 1);
+                    }
+                    startTimer();
+                }, { passive: true, signal: ac.signal });
+                vp.addEventListener('touchcancel', function () {
+                    touchTracking = false;
+                }, { passive: true, signal: ac.signal });
+
+                for (var di = 0; di < dots.length; di++) {
+                    (function (dIndex) {
+                        dots[dIndex].addEventListener('click', function () { goTo(dIndex); }, sig);
+                        dots[dIndex].addEventListener('keydown', function (e) {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                goTo(dIndex);
+                            }
+                        }, sig);
+                    })(di);
+                }
+
+                rail._wcbRailTeardown = function () {
+                    ac.abort();
+                    stopTimer();
+                    if (ro) ro.disconnect();
+                };
+            }
+
             /* ── Gera HTML do campo CEP ── */
             function buildCepBlock() {
                 return '<div class="wcb-cep-block" id="wcb-cep-block">' +
@@ -2453,17 +2623,21 @@ function wcb_gift_progress_bar()
                 var footer = document.querySelector('.xoo-wsc-footer');
                 if (!header || !body || !footer) return false;
 
-                /* Layout em ancoras: brinde sob o header, frete sobre o footer (lista no meio — respiro visual) */
                 var oldInc = document.getElementById('wcb-incentives-drawer');
                 if (oldInc) oldInc.remove();
 
-                var oldGift = document.getElementById('wcb-gift-bar');
-                if (oldGift) oldGift.outerHTML = buildGiftBar(data);
-                else header.insertAdjacentHTML('afterend', buildGiftBar(data));
+                var oldRail = document.getElementById('wcb-incentive-rail');
+                var legacyGift = document.getElementById('wcb-gift-bar');
+                var legacyShip = document.getElementById('wcb-ship-bar');
+                if (legacyGift && (!oldRail || !oldRail.contains(legacyGift))) legacyGift.remove();
+                if (legacyShip && (!oldRail || !oldRail.contains(legacyShip))) legacyShip.remove();
 
-                var oldShip = document.getElementById('wcb-ship-bar');
-                if (oldShip) oldShip.outerHTML = buildShipBar(data);
-                else footer.insertAdjacentHTML('beforebegin', buildShipBar(data));
+                if (oldRail) {
+                    wcbDestroyIncentiveRailCarousel();
+                    oldRail.outerHTML = buildIncentiveRail(data);
+                } else {
+                    footer.insertAdjacentHTML('beforebegin', buildIncentiveRail(data));
+                }
 
                 // Cupom + CEP dentro de "Mostrar mais"; totais resumidos ficam visíveis quando recolhido
                 var ftTotals = footer.querySelector('.xoo-wsc-ft-totals');
@@ -2491,6 +2665,13 @@ function wcb_gift_progress_bar()
                 syncShipSummaryFromStorage();
                 syncCouponStatusUi();
                 syncFooterShippingNote();
+
+                requestAnimationFrame(function () {
+                    wcbInitIncentiveRailCarousel();
+                    requestAnimationFrame(function () {
+                        wcbInitIncentiveRailCarousel();
+                    });
+                });
 
                 injected = true;
                 return true;
@@ -2651,18 +2832,17 @@ function wcb_gift_progress_bar()
                 var legacy = document.getElementById('wcb-incentives-drawer');
                 if (legacy) legacy.remove();
 
-                var sb = document.getElementById('wcb-ship-bar');
-                if (sb) sb.outerHTML = buildShipBar(d);
-                else {
-                    var ft = document.querySelector('.xoo-wsc-footer');
-                    if (ft) ft.insertAdjacentHTML('beforebegin', buildShipBar(d));
-                }
-
-                var gb = document.getElementById('wcb-gift-bar');
-                if (gb) gb.outerHTML = buildGiftBar(d);
-                else {
-                    var hdr = document.querySelector('.xoo-wsc-header');
-                    if (hdr) hdr.insertAdjacentHTML('afterend', buildGiftBar(d));
+                var rail = document.getElementById('wcb-incentive-rail');
+                var ft = document.querySelector('.xoo-wsc-footer');
+                if (rail) {
+                    wcbDestroyIncentiveRailCarousel();
+                    rail.outerHTML = buildIncentiveRail(d);
+                } else {
+                    var gb = document.getElementById('wcb-gift-bar');
+                    var sb = document.getElementById('wcb-ship-bar');
+                    if (gb) gb.remove();
+                    if (sb) sb.remove();
+                    if (ft) ft.insertAdjacentHTML('beforebegin', buildIncentiveRail(d));
                 }
 
                 /* Atualizar initData para refletir o estado atual */
@@ -2673,6 +2853,10 @@ function wcb_gift_progress_bar()
                 initData.ship_progress = d.ship_progress;
                 initData.ship_remaining = d.ship_remaining;
                 initData.ship_unlocked = d.ship_unlocked;
+
+                requestAnimationFrame(function () {
+                    wcbInitIncentiveRailCarousel();
+                });
             }
 
             /* ── Quando o cart é atualizado via WooCommerce events: recalcula localmente ── */
@@ -2692,6 +2876,11 @@ function wcb_gift_progress_bar()
             }
             if (typeof jQuery !== 'undefined') {
                 jQuery(document.body).on('xoo_wsc_cart_updated added_to_cart removed_from_cart wc_fragments_refreshed xoo_wsc_open', onCartUpdate);
+                jQuery(document.body).on('xoo_wsc_open', function () {
+                    requestAnimationFrame(function () {
+                        wcbInitIncentiveRailCarousel();
+                    });
+                });
             }
 
             /* ── MutationObserver: injeta elementos quando o side cart aparece no DOM ── */

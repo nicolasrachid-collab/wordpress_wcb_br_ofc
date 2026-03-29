@@ -189,12 +189,39 @@ body.rtl .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-slider {
         animation: none !important;
     }
 
-    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar,
-    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > .xoo-wsc-body,
-    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar {
+    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail,
+    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > .xoo-wsc-body {
         transition: none !important;
         filter: none !important;
     }
+
+    /* Um slide visível: mesma fila horizontal, sem animação automática (JS não usa timer) */
+    .wcb-incentive-rail__track {
+        animation: none !important;
+        transition: none !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: 200% !important;
+        max-width: none !important;
+    }
+
+    .wcb-incentive-rail__slide {
+        flex: 0 0 50% !important;
+        width: 50% !important;
+        min-width: 50% !important;
+        max-width: 50% !important;
+        box-sizing: border-box !important;
+    }
+
+    .wcb-incentive-rail__viewport {
+        overflow: hidden !important;
+        overflow-x: clip !important;
+    }
+
+    .wcb-incentive-rail__dots {
+        display: flex !important;
+    }
+
 }
 
 /*
@@ -227,23 +254,212 @@ body.rtl .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-slider {
     transition: filter 0.32s var(--wcb-drawer-ease, cubic-bezier(0.22, 1, 0.36, 1)) !important;
 }
 
-/* Barras de incentivo — não encolhem com o flex; blur alinhado à lista */
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar,
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar {
+/* Trilho brinde + frete — uma única “sessão” visual; conteúdo alterna no slide interno */
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail {
     flex-shrink: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
     transition: filter 0.32s var(--wcb-drawer-ease, cubic-bezier(0.22, 1, 0.36, 1)) !important;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--wcb-info-50, #eff6ff) 18%, #f8fafc) 0%,
+            #f1f5f9 100%
+        ) !important;
+    border-top: 1px solid color-mix(in srgb, var(--wcb-border-subtle, #e2e8f0) 75%, transparent) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        0 -1px 0 color-mix(in srgb, var(--wcb-info-100) 25%, transparent) !important;
 }
 
 /*
- * "Mostrar mais" expandido: desfoca brinde, lista e frete.
- * Header e footer permanecem nítidos.
+ * "Mostrar mais" expandido: desfoca trilho de incentivos e lista.
  */
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container:has(.xoo-wsc-footer.wcb-cart-more--expanded) > #wcb-gift-bar,
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container:has(.xoo-wsc-footer.wcb-cart-more--expanded) > .xoo-wsc-body,
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container:has(.xoo-wsc-footer.wcb-cart-more--expanded) > #wcb-ship-bar {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container:has(.xoo-wsc-footer.wcb-cart-more--expanded) > #wcb-incentive-rail,
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container:has(.xoo-wsc-footer.wcb-cart-more--expanded) > .xoo-wsc-body {
     filter: blur(3px) !important;
+}
+
+/* Trilho brinde ↔ frete: 1 slide visível; rotação e dots via JS (wcbInitIncentiveRailCarousel) */
+
+.wcb-incentive-rail {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wcb-incentive-rail__viewport {
+    overflow: hidden;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__viewport {
+    border-top: none !important;
+    background: transparent !important;
+    overflow: hidden !important;
+    overflow-x: clip !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px var(--wcb-drawer-pad-x, 18px) 6px !important;
+    box-sizing: border-box !important;
+    /* Deslize horizontal para o carrossel; vertical continua disponível para a lista do carrinho */
+    touch-action: pan-y !important;
+}
+
+.wcb-incentive-rail__track {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    direction: ltr;
+    /* 2 slides × 100% da viewport cada */
+    width: 200%;
+    max-width: none;
+    will-change: transform;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wcb-incentive-rail__slide {
+    flex: 0 0 50%;
+    width: 50%;
+    min-width: 50%;
+    max-width: 50%;
+    box-sizing: border-box;
+}
+
+/*
+ * Carrossel no side cart — reforço máximo (plugin Xoo / flex column nos filhos).
+ */
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__track {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    direction: ltr !important;
+    width: 200% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    will-change: transform !important;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__slide {
+    display: block !important;
+    flex: 0 0 50% !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+    box-sizing: border-box !important;
+    padding: 0 2px !important;
+}
+
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__dots {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Reduced motion: mesmo layout 1 slide (fila horizontal), só sem transição suave */
+@media (prefers-reduced-motion: reduce) {
+    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__track {
+        transition: none !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: 200% !important;
+        max-width: none !important;
+    }
+
+    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__slide {
+        flex: 0 0 50% !important;
+        width: 50% !important;
+        max-width: 50% !important;
+        min-width: 50% !important;
+    }
+
+    .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail .wcb-incentive-rail__viewport {
+        overflow: hidden !important;
+        overflow-x: clip !important;
+    }
+}
+
+.wcb-incentive-rail__dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0;
+    padding: 8px var(--wcb-drawer-pad-x, 14px) 14px;
+    box-sizing: border-box;
+    border-top: none;
+    background: transparent;
+}
+
+.wcb-incentive-rail__dot {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.wcb-incentive-rail__dot::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--wcb-neutral-400, #94a3b8) 50%, var(--wcb-neutral-300, #cbd5e1));
+    opacity: 0.42;
+    transition:
+        width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        border-radius 0.25s ease,
+        opacity 0.22s ease,
+        background 0.22s ease,
+        box-shadow 0.22s ease;
+}
+
+.wcb-incentive-rail__dot:hover::after,
+.wcb-incentive-rail__dot:focus-visible::after {
+    opacity: 0.78;
+}
+
+.wcb-incentive-rail__dot:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px color-mix(in srgb, var(--wcb-info-500) 45%, transparent);
+}
+
+.wcb-incentive-rail__dot--active::after {
+    width: 24px;
+    height: 7px;
+    border-radius: 999px;
+    opacity: 1;
+    background: linear-gradient(90deg, var(--wcb-info-500) 0%, var(--wcb-info-600) 100%);
+    box-shadow: 0 1px 6px color-mix(in srgb, var(--wcb-info-500) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcb-incentive-rail__dot::after {
+        transition: none !important;
+    }
 }
 
 .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > .xoo-wsc-footer {
@@ -1337,20 +1553,20 @@ span.xoo-wsc-loader { background: rgba(255,255,255,0.92) !important; border-radi
 
 /* ── Resumo de valores: grid, alinhamento, hierarquia premium ── */
 .xoo-wsc-ft-totals {
-    padding: 14px var(--wcb-drawer-pad-x) 10px !important;
+    padding: 8px var(--wcb-drawer-pad-x) 6px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 2px !important;
+    gap: 0 !important;
 }
 
 .xoo-wsc-ft-amt {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(6rem, max-content) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, max-content) !important;
     align-items: baseline !important;
-    column-gap: 16px !important;
-    padding: 7px 0 !important;
+    column-gap: 12px !important;
+    padding: 4px 0 !important;
     margin: 0 !important;
     min-height: auto !important;
     width: 100% !important;
@@ -1445,8 +1661,8 @@ span.xoo-wsc-ft-amt-label:after,
 /* Linha nativa "total" do plugin (se existir) */
 .xoo-wsc-ft-amt-total {
     border-top: 1px solid #e2e8f0 !important;
-    margin-top: 6px !important;
-    padding-top: 12px !important;
+    margin-top: 4px !important;
+    padding-top: 8px !important;
 }
 
 .xoo-wsc-ft-amt-total .xoo-wsc-ft-amt-label {
@@ -1504,8 +1720,8 @@ span.xoo-wsc-smr-del.xoo-wsc-del-txt {
 .xoo-wsc-ft-buttons-cont {
     display: flex !important;
     flex-direction: column !important;
-    gap: 14px !important;
-    padding: 8px var(--wcb-drawer-pad-x) calc(22px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 8px !important;
+    padding: 6px var(--wcb-drawer-pad-x) calc(14px + env(safe-area-inset-bottom, 0px)) !important;
     background: #ffffff !important;
     /* Override the plugin's grid layout */
     grid-template-columns: unset !important;
@@ -1521,9 +1737,9 @@ a.xoo-wsc-ft-btn,
     align-items: center !important;
     justify-content: center !important;
     width: 100% !important;
-    padding: 0 18px !important;
-    min-height: 48px !important;
-    height: 48px !important;
+    padding: 0 16px !important;
+    min-height: 44px !important;
+    height: 44px !important;
     border-radius: 8px !important;
     font-family: 'Inter', -apple-system, sans-serif !important;
     font-size: 15px !important;
@@ -1800,6 +2016,20 @@ a.xoo-wsc-ft-btn-continue:focus-visible {
    FLOATING BASKET TRIGGER
 ══════════════════════════════════════ */
 
+/* Pulsação bem suave — quase imperceptível, só chama atenção de forma elegante */
+@keyframes wcb-wsc-basket-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 18px rgba(21, 93, 253, 0.34);
+    }
+
+    50% {
+        transform: scale(1.018);
+        box-shadow: 0 5px 22px rgba(21, 93, 253, 0.42);
+    }
+}
+
 /*
  * Com o carrinho aberto: manter a sacola inteira na área do overlay (à esquerda do painel),
  * usando a mesma largura do drawer que o tema (--wcb-drawer-w), não só o scm-width do plugin.
@@ -1835,7 +2065,7 @@ body.rtl.xoo-wsc-cart-active .xoo-wsc-basket {
     width: 56px !important;
     height: 56px !important;
     border-radius: 50% !important;
-    box-shadow: 0 4px 20px rgba(21,93,253,0.42) !important;
+    box-shadow: 0 4px 18px rgba(21, 93, 253, 0.34) !important;
     background: #155DFD !important;
     color: #ffffff !important;
     transition:
@@ -1846,10 +2076,19 @@ body.rtl.xoo-wsc-cart-active .xoo-wsc-basket {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    animation: wcb-wsc-basket-pulse 3.8s cubic-bezier(0.45, 0, 0.55, 1) infinite !important;
 }
+
 .xoo-wsc-basket:hover {
+    animation: none !important;
     transform: scale(1.07) !important;
     box-shadow: 0 8px 30px rgba(21,93,253,0.55) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .xoo-wsc-basket {
+        animation: none !important;
+    }
 }
 .xoo-wsc-items-count {
     background: #EF4444 !important;
@@ -2181,19 +2420,19 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
 }
 
 /* ══════════════════════════════════════
-   Brinde — fundo laranja bem suave
+   Brinde — fundo azul suave (info)
 ══════════════════════════════════════ */
 .wcb-gift-progress {
     margin: 0 0 6px !important;
     width: 100% !important;
     padding: 10px var(--wcb-drawer-pad-x) 12px !important;
     border-radius: 0 !important;
-    border: 1px solid var(--wcb-warning-200) !important;
-    background: var(--wcb-warning-50) !important;
+    border: 1px solid var(--wcb-info-200) !important;
+    background: var(--wcb-info-50) !important;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 1) inset,
-        0 0 0 1px color-mix(in srgb, var(--wcb-warning-500) 6%, transparent),
-        0 2px 10px color-mix(in srgb, var(--wcb-warning-500) 8%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--wcb-info-500) 6%, transparent),
+        0 2px 10px color-mix(in srgb, var(--wcb-info-500) 8%, transparent),
         0 1px 2px rgba(15, 23, 42, 0.03) !important;
     box-sizing: border-box !important;
 }
@@ -2218,7 +2457,7 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: var(--wcb-warning-500) !important;
+    color: var(--wcb-info-500) !important;
 }
 
 .wcb-gift-progress__icon .wcb-sc-bar-icon,
@@ -2242,12 +2481,12 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
 }
 
 .wcb-gift-progress .wcb-incentive-accent {
-    color: var(--wcb-warning-600) !important;
+    color: var(--wcb-info-600) !important;
     font-weight: 700 !important;
 }
 
 .wcb-gift-progress.wcb-gift-unlocked .wcb-incentive-accent {
-    color: var(--wcb-warning-700) !important;
+    color: var(--wcb-info-700) !important;
 }
 
 .wcb-gift-progress-bar {
@@ -2262,30 +2501,30 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
 .wcb-gift-progress-fill {
     height: 100% !important;
     border-radius: 0 !important;
-    background: linear-gradient(90deg, var(--wcb-warning-500) 0%, var(--wcb-warning-600) 100%) !important;
-    box-shadow: 0 0 10px color-mix(in srgb, var(--wcb-warning-500) 35%, transparent) !important;
+    background: linear-gradient(90deg, var(--wcb-info-500) 0%, var(--wcb-info-600) 100%) !important;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--wcb-info-500) 35%, transparent) !important;
     transition: width 0.65s cubic-bezier(0.4, 0, 0.2, 1) !important;
     min-width: 0 !important;
 }
 
 .wcb-gift-progress.wcb-gift-unlocked {
-    border-color: var(--wcb-warning-200) !important;
-    background: var(--wcb-warning-50) !important;
+    border-color: var(--wcb-info-200) !important;
+    background: var(--wcb-info-50) !important;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 1) inset,
-        0 0 0 1px color-mix(in srgb, var(--wcb-warning-500) 8%, transparent),
-        0 2px 12px color-mix(in srgb, var(--wcb-warning-500) 10%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--wcb-info-500) 8%, transparent),
+        0 2px 12px color-mix(in srgb, var(--wcb-info-500) 10%, transparent),
         0 1px 2px rgba(15, 23, 42, 0.03) !important;
 }
 
 .wcb-gift-progress.wcb-gift-unlocked .wcb-gift-progress-text {
-    color: var(--wcb-warning-700) !important;
+    color: var(--wcb-info-700) !important;
     font-weight: 600 !important;
 }
 
 .wcb-gift-progress.wcb-gift-unlocked .wcb-gift-progress-fill {
-    background: linear-gradient(90deg, var(--wcb-warning-500) 0%, var(--wcb-warning-600) 55%, var(--wcb-warning-700) 100%) !important;
-    box-shadow: 0 0 12px color-mix(in srgb, var(--wcb-warning-600) 38%, transparent) !important;
+    background: linear-gradient(90deg, var(--wcb-info-500) 0%, var(--wcb-info-600) 55%, var(--wcb-info-700) 100%) !important;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--wcb-info-600) 38%, transparent) !important;
 }
 
 /* ══════════════════════════════════════
@@ -2404,45 +2643,44 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
 }
 
 /*
- * Drawer (Xoo): brinde + frete — largura total (sem recuo lateral), colados ao topo / acima do footer.
+ * Drawer (Xoo): brinde + frete dentro do mesmo cartão (#wcb-incentive-rail); só o conteúdo alterna no slide.
  */
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar.wcb-gift-progress {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar.wcb-gift-progress {
     display: flex !important;
     flex-direction: column !important;
     margin: 0 !important;
     width: 100% !important;
     max-width: none !important;
-    padding: 12px var(--wcb-drawer-pad-x) 14px !important;
-    border: none !important;
-    border-radius: 0 !important;
-    border-bottom: 1px solid color-mix(in srgb, var(--wcb-warning-200) 55%, var(--wcb-border-subtle)) !important;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--wcb-warning-50) 92%, #fff) 0%,
-        color-mix(in srgb, var(--wcb-warning-100) 38%, #fff) 100%
-    ) !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset !important;
-    box-sizing: border-box !important;
-    gap: 10px !important;
-}
-
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar.wcb-gift-progress.wcb-gift-unlocked {
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--wcb-warning-50) 88%, #fff) 0%,
-        color-mix(in srgb, var(--wcb-warning-100) 45%, #fff) 100%
-    ) !important;
-    border-bottom-color: color-mix(in srgb, var(--wcb-warning-300) 35%, var(--wcb-border-subtle)) !important;
+    padding: 15px 16px 16px !important;
+    border: 1px solid color-mix(in srgb, var(--wcb-border-subtle, #e2e8f0) 82%, var(--wcb-info-200)) !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
     box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 3px 14px -6px color-mix(in srgb, var(--wcb-warning-500) 14%, transparent) !important;
+        0 1px 0 rgba(255, 255, 255, 1) inset,
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 10px 28px -12px rgba(15, 23, 42, 0.1) !important;
+    box-sizing: border-box !important;
+    gap: 12px !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress-text {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar.wcb-gift-progress.wcb-gift-unlocked {
+    border-color: color-mix(in srgb, var(--wcb-success-200) 55%, var(--wcb-border-subtle)) !important;
+    background: linear-gradient(
+        165deg,
+        #ffffff 0%,
+        color-mix(in srgb, var(--wcb-success-50) 42%, #ffffff) 100%
+    ) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 1) inset,
+        0 1px 2px rgba(15, 23, 42, 0.035),
+        0 10px 28px -12px color-mix(in srgb, var(--wcb-success-500) 12%, rgba(15, 23, 42, 0.08)) !important;
+}
+
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress-text {
     display: grid !important;
     grid-template-columns: auto 1fr !important;
     align-items: center !important;
-    gap: 13px !important;
+    gap: 14px !important;
     margin: 0 0 0 0 !important;
     margin-bottom: 0 !important;
     padding: 0 !important;
@@ -2456,97 +2694,101 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
     flex-wrap: nowrap !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress__icon {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    border-radius: 10px !important;
-    color: var(--wcb-warning-700) !important;
-    background: color-mix(in srgb, var(--wcb-warning-100) 72%, #ffffff) !important;
-    border: 1px solid color-mix(in srgb, var(--wcb-warning-200) 45%, transparent) !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress__icon {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 12px !important;
+    color: var(--wcb-info-700) !important;
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--wcb-info-50) 90%, #ffffff) 0%,
+        color-mix(in srgb, var(--wcb-info-100) 55%, #ffffff) 100%
+    ) !important;
+    border: 1px solid color-mix(in srgb, var(--wcb-info-200) 38%, transparent) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 1px 3px color-mix(in srgb, var(--wcb-info-500) 8%, transparent) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress__icon .wcb-sc-bar-icon,
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress__icon svg {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress__icon .wcb-sc-bar-icon,
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress__icon svg {
     width: 20px !important;
     height: 20px !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress__copy {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress__copy {
     text-align: left !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress-text strong:not(.wcb-incentive-accent) {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress-text strong:not(.wcb-incentive-accent) {
     color: var(--wcb-neutral-700) !important;
     font-weight: 600 !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-incentive-accent {
-    color: var(--wcb-warning-600) !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-incentive-accent {
+    color: var(--wcb-info-600) !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
     font-variant-numeric: tabular-nums !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar.wcb-gift-unlocked .wcb-incentive-accent {
-    color: var(--wcb-warning-700) !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar.wcb-gift-unlocked .wcb-incentive-accent {
+    color: var(--wcb-info-700) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar.wcb-gift-unlocked .wcb-gift-progress-text {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar.wcb-gift-unlocked .wcb-gift-progress-text {
     color: var(--wcb-neutral-700) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress-bar {
-    height: 5px !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress-bar {
+    height: 6px !important;
     border-radius: 999px !important;
-    background: color-mix(in srgb, var(--wcb-progress-track-empty) 88%, var(--wcb-warning-100)) !important;
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+    background: color-mix(in srgb, var(--wcb-neutral-100, #f1f5f9) 65%, var(--wcb-progress-track-empty)) !important;
+    box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.07) !important;
     overflow: hidden !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-gift-bar .wcb-gift-progress-fill {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-gift-bar .wcb-gift-progress-fill {
     border-radius: 999px !important;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--wcb-warning-500) 12%, transparent) !important;
+    background: linear-gradient(90deg, var(--wcb-info-500) 0%, var(--wcb-info-600) 55%, color-mix(in srgb, var(--wcb-info-600) 85%, #1e3a8a) 100%) !important;
+    box-shadow: 0 0 0 1px color-mix(in srgb, #ffffff 35%, transparent) inset !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar {
     margin: 0 !important;
     width: 100% !important;
     max-width: none !important;
-    padding: 12px var(--wcb-drawer-pad-x) 14px !important;
-    gap: 10px !important;
-    border: none !important;
-    border-radius: 0 !important;
-    border-top: 1px solid color-mix(in srgb, var(--wcb-info-200) 45%, var(--wcb-border-subtle)) !important;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--wcb-info-50) 55%, #fff) 0%,
-        color-mix(in srgb, var(--wcb-neutral-50) 96%, var(--wcb-info-100)) 100%
-    ) !important;
+    padding: 15px 16px 16px !important;
+    gap: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--wcb-border-subtle, #e2e8f0) 90%, transparent) !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
     box-shadow:
-        0 -1px 0 rgba(255, 255, 255, 0.7) inset,
-        0 -4px 18px -10px rgba(21, 93, 253, 0.08) !important;
+        0 1px 0 rgba(255, 255, 255, 1) inset,
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 10px 28px -12px rgba(15, 23, 42, 0.1) !important;
     box-sizing: border-box !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar.wcb-ship-bar--unlocked {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar.wcb-ship-bar--unlocked {
+    border-color: color-mix(in srgb, var(--wcb-success-200) 50%, var(--wcb-border-subtle)) !important;
     background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--wcb-success-50) 70%, #fff) 0%,
-        color-mix(in srgb, var(--wcb-neutral-50) 94%, var(--wcb-success-100)) 100%
+        165deg,
+        #ffffff 0%,
+        color-mix(in srgb, var(--wcb-success-50) 38%, #ffffff) 100%
     ) !important;
-    border-top-color: color-mix(in srgb, var(--wcb-success-200) 42%, var(--wcb-border-subtle)) !important;
     box-shadow:
-        0 -1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 -4px 20px -10px color-mix(in srgb, var(--wcb-success-500) 12%, transparent) !important;
+        0 1px 0 rgba(255, 255, 255, 1) inset,
+        0 1px 2px rgba(15, 23, 42, 0.035),
+        0 10px 28px -12px color-mix(in srgb, var(--wcb-success-500) 10%, rgba(15, 23, 42, 0.08)) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__text {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__text {
     display: grid !important;
     grid-template-columns: auto 1fr !important;
     align-items: center !important;
-    gap: 13px !important;
+    gap: 14px !important;
     margin: 0 !important;
     padding: 0 !important;
     font-size: 13px !important;
@@ -2559,62 +2801,70 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
     flex-wrap: nowrap !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__icon {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    border-radius: 10px !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__icon {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 12px !important;
     color: var(--wcb-info-700) !important;
-    background: color-mix(in srgb, var(--wcb-info-100) 75%, #ffffff) !important;
-    border: 1px solid color-mix(in srgb, var(--wcb-info-200) 40%, transparent) !important;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset !important;
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--wcb-info-50) 88%, #ffffff) 0%,
+        color-mix(in srgb, var(--wcb-info-100) 50%, #ffffff) 100%
+    ) !important;
+    border: 1px solid color-mix(in srgb, var(--wcb-info-200) 35%, transparent) !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 1px 3px color-mix(in srgb, var(--wcb-info-500) 7%, transparent) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-ship-bar__icon {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-ship-bar__icon {
     color: var(--wcb-success-700) !important;
     background: color-mix(in srgb, var(--wcb-success-100) 70%, #ffffff) !important;
     border-color: color-mix(in srgb, var(--wcb-success-200) 45%, transparent) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__icon .wcb-sc-bar-icon,
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__icon svg {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__icon .wcb-sc-bar-icon,
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__icon svg {
     width: 20px !important;
     height: 20px !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__copy {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__copy {
     text-align: left !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__track {
-    height: 5px !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__track {
+    height: 6px !important;
     border-radius: 999px !important;
-    background: color-mix(in srgb, var(--wcb-progress-track-empty) 86%, var(--wcb-info-100)) !important;
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+    background: color-mix(in srgb, var(--wcb-neutral-100, #f1f5f9) 65%, var(--wcb-progress-track-empty)) !important;
+    box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.07) !important;
     overflow: hidden !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar .wcb-ship-bar__fill {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar .wcb-ship-bar__fill {
     border-radius: 999px !important;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--wcb-info-500) 10%, transparent) !important;
+    background: linear-gradient(90deg, var(--wcb-info-500) 0%, var(--wcb-info-600) 100%) !important;
+    box-shadow: 0 0 0 1px color-mix(in srgb, #ffffff 35%, transparent) inset !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-ship-bar__track {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-ship-bar__track {
     background: color-mix(in srgb, var(--wcb-progress-track-empty) 90%, var(--wcb-success-100)) !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-ship-bar__fill {
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--wcb-success-500) 12%, transparent) !important;
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-ship-bar__fill {
+    background: linear-gradient(90deg, var(--wcb-success-500) 0%, var(--wcb-success-600) 100%) !important;
+    box-shadow: 0 0 0 1px color-mix(in srgb, #ffffff 35%, transparent) inset !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar:not(.wcb-ship-bar--unlocked) .wcb-incentive-accent {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar:not(.wcb-ship-bar--unlocked) .wcb-incentive-accent {
     color: var(--wcb-info-600) !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
     font-variant-numeric: tabular-nums !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-incentive-accent {
+.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container > #wcb-incentive-rail #wcb-ship-bar.wcb-ship-bar--unlocked .wcb-incentive-accent {
     color: var(--wcb-success-700) !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
@@ -3245,7 +3495,7 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
 
 /* ── "Mostrar mais" — cupom + CEP + detalhe de totais ── */
 .wcb-cart-more {
-    margin: 0 0 10px !important;
+    margin: 0 0 6px !important;
 }
 
 .wcb-cart-more-toggle {
@@ -3253,7 +3503,7 @@ body.rtl .xoo-wsc-product:has(.mhfgfwc-badge) {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    padding: 10px var(--wcb-drawer-pad-x) !important;
+    padding: 7px var(--wcb-drawer-pad-x) !important;
     margin: 0 !important;
     box-sizing: border-box !important;
     max-width: 100% !important;

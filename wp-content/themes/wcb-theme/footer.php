@@ -31,11 +31,17 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
                 <h2 class="wcb-nl4__title">Receba <span>5% OFF</span> na sua primeira compra</h2>
                 <p class="wcb-nl4__sub">Registramos seu e-mail para enviar o cupom e novidades. Em seguida, entre no grupo exclusivo do WhatsApp com ofertas diárias.</p>
                 <div class="wcb-nl4__proof">
-                    <div class="wcb-nl4__avatars" aria-hidden="true">
-                        <span class="wcb-nl4__av" style="background-image:url(<?php echo get_template_directory_uri(); ?>/images/nl-avatars.png); background-size: 400% auto; background-position: 0% center;"></span>
-                        <span class="wcb-nl4__av" style="background-image:url(<?php echo get_template_directory_uri(); ?>/images/nl-avatars.png); background-size: 400% auto; background-position: 33.33% center;"></span>
-                        <span class="wcb-nl4__av" style="background-image:url(<?php echo get_template_directory_uri(); ?>/images/nl-avatars.png); background-size: 400% auto; background-position: 66.66% center;"></span>
-                        <span class="wcb-nl4__av" style="background-image:url(<?php echo get_template_directory_uri(); ?>/images/nl-avatars.png); background-size: 400% auto; background-position: 100% center;"></span>
+                    <div class="wcb-nl4__avatars wcb-nl4__avatars--animated" aria-hidden="true">
+                        <?php
+                        /**
+                         * Fotos de rosto (pravatar.cc — conjunto fixo para demo; troque por imagens locais em /images/ se preferir).
+                         */
+                        $wcb_nl4_avatar_ids = array( 12, 33, 47, 58 );
+                        foreach ( $wcb_nl4_avatar_ids as $wcb_av_img ) {
+                            $wcb_av_url = 'https://i.pravatar.cc/128?img=' . (int) $wcb_av_img;
+                            echo '<img class="wcb-nl4__av" src="' . esc_url( $wcb_av_url ) . '" alt="" width="34" height="34" loading="lazy" decoding="async" />';
+                        }
+                        ?>
                     </div>
                     <span class="wcb-nl4__proof-text">+10.000 clientes já aproveitando</span>
                 </div>
@@ -201,6 +207,21 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
                         <?php wcb_get_logo(); ?>
                     </div>
                     <p class="wcb-f3__brand-desc"><?php esc_html_e( 'Sua loja premium de produtos para vape.', 'wcb-theme' ); ?></p>
+                    <div class="wcb-f3__social">
+                        <a class="wcb-f3__wa-cta"
+                            href="https://api.whatsapp.com/send/?phone=595994872020&text&type=phone_number&app_absent=0"
+                            target="_blank"
+                            rel="noopener"
+                            aria-label="<?php esc_attr_e( 'Acesse o grupo VIP de ofertas no WhatsApp', 'wcb-theme' ); ?>">
+                            <span class="wcb-f3__wa-cta__icon" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                            </span>
+                            <span class="wcb-f3__wa-cta__text">
+                                <span class="wcb-f3__wa-cta__label"><?php esc_html_e( 'Acesse o grupo VIP de ofertas', 'wcb-theme' ); ?></span>
+                                <span class="wcb-f3__wa-cta__sub"><?php esc_html_e( 'Cupons e promoções exclusivas no WhatsApp.', 'wcb-theme' ); ?></span>
+                            </span>
+                        </a>
+                    </div>
                     <div class="wcb-f3__brand-stars" role="group" aria-label="<?php echo esc_attr__( 'Avaliação média 4,9 de 5 estrelas; mais de 800 avaliações de clientes', 'wcb-theme' ); ?>">
                         <div class="wcb-f3__brand-stars__row">
                             <span class="wcb-f3__brand-stars__visual" aria-hidden="true">
@@ -210,13 +231,8 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
                                 <strong class="wcb-f3__brand-stars__score">4,9</strong>
                                 <span class="wcb-f3__brand-stars__outof"><?php esc_html_e( 'de 5', 'wcb-theme' ); ?></span>
                             </span>
+                            <span class="wcb-f3__brand-stars__meta"><?php esc_html_e( '+800 avaliações de clientes', 'wcb-theme' ); ?></span>
                         </div>
-                        <span class="wcb-f3__brand-stars__meta"><?php esc_html_e( '+800 avaliações de clientes', 'wcb-theme' ); ?></span>
-                    </div>
-                    <div class="wcb-f3__social">
-                        <a href="https://api.whatsapp.com/send/?phone=595994872020&text&type=phone_number&app_absent=0" target="_blank" rel="noopener" aria-label="<?php esc_attr_e( 'Falar no WhatsApp', 'wcb-theme' ); ?>">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-                        </a>
                     </div>
                 </div>
 
@@ -253,26 +269,12 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
                 <!-- Coluna: Pagamentos -->
                 <div class="wcb-f3__col wcb-f3__col--pay">
                     <h4 class="wcb-f3__heading">Pagamento Seguro</h4>
-                    <div class="wcb-f3__payments">
-                        <span class="wcb-f3__pay wcb-f3__pay--brand" title="PIX">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="22" height="22" role="img" aria-hidden="true" focusable="false">
-                                <path fill="#32BCAD" d="M378.7 395.3l-89.8-89.8c-8.1-8.1-21.4-8.1-29.5 0l-89.8 89.8c-4 4-9.5 6.3-15.2 6.3H121l113.3 113.3c12 12 31.6 12 43.6 0L391 401.6h-12.4c-5.7 0-11.2-2.3-15.2-6.3zm0-278.6c4 4 6.3 9.5 6.3 15.2v13.4L277.6 38c-12-12-31.6-12-43.6 0L120.9 151.3h33.3c5.7 0 11.2 2.3 15.2 6.3l89.8 89.8c8.1 8.1 21.4 8.1 29.5 0l89.8-89.8zM120 281.9l-95.4-95.4c-12-12-12-31.6 0-43.6l28.2-28.2 109.5 109.5c4 4 6.3 9.5 6.3 15.2v15.6c0 5.7-2.3 11.2-6.3 15.2l-42.4 42.4V281.9zm272 0v30.6l-42.4-42.4c-4-4-6.3-9.5-6.3-15.2v-15.6c0-5.7 2.3-11.2 6.3-15.2L459.1 115l28.2 28.2c12 12 12 31.6 0 43.6L392 281.9z"/>
-                            </svg>
-                            <span>PIX</span>
-                        </span>
-                        <span class="wcb-f3__pay wcb-f3__pay--brand" title="Visa">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 83" width="38" height="14"><path fill="#1434CB" d="M132.4 2.5L115.7 80h-21.3L111 2.5h21.4zM220.3 52.1l11.3-31 6.5 31h-17.8zm23.8 27.9h19.7L245.8 2.5h-18.2c-4.1 0-7.5 2.4-9 6L190 80h22l4.4-12h26.8l2.5 12h.4zM185.2 54.8c.1-20.7-28.7-21.8-28.5-31.1.1-2.8 2.7-5.8 8.6-6.6 2.9-.4 10.9-.7 20 3.4l3.6-16.6C184 2.1 177.5.3 169.4.3c-20.7 0-35.3 11-35.4 26.7-.2 11.6 10.4 18.1 18.3 22 8.1 3.9 10.9 6.5 10.8 10-.1 5.4-6.5 7.8-12.5 7.9-10.4.2-16.5-2.8-21.3-5.1l-3.8 17.5c4.8 2.2 13.8 4.2 23 4.3 22 0 36.4-10.9 36.7-27.8zM97.6 2.5L63.8 80H41.4L24.8 18.8c-1-3.9-1.9-5.4-5-7C14.9 9.1 4.3 6.5 0 5l.5-2.5h35.5c4.5 0 8.6 3 9.6 8.3l8.8 46.7L75.5 2.5h22.1z"/></svg>
-                        </span>
-                        <span class="wcb-f3__pay wcb-f3__pay--brand" title="Mastercard">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 199" width="28" height="20"><circle fill="#EB001B" cx="88.5" cy="99.5" r="88.5"/><circle fill="#F79E1B" cx="167.5" cy="99.5" r="88.5"/><path fill="#FF5F00" d="M128 30.5c24.4 19.8 40 49.8 40 83.5s-15.6 63.7-40 83.5c-24.4-19.8-40-49.8-40-83.5s15.6-63.7 40-83.5z"/></svg>
-                        </span>
-                        <span class="wcb-f3__pay wcb-f3__pay--brand" title="Elo">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="20" height="20"><circle fill="#00A4E0" cx="128" cy="128" r="120"/><path fill="#FFF" d="M128 60c-37.6 0-68 30.4-68 68s30.4 68 68 68 68-30.4 68-68-30.4-68-68-68zm0 108c-22.1 0-40-17.9-40-40s17.9-40 40-40 40 17.9 40 40-17.9 40-40 40z"/><circle fill="#FFCB05" cx="185" cy="85" r="22"/><circle fill="#EF4123" cx="185" cy="171" r="22"/><circle fill="#1B1B1B" cx="71" cy="128" r="22"/></svg>
-                        </span>
-                        <span class="wcb-f3__pay wcb-f3__pay--brand" title="Boleto">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 24 20" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><rect x="1" y="1" width="22" height="18" rx="2"/><line x1="4" y1="5" x2="4" y2="15"/><line x1="7" y1="5" x2="7" y2="15"/><line x1="10" y1="5" x2="10" y2="12"/><line x1="13" y1="5" x2="13" y2="15"/><line x1="16" y1="5" x2="16" y2="12"/><line x1="19" y1="5" x2="19" y2="15"/></svg>
-                            <span>Boleto</span>
-                        </span>
+                    <div class="wcb-f3__payments" role="list" aria-label="<?php esc_attr_e( 'Formas de pagamento aceitas', 'wcb-theme' ); ?>">
+                        <span class="wcb-f3__pay" role="listitem"><?php esc_html_e( 'PIX', 'wcb-theme' ); ?></span>
+                        <span class="wcb-f3__pay" role="listitem"><?php esc_html_e( 'Visa', 'wcb-theme' ); ?></span>
+                        <span class="wcb-f3__pay" role="listitem"><?php esc_html_e( 'Mastercard', 'wcb-theme' ); ?></span>
+                        <span class="wcb-f3__pay" role="listitem"><?php esc_html_e( 'Elo', 'wcb-theme' ); ?></span>
+                        <span class="wcb-f3__pay" role="listitem"><?php esc_html_e( 'Boleto', 'wcb-theme' ); ?></span>
                     </div>
                     <div class="wcb-f3__trust">
                         <span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Compra 100% segura</span>
@@ -291,12 +293,7 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
     <div class="wcb-f3__bottom">
         <div class="wcb-container">
             <div class="wcb-f3__bottom-inner">
-                <span class="wcb-f3__copy">&copy; <?php echo date('Y'); ?> <?php bloginfo('name'); ?> · CNPJ 00.000.000/0001-00</span>
-                <div class="wcb-f3__bottom-links">
-                    <a href="<?php echo esc_url(home_url('/politica-de-privacidade/')); ?>">Privacidade</a>
-                    <a href="<?php echo esc_url(home_url('/termos-de-uso/')); ?>">Termos</a>
-                </div>
-                <span class="wcb-f3__credit">Feito com ❤️ no Brasil</span>
+                <span class="wcb-f3__copy">&copy; <?php echo esc_html( (string) date( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
             </div>
         </div>
     </div>
