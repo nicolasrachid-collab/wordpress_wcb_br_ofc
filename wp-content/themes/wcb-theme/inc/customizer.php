@@ -8,6 +8,16 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/**
+ * Label de tag/badge: texto plano + emoji (UTF-8), sem HTML.
+ */
+function wcb_sanitize_tag_label( $value ) {
+    if ( ! is_string( $value ) ) {
+        return '';
+    }
+    return sanitize_text_field( wp_strip_all_tags( $value ) );
+}
+
 /* ============================================================
    CUSTOMIZER — Hero Banner + Super Ofertas
    ============================================================ */
@@ -220,10 +230,10 @@ function wcb_customize_register( $wp_customize ) {
     ) );
 
     $ls_a_defaults = array(
-        1 => array( 'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => 'Descubra', 'tag_color' => '#93c5fd', 'title' => 'A Arte do Vape<br>Redefinida', 'desc' => 'Uma seleção exclusiva dos dispositivos e essências mais sofisticados do mundo.', 'cta' => 'Explorar Coleção', 'url' => '/loja/', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
-        2 => array( 'image' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => 'Promoção', 'tag_color' => '#93c5fd', 'title' => 'Até 40% Off<br>em Juices', 'desc' => 'Os melhores sabores importados com desconto exclusivo.', 'cta' => 'Ver Ofertas', 'url' => '/loja/?on_sale=true', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
-        3 => array( 'image' => 'https://images.unsplash.com/photo-1560707854-5bc2a0d6498c?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => 'Promoção', 'tag_color' => '#93c5fd', 'title' => 'Até 40% Off<br>em Kits', 'desc' => 'Aproveite ofertas imperdíveis nos melhores kits do mercado.', 'cta' => 'Ver Ofertas', 'url' => '/categoria/kits/', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
-        4 => array( 'image' => 'https://images.unsplash.com/photo-1612528443702-f6741f70a049?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => 'Novidade', 'tag_color' => '#93c5fd', 'title' => 'Pods Premium<br>Chegaram', 'desc' => 'Os dispositivos mais avançados do mercado agora disponíveis.', 'cta' => 'Ver Pods', 'url' => '/categoria/pods/', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
+        1 => array( 'image' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => '🔥 Descubra', 'tag_color' => '#93c5fd', 'title' => 'A Arte do Vape<br>Redefinida', 'desc' => 'Uma seleção exclusiva dos dispositivos e essências mais sofisticados do mundo.', 'cta' => 'Explorar Coleção', 'url' => '/loja/', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
+        2 => array( 'image' => 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => '⚡ Promoção', 'tag_color' => '#93c5fd', 'title' => 'Até 40% Off<br>em Juices', 'desc' => 'Os melhores sabores importados com desconto exclusivo.', 'cta' => 'Ver Ofertas', 'url' => '/loja/?on_sale=true', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
+        3 => array( 'image' => 'https://images.unsplash.com/photo-1560707854-5bc2a0d6498c?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => '🔥 Promoção', 'tag_color' => '#93c5fd', 'title' => 'Até 40% Off<br>em Kits', 'desc' => 'Aproveite ofertas imperdíveis nos melhores kits do mercado.', 'cta' => 'Ver Ofertas', 'url' => '/categoria/kits/', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
+        4 => array( 'image' => 'https://images.unsplash.com/photo-1612528443702-f6741f70a049?q=80&w=2000&auto=format&fit=crop', 'gradient' => 'rgba(30,58,138,0.92),rgba(30,64,175,0.7)', 'tag' => '✨ Novidade', 'tag_color' => '#93c5fd', 'title' => 'Pods Premium<br>Chegaram', 'desc' => 'Os dispositivos mais avançados do mercado agora disponíveis.', 'cta' => 'Ver Pods', 'url' => '/categoria/pods/', 'btn_color' => '#2563eb', 'btn_hover' => '#1d4ed8' ),
     );
 
     foreach ( range( 1, 4 ) as $n ) {
@@ -237,8 +247,13 @@ function wcb_customize_register( $wp_customize ) {
         $wp_customize->add_setting( "{$prefix}_gradient", array( 'default' => $d['gradient'], 'sanitize_callback' => 'sanitize_text_field', 'transport' => 'refresh' ) );
         $wp_customize->add_control( "{$prefix}_gradient", array( 'label' => __( "{$label}: Gradiente (rgba)", 'wcb-theme' ), 'description' => __( 'Formato: rgba(R,G,B,A),rgba(R,G,B,A)', 'wcb-theme' ), 'section' => 'wcb_lifestyle_a', 'type' => 'text' ) );
 
-        $wp_customize->add_setting( "{$prefix}_tag", array( 'default' => $d['tag'], 'sanitize_callback' => 'sanitize_text_field', 'transport' => 'refresh' ) );
-        $wp_customize->add_control( "{$prefix}_tag", array( 'label' => __( "{$label}: Tag (label)", 'wcb-theme' ), 'section' => 'wcb_lifestyle_a', 'type' => 'text' ) );
+        $wp_customize->add_setting( "{$prefix}_tag", array( 'default' => $d['tag'], 'sanitize_callback' => 'wcb_sanitize_tag_label', 'transport' => 'refresh' ) );
+        $wp_customize->add_control( "{$prefix}_tag", array(
+            'label'       => __( "{$label}: Tag (label)", 'wcb-theme' ),
+            'description' => __( 'Texto curto. Pode usar emoji no início (ex.: 🔥 Destaque), como nos banners promo da home.', 'wcb-theme' ),
+            'section'     => 'wcb_lifestyle_a',
+            'type'        => 'text',
+        ) );
 
         $wp_customize->add_setting( "{$prefix}_tag_color", array( 'default' => $d['tag_color'], 'sanitize_callback' => 'sanitize_hex_color', 'transport' => 'refresh' ) );
         $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, "{$prefix}_tag_color", array( 'label' => __( "{$label}: Cor da tag", 'wcb-theme' ), 'section' => 'wcb_lifestyle_a' ) ) );
@@ -282,8 +297,13 @@ function wcb_customize_register( $wp_customize ) {
         $wp_customize->add_setting( "{$prefix}_gradient", array( 'default' => $d['gradient'], 'sanitize_callback' => 'sanitize_text_field', 'transport' => 'refresh' ) );
         $wp_customize->add_control( "{$prefix}_gradient", array( 'label' => __( "{$label}: Gradiente (rgba)", 'wcb-theme' ), 'description' => __( 'Formato: rgba(R,G,B,A),rgba(R,G,B,A)', 'wcb-theme' ), 'section' => 'wcb_lifestyle_b', 'type' => 'text' ) );
 
-        $wp_customize->add_setting( "{$prefix}_tag", array( 'default' => $d['tag'], 'sanitize_callback' => 'sanitize_text_field', 'transport' => 'refresh' ) );
-        $wp_customize->add_control( "{$prefix}_tag", array( 'label' => __( "{$label}: Tag (label)", 'wcb-theme' ), 'section' => 'wcb_lifestyle_b', 'type' => 'text' ) );
+        $wp_customize->add_setting( "{$prefix}_tag", array( 'default' => $d['tag'], 'sanitize_callback' => 'wcb_sanitize_tag_label', 'transport' => 'refresh' ) );
+        $wp_customize->add_control( "{$prefix}_tag", array(
+            'label'       => __( "{$label}: Tag (label)", 'wcb-theme' ),
+            'description' => __( 'Texto curto. Pode usar emoji no início (ex.: 🔥 Destaque), como nos banners promo da home.', 'wcb-theme' ),
+            'section'     => 'wcb_lifestyle_b',
+            'type'        => 'text',
+        ) );
 
         $wp_customize->add_setting( "{$prefix}_tag_color", array( 'default' => $d['tag_color'], 'sanitize_callback' => 'sanitize_hex_color', 'transport' => 'refresh' ) );
         $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, "{$prefix}_tag_color", array( 'label' => __( "{$label}: Cor da tag", 'wcb-theme' ), 'section' => 'wcb_lifestyle_b' ) ) );

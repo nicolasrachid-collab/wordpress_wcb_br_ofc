@@ -42,50 +42,83 @@
     }
     .wcb-site-header.is-scrolled .wcb-announcement {
         max-height: 0;
+        height: 0;
+        min-height: 0;
         padding-top: 0;
         padding-bottom: 0;
+        margin: 0;
         overflow: hidden;
         border-bottom: none;
         opacity: 0;
     }
-    /* ── Announcement Banner ── */
+    /* ── Announcement Banner (altura fixa — evita 41px vs 38px por métricas de fonte/emoji) ── */
     .wcb-announcement {
+        box-sizing: border-box;
         background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
         color: #fff;
         font-size: 13px;
         font-weight: 500;
         letter-spacing: 0.02em;
-        transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.25s ease;
-        max-height: 50px;
+        line-height: 1.2;
+        transition:
+            max-height 0.3s ease,
+            height 0.3s ease,
+            min-height 0.3s ease,
+            padding 0.3s ease,
+            opacity 0.25s ease;
+        height: 38px;
+        min-height: 38px;
+        max-height: 38px;
         opacity: 1;
         overflow: hidden;
     }
+    /* Sem .wcb-container: evita max-width + padding do site (texto fora do centro visual da faixa). */
     .wcb-announcement__inner {
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 10px 0;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 clamp(12px, 3vw, 28px);
         position: relative;
+        text-align: center;
     }
     .wcb-announcement__content {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
         color: #fff;
         text-decoration: none;
         transition: opacity 0.2s ease;
+        line-height: 1.25;
+        max-height: 38px;
+        min-height: 0;
     }
     a.wcb-announcement__content:hover {
         opacity: 1;
         color: #fff !important;
     }
     .wcb-announcement__text {
-        line-height: 1.4;
+        line-height: 1.25;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.2em;
+        max-width: 100%;
     }
     .wcb-announcement__text strong {
         font-weight: 700;
+        line-height: inherit;
     }
     .wcb-announcement__arrow {
+        flex-shrink: 0;
+        align-self: center;
         opacity: 0.7;
         transition: transform 0.2s ease;
     }
@@ -114,8 +147,20 @@
         background: rgba(255,255,255,0.15);
     }
     @media (max-width: 768px) {
-        .wcb-announcement { font-size: 12px; }
-        .wcb-announcement__inner { padding: 6px 0; }
+        .wcb-announcement {
+            font-size: 12px;
+            height: 36px;
+            min-height: 36px;
+            max-height: 36px;
+        }
+        .wcb-announcement__inner {
+            height: 36px;
+            min-height: 36px;
+            padding: 0 clamp(10px, 4vw, 20px);
+        }
+        .wcb-announcement__content {
+            max-height: 36px;
+        }
         .wcb-announcement__close { padding: 4px; }
     }
     </style>
@@ -135,7 +180,7 @@
     $banner_style   = 'info'; // 'info' (azul), 'promo' (verde/dourado), 'alert' (laranja), 'dark' (escuro)
     ?>
     <div class="wcb-announcement" id="wcb-announcement" data-banner-id="<?php echo esc_attr($banner_id); ?>" role="banner" aria-label="Aviso">
-        <div class="wcb-container wcb-announcement__inner">
+        <div class="wcb-announcement__inner">
             <?php if (!empty($banner_link)): ?>
                 <a href="<?php echo esc_url($banner_link); ?>" class="wcb-announcement__content">
                     <span class="wcb-announcement__text"><?php echo $banner_content; ?></span>
@@ -192,15 +237,17 @@
                         </a>
                     <?php endif; ?>
 
-                    <!-- Cloud Club Button -->
-                    <a href="<?php echo esc_url(home_url('/cloud-club/')); ?>" class="wcb-header__cloud-club-btn"
-                        title="Cloud Club">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Cloud Prime (sem link — em breve) -->
+                    <span class="wcb-header__cloud-club-btn wcb-header__cloud-club-btn--soon"
+                        aria-label="<?php echo esc_attr__( 'Cloud Prime — em breve', 'wcb-theme' ); ?>">
+                        <svg class="wcb-header__cloud-club-btn__mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
                         </svg>
-                        Cloud Club
-                    </a>
+                        <span class="wcb-header__cloud-club-btn__title"><?php esc_html_e( 'Cloud Prime', 'wcb-theme' ); ?></span>
+                        <span class="wcb-header__cloud-club-btn__divider" aria-hidden="true"></span>
+                        <span class="wcb-header__cloud-club-btn__soon"><?php esc_html_e( 'Em breve', 'wcb-theme' ); ?></span>
+                    </span>
 
                     <!-- Account -->
                     <a href="<?php echo esc_url(wc_get_account_endpoint_url('dashboard')); ?>" class="wcb-header__action"

@@ -10,7 +10,9 @@
  *  inc/enqueue.php          — Scripts & styles
  *  inc/translations.php     — Gettext filters & checkout field labels
  *  inc/cart-checkout.php    — Cart page header/footer & JS translation fallback
+ *  inc/checkout-blocks-cartflows.css — Checkout Woo Blocks + CartFlows (enqueue em enqueue.php)
  *  inc/woocommerce.php      — WC helpers, AJAX, side cart, gift bar, live search
+ *  inc/cart-page-blocks-extras.php — Carrinho em blocos: barras brinde/frete, CEP, cupom na sidebar
  *  inc/pdp-reviews.php      — PDP: avaliações (útil, toolbar ordenar/filtrar)
  *  inc/customizer.php       — Hero Banner & Super Ofertas customizer
  *  inc/newsletter.php       — Rodapé newsletter (AJAX, opção wcb_nl4_emails)
@@ -22,9 +24,33 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WCB_VERSION', '1.2.17' );
+define( 'WCB_VERSION', '1.4.13' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
+
+/**
+ * URL da imagem do promo banner na front: evita fundo sólido (zoom invisível) quando
+ * o customizer ainda aponta para /images/promo-banner-*.jpg inexistente no tema.
+ *
+ * @param string $mod_key        Chave do theme_mod (ex. promo_banner1_image).
+ * @param string $legacy_basename Nome do ficheiro legado (ex. promo-banner-1.jpg).
+ * @param string $fallback_url   URL externa de reserva.
+ */
+function wcb_promo_banner_image_src( $mod_key, $legacy_basename, $fallback_url ) {
+	$mod = get_theme_mod( $mod_key );
+	if ( ! is_string( $mod ) || $mod === '' ) {
+		return $fallback_url;
+	}
+	$path_part = wp_parse_url( $mod, PHP_URL_PATH );
+	if ( is_string( $path_part )
+		&& preg_match( '#/themes/[^/]+/images/' . preg_quote( $legacy_basename, '#' ) . '$#i', $path_part ) ) {
+		$local = get_template_directory() . '/images/' . $legacy_basename;
+		if ( ! file_exists( $local ) ) {
+			return $fallback_url;
+		}
+	}
+	return $mod;
+}
 
 /* ============================================================
    MODULAR INCLUDES
@@ -34,6 +60,7 @@ require_once WCB_DIR . '/inc/enqueue.php';
 require_once WCB_DIR . '/inc/translations.php';
 require_once WCB_DIR . '/inc/cart-checkout.php';
 require_once WCB_DIR . '/inc/woocommerce.php';
+require_once WCB_DIR . '/inc/cart-page-blocks-extras.php';
 require_once WCB_DIR . '/inc/pdp-reviews.php';
 require_once WCB_DIR . '/inc/wcb-attribute-swatches.php';
 require_once WCB_DIR . '/inc/customizer.php';
@@ -42,6 +69,12 @@ require_once WCB_DIR . '/inc/widgets-sidebar.php';
 require_once WCB_DIR . '/inc/cep-autofill.php';
 require_once WCB_DIR . '/inc/abandoned-cart.php';
 require_once WCB_DIR . '/inc/wcb-filter.php';
+require_once WCB_DIR . '/inc/side-cart-performance.php';
+
+// Perfil AJAX do carrinho lateral (Xoo): define( 'WCB_PROFILE_CART_AJAX', true ); em wp-config.php
+if ( defined( 'WCB_PROFILE_CART_AJAX' ) && WCB_PROFILE_CART_AJAX ) {
+	require_once WCB_DIR . '/inc/cart-ajax-profile.php';
+}
 
 
 // Demo products setup (one-time, remove after use)
@@ -93,6 +126,11 @@ function wcb_theme_setup() {
     ) );
 }
 add_action( 'after_setup_theme', 'wcb_theme_setup' );
+
+/**
+ * Carregar CSS de blocos do core só nas páginas que usam esses blocos (menos peso nas demais).
+ */
+add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
 /* ============================================================
    CACHE — Invalida transients da home ao salvar qualquer produto

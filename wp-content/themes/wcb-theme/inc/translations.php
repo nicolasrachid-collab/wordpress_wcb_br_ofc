@@ -77,6 +77,8 @@ function wcb_translate_checkout_strings( $translated, $original, $domain ) {
         'Estimated total'        => 'Total Estimado',
         'Add a coupon'           => 'Adicionar cupom',
         'Remove item'            => 'Remover',
+        /* CTA carrinho em blocos — alinhado ao drawer (Checkout → Finalizar Compra) */
+        'Proceed to checkout'    => 'Finalizar Compra',
     );
 
     if ( isset( $translations[ $original ] ) ) {

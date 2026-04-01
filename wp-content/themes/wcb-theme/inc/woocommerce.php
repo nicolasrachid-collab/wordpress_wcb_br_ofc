@@ -1165,21 +1165,40 @@ function wcb_enqueue_qty_stepper_script()
 add_action('wp_enqueue_scripts', 'wcb_enqueue_qty_stepper_script', 99);
 
 /* ============================================================
-   🎁 GIFT PROGRESS BAR — AJAX endpoint (usado apenas em update)
+   🎁 GIFT PROGRESS BAR — payload (AJAX + primeira pintura no carrinho em blocos)
    ============================================================ */
-function wcb_gift_progress_ajax()
+
+/**
+ * Mesmo shape que wp_send_json no AJAX wcb_gift_progress_data.
+ *
+ * @return array<string, mixed>
+ */
+function wcb_gift_progress_payload()
 {
+    $gift_threshold = 500;
+
     if (!function_exists('WC') || !WC()->cart) {
-        wp_send_json(array('subtotal' => 0, 'remaining' => 500, 'progress' => 0, 'unlocked' => false, 'text' => '', 'threshold' => 500));
-        return;
+        return array(
+            'subtotal' => 0,
+            'remaining' => $gift_threshold,
+            'progress' => 0,
+            'unlocked' => false,
+            'gift_text' => '',
+            'threshold' => $gift_threshold,
+            'ship_remaining' => 0,
+            'ship_progress' => 0,
+            'ship_unlocked' => false,
+            'applied_coupons' => array(),
+            'coupon_discount_by_code' => array(),
+        );
     }
 
-    $gift_threshold = 500;
     $free_ship_threshold = wcb_get_free_ship_threshold();
     $subtotal = 0;
     foreach (WC()->cart->get_cart() as $cart_item) {
-        if (!empty($cart_item['mhfgfwc_free_gift']))
+        if (!empty($cart_item['mhfgfwc_free_gift'])) {
             continue;
+        }
         $subtotal += (float) $cart_item['line_subtotal'];
     }
 
@@ -1203,7 +1222,7 @@ function wcb_gift_progress_ajax()
         );
     }
 
-    wp_send_json(array(
+    return array(
         'subtotal' => $subtotal,
         'remaining' => $remaining,
         'progress' => round($progress, 1),
@@ -1213,7 +1232,14 @@ function wcb_gift_progress_ajax()
         'ship_remaining' => $ship_remaining,
         'ship_progress' => round($ship_progress, 1),
         'ship_unlocked' => $ship_unlocked,
-    ));
+        'applied_coupons' => array_values(WC()->cart->get_applied_coupons()),
+        'coupon_discount_by_code' => function_exists('wcb_side_cart_coupon_discount_by_code') ? wcb_side_cart_coupon_discount_by_code() : array(),
+    );
+}
+
+function wcb_gift_progress_ajax()
+{
+    wp_send_json(wcb_gift_progress_payload());
 }
 add_action('wp_ajax_wcb_gift_progress_data', 'wcb_gift_progress_ajax');
 add_action('wp_ajax_nopriv_wcb_gift_progress_data', 'wcb_gift_progress_ajax');
@@ -1692,6 +1718,186 @@ function wcb_send_side_cart_fragments_json(array $extra = array())
     wp_send_json($data);
 }
 
+/**
+ * Mensagem de cupom em texto puro (sem HTML/entidades) para JSON e textContent no JS.
+ *
+ * @param string $html Notice HTML do WooCommerce.
+ * @return string
+ */
+function wcb_strip_coupon_notice_for_display($html)
+{
+    $t = html_entity_decode(wp_strip_all_tags((string) $html, true), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    return trim(preg_replace('/\s+/u', ' ', $t));
+}
+
+/**
+ * Mensagens de erro de cupom em português (WooCommerce em inglês ou notices com entidades).
+ *
+ * @param string         $err      Mensagem (pode vir de Exception ou get_coupon_error).
+ * @param int|string     $err_code Código WC_Coupon::E_*.
+ * @param WC_Coupon|null $coupon   Instância quando disponível.
+ * @return string
+ */
+function wcb_translate_woocommerce_coupon_error($err, $err_code, $coupon)
+{
+    if (!class_exists('WC_Coupon')) {
+        return $err;
+    }
+
+    $e = is_numeric($err_code) ? (int) $err_code : 0;
+    $is_c = is_object($coupon) && is_a($coupon, 'WC_Coupon');
+    $code = $is_c ? $coupon->get_code() : '';
+
+    $price_plain = static function ($amount) {
+        if (!function_exists('wc_price')) {
+            return '';
+        }
+
+        return wcb_strip_coupon_notice_for_display(wc_price((float) $amount));
+    };
+
+    switch ($e) {
+        case WC_Coupon::E_WC_COUPON_EXPIRED:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" expirou.', 'wcb-theme'), $code)
+                : __('Este cupom expirou.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_NOT_EXIST:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" não existe ou não está disponível.', 'wcb-theme'), $code)
+                : __('Este cupom não existe.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_INVALID_FILTERED:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" não pode ser aplicado.', 'wcb-theme'), $code)
+                : __('Cupom inválido.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_INVALID_REMOVED:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" não é válido e foi removido.', 'wcb-theme'), $code)
+                : __('O cupom não é válido e foi removido.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_NOT_YOURS_REMOVED:
+            return $code !== ''
+                ? sprintf(__('Use um e-mail autorizado para o cupom "%s" (confira no checkout).', 'wcb-theme'), $code)
+                : __('Este cupom não está disponível para a sua conta.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_ALREADY_APPLIED:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" já está aplicado.', 'wcb-theme'), $code)
+                : __('Este cupom já está aplicado.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_ALREADY_APPLIED_INDIV_USE_ONLY:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" não pode ser usado junto com outros cupons.', 'wcb-theme'), $code)
+                : __('Este cupom não pode ser combinado com outros.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_USAGE_LIMIT_REACHED:
+            return $code !== ''
+                ? sprintf(__('O limite de uso do cupom "%s" foi atingido.', 'wcb-theme'), $code)
+                : __('O limite de uso deste cupom foi atingido.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_USAGE_LIMIT_COUPON_STUCK:
+            return $code !== ''
+                ? sprintf(__('O limite do cupom "%s" foi atingido. Se um pedido ficou pendente, confira em Minha conta.', 'wcb-theme'), $code)
+                : __('Limite de uso do cupom atingido. Confira pedidos pendentes em Minha conta.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_USAGE_LIMIT_COUPON_STUCK_GUEST:
+            return $code !== ''
+                ? sprintf(__('O limite do cupom "%s" foi atingido. Tente mais tarde ou fale conosco.', 'wcb-theme'), $code)
+                : __('Limite de uso do cupom atingido. Tente mais tarde.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_MIN_SPEND_LIMIT_NOT_MET:
+            if ($is_c && $coupon->get_minimum_amount() > 0) {
+                return sprintf(
+                    __('O pedido mínimo para usar o cupom "%1$s" é %2$s.', 'wcb-theme'),
+                    $code,
+                    $price_plain($coupon->get_minimum_amount())
+                );
+            }
+            break;
+
+        case WC_Coupon::E_WC_COUPON_MAX_SPEND_LIMIT_MET:
+            if ($is_c && $coupon->get_maximum_amount() > 0) {
+                return sprintf(
+                    __('O valor máximo do pedido para o cupom "%1$s" é %2$s.', 'wcb-theme'),
+                    $code,
+                    $price_plain($coupon->get_maximum_amount())
+                );
+            }
+            break;
+
+        case WC_Coupon::E_WC_COUPON_NOT_APPLICABLE:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" não vale para os itens do carrinho.', 'wcb-theme'), $code)
+                : __('Este cupom não vale para o carrinho.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_NOT_VALID_SALE_ITEMS:
+            return $code !== ''
+                ? sprintf(__('O cupom "%s" não vale para produtos em promoção.', 'wcb-theme'), $code)
+                : __('Este cupom não vale para produtos em promoção.', 'wcb-theme');
+
+        case WC_Coupon::E_WC_COUPON_EXCLUDED_PRODUCTS:
+        case WC_Coupon::E_WC_COUPON_EXCLUDED_CATEGORIES:
+            $plain = wcb_strip_coupon_notice_for_display($err);
+            if (preg_match('/coupon "([^"]+)" is not applicable to the products:\s*(.+)$/iu', $plain, $m)) {
+                return sprintf(
+                    __('O cupom "%1$s" não vale para os produtos: %2$s', 'wcb-theme'),
+                    $m[1],
+                    trim($m[2], " \t\n\r\0\x0B.")
+                );
+            }
+            if (preg_match('/coupon "([^"]+)" is not applicable to the categories:\s*(.+)$/iu', $plain, $m)) {
+                return sprintf(
+                    __('O cupom "%1$s" não vale para as categorias: %2$s', 'wcb-theme'),
+                    $m[1],
+                    trim($m[2], " \t\n\r\0\x0B.")
+                );
+            }
+            break;
+
+        case WC_Coupon::E_WC_COUPON_PLEASE_ENTER:
+            return __('Digite um código de cupom.', 'wcb-theme');
+
+        default:
+            break;
+    }
+
+    return wcb_coupon_error_english_fallback($err, $code);
+}
+
+/**
+ * Último recurso: padrões em inglês comuns do WooCommerce → PT.
+ *
+ * @param string $err  HTML ou texto.
+ * @param string $code Código digitado (fallback).
+ * @return string
+ */
+function wcb_coupon_error_english_fallback($err, $code = '')
+{
+    $plain = wcb_strip_coupon_notice_for_display($err);
+
+    $map = array(
+        '/^Coupon "([^"]+)" has expired\.?$/iu' => __('O cupom "%s" expirou.', 'wcb-theme'),
+        '/^Coupon "([^"]+)" cannot be applied because it does not exist\.?$/iu' => __('O cupom "%s" não existe ou não está disponível.', 'wcb-theme'),
+        '/^Coupon "([^"]+)" cannot be applied because it is not valid\.?$/iu' => __('O cupom "%s" não é válido.', 'wcb-theme'),
+        '/^Coupon code "([^"]+)" already applied\!?$/iu' => __('O cupom "%s" já está aplicado.', 'wcb-theme'),
+        '/^Invalid coupon\.?$/iu' => __('Cupom inválido.', 'wcb-theme'),
+        '/^Coupon is not valid\.?$/iu' => __('Cupom inválido.', 'wcb-theme'),
+    );
+
+    foreach ($map as $pattern => $tpl) {
+        if (preg_match($pattern, $plain, $m)) {
+            return isset($m[1]) ? sprintf($tpl, $m[1]) : $tpl;
+        }
+    }
+
+    return $plain !== '' ? $plain : ($code !== '' ? sprintf(__('Não foi possível aplicar o cupom "%s".', 'wcb-theme'), $code) : __('Não foi possível aplicar o cupom.', 'wcb-theme'));
+}
+
+add_filter('woocommerce_coupon_error', 'wcb_translate_woocommerce_coupon_error', 20, 3);
+
 function wcb_side_cart_apply_coupon_ajax()
 {
     check_ajax_referer('wcb_side_cart', 'nonce');
@@ -1706,7 +1912,11 @@ function wcb_side_cart_apply_coupon_ajax()
     if (!$ok) {
         $errs = wc_get_notices('error');
         wc_clear_notices();
-        $msg = !empty($errs) ? wp_strip_all_tags($errs[0]['notice']) : __('Cupom inválido.', 'wcb-theme');
+        if (!empty($errs)) {
+            $msg = wcb_strip_coupon_notice_for_display($errs[0]['notice']);
+        } else {
+            $msg = __('Cupom inválido.', 'wcb-theme');
+        }
         wp_send_json_error(array('message' => $msg));
     }
     wc_clear_notices();
@@ -1831,6 +2041,8 @@ function wcb_gift_progress_bar()
             var WCB_SVG_GIFT = <?php echo wp_json_encode($wcb_sidecart_svg_gift); ?>;
             var WCB_SVG_TRUCK = <?php echo wp_json_encode($wcb_sidecart_svg_truck); ?>;
             var WCB_SVG_SHIP_OK = <?php echo wp_json_encode($wcb_sidecart_svg_ship_ok); ?>;
+            var WCB_KICKER_GIFT = <?php echo wp_json_encode(__('Brinde exclusivo', 'wcb-theme')); ?>;
+            var WCB_KICKER_SHIP = <?php echo wp_json_encode(__('Envio gratuito', 'wcb-theme')); ?>;
 
             /* ── Dados iniciais do PHP (sem AJAX ao abrir) ── */
             var initData = {
@@ -1844,6 +2056,9 @@ function wcb_gift_progress_bar()
                 appliedCoupons: <?php echo wp_json_encode($applied_coupons_arr); ?>,
                 couponDiscountByCode: <?php echo wp_json_encode($coupon_discount_by_code); ?>
             };
+
+            /* Evita rebuild completo do rail brinde/frete quando subtotal e nº de itens não mudaram. */
+            var lastIncentiveBarsSig = '';
 
             function escAttr(s) {
                 return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -2408,6 +2623,7 @@ function wcb_gift_progress_bar()
                     text = '<?php echo esc_js(__('Faltam', 'wcb-theme')); ?> <strong class="wcb-incentive-accent">R$ ' + Number(d.ship_remaining).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> <?php echo esc_js(__('para', 'wcb-theme')); ?> <strong class="wcb-incentive-accent"><?php echo esc_js(__('frete grátis', 'wcb-theme')); ?></strong>';
                 }
                 return '<div class="' + cls + '" id="wcb-ship-bar">' +
+                    '<span class="wcb-incentive-suite__kicker">' + WCB_KICKER_SHIP + '</span>' +
                     '<div class="wcb-ship-bar__text">' +
                     '<span class="wcb-ship-bar__icon" aria-hidden="true">' + icon + '</span>' +
                     '<span class="wcb-ship-bar__copy">' + text + '</span></div>' +
@@ -2420,6 +2636,7 @@ function wcb_gift_progress_bar()
                 var cls = 'wcb-gift-progress' + (d.gift_unlocked ? ' wcb-gift-unlocked' : '');
                 var txt = d.gift_text || d.text || '';
                 return '<div class="' + cls + '" id="wcb-gift-bar" data-threshold="' + giftThreshold + '">' +
+                    '<span class="wcb-incentive-suite__kicker">' + WCB_KICKER_GIFT + '</span>' +
                     '<div class="wcb-gift-progress-text">' +
                     '<span class="wcb-gift-progress__icon" aria-hidden="true">' + WCB_SVG_GIFT + '</span>' +
                     '<span class="wcb-gift-progress__copy">' + txt + '</span></div>' +
@@ -2429,7 +2646,7 @@ function wcb_gift_progress_bar()
 
             /* Brinde + frete — carrossel 1 slide por vez (JS + largura do viewport) */
             function buildIncentiveRail(d) {
-                return '<div id="wcb-incentive-rail" class="wcb-incentive-rail" role="region" aria-label="<?php echo esc_js(__('Brinde e frete grátis', 'wcb-theme')); ?>">' +
+                return '<div id="wcb-incentive-rail" class="wcb-incentive-rail wcb-incentive-rail--drawer-suite" role="region" aria-label="<?php echo esc_js(__('Brinde e frete grátis', 'wcb-theme')); ?>">' +
                     '<div class="wcb-incentive-rail__viewport">' +
                     '<div class="wcb-incentive-rail__track">' +
                     '<div class="wcb-incentive-rail__slide" role="group" aria-label="<?php echo esc_js(__('Brinde', 'wcb-theme')); ?>">' + buildGiftBar(d) + '</div>' +
@@ -2466,20 +2683,6 @@ function wcb_gift_progress_bar()
                 var ac = new AbortController();
                 var sig = { signal: ac.signal };
 
-                /* CSS fixa trilho 200% + slides 50% (1 card visível); não forçar px (evita empilhar se width=0) */
-                track.style.width = '';
-                track.style.transform = '';
-                for (var sc = 0; sc < slides.length; sc++) {
-                    slides[sc].style.flex = '';
-                    slides[sc].style.width = '';
-                    slides[sc].style.maxWidth = '';
-                    slides[sc].style.minWidth = '';
-                }
-
-                function slidePct() {
-                    return 100 / slides.length;
-                }
-
                 function updateDots(i) {
                     for (var di = 0; di < dots.length; di++) {
                         var on = di === i;
@@ -2491,13 +2694,34 @@ function wcb_gift_progress_bar()
                     }
                 }
 
+                function slideStepPx() {
+                    var w = slides[0].offsetWidth;
+                    if (w < 1) {
+                        var cs = window.getComputedStyle(vp);
+                        var pl = parseFloat(cs.paddingLeft) || 0;
+                        var pr = parseFloat(cs.paddingRight) || 0;
+                        w = vp.clientWidth - pl - pr;
+                    }
+                    return Math.max(1, Math.round(w));
+                }
+
+                /* Deslocamento em px = largura real do slide (offsetWidth); inativos ficam invisíveis via aria-hidden + CSS (sem “filete” do card 2 no slide 1). */
                 function goTo(i) {
                     var n = slides.length;
                     var target = ((i % n) + n) % n;
                     idx = target;
-                    /* % em relação à largura do próprio .wcb-incentive-rail__track (spec CSS) */
-                    track.style.transform = 'translateX(-' + (target * slidePct()) + '%)';
+                    var step = slideStepPx();
+                    track.style.transform = 'translate3d(-' + (target * step) + 'px,0,0)';
                     updateDots(target);
+                }
+
+                function syncLayout() {
+                    goTo(idx);
+                }
+
+                function bumpLayoutUntilSized() {
+                    syncLayout();
+                    requestAnimationFrame(syncLayout);
                 }
 
                 function tick() {
@@ -2516,13 +2740,13 @@ function wcb_gift_progress_bar()
                     }
                 }
 
-                goTo(0);
+                bumpLayoutUntilSized();
                 if (!reducedMotion) {
                     startTimer();
                 }
 
                 var ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function () {
-                    goTo(idx);
+                    syncLayout();
                 }) : null;
                 if (ro) ro.observe(vp);
 
@@ -2587,6 +2811,7 @@ function wcb_gift_progress_bar()
                     ac.abort();
                     stopTimer();
                     if (ro) ro.disconnect();
+                    track.style.transform = '';
                 };
             }
 
@@ -2622,6 +2847,8 @@ function wcb_gift_progress_bar()
                 var body = document.querySelector('.xoo-wsc-body');
                 var footer = document.querySelector('.xoo-wsc-footer');
                 if (!header || !body || !footer) return false;
+
+                lastIncentiveBarsSig = '';
 
                 var oldInc = document.getElementById('wcb-incentives-drawer');
                 if (oldInc) oldInc.remove();
@@ -2668,9 +2895,6 @@ function wcb_gift_progress_bar()
 
                 requestAnimationFrame(function () {
                     wcbInitIncentiveRailCarousel();
-                    requestAnimationFrame(function () {
-                        wcbInitIncentiveRailCarousel();
-                    });
                 });
 
                 injected = true;
@@ -2813,6 +3037,14 @@ function wcb_gift_progress_bar()
                     sub = initData.subtotal;
                 }
 
+                var subRounded = Math.round(sub * 100) / 100;
+                var barsSig = String(subRounded) + '|' + cartItems.length;
+                var railEl = document.getElementById('wcb-incentive-rail');
+                if (railEl && barsSig === lastIncentiveBarsSig) {
+                    return;
+                }
+                lastIncentiveBarsSig = barsSig;
+
                 var gRem = Math.max(0, giftThreshold - sub);
                 var sRem = Math.max(0, shipThreshold - sub);
                 var d = {
@@ -2862,17 +3094,15 @@ function wcb_gift_progress_bar()
             /* ── Quando o cart é atualizado via WooCommerce events: recalcula localmente ── */
             var updateTimer = null;
             function onCartUpdate() {
-                /* Debounce 350ms para evitar disparos múltiplos simultâneos */
+                /* Debounce maior: fragments do Xoo disparam vários eventos seguidos */
                 clearTimeout(updateTimer);
                 updateTimer = setTimeout(function () {
-                    /* Recalcular dados localmente antes de re-injetar */
-                    refreshBarsLocal();
-                    /* Se o xoo-wsc re-renderizou e removeu nossos elementos, re-injeta */
                     if (sideCartUiMissing()) {
                         injected = false;
                         inject(initData);
                     }
-                }, 350);
+                    refreshBarsLocal();
+                }, 480);
             }
             if (typeof jQuery !== 'undefined') {
                 jQuery(document.body).on('xoo_wsc_cart_updated added_to_cart removed_from_cart wc_fragments_refreshed xoo_wsc_open', onCartUpdate);
@@ -2883,14 +3113,20 @@ function wcb_gift_progress_bar()
                 });
             }
 
-            /* ── MutationObserver: injeta elementos quando o side cart aparece no DOM ── */
-            /* Substitui o polling de 300ms — só dispara quando o DOM realmente muda */
+            /* ── MutationObserver: injeta quando o side cart aparece (1 verificação por frame) ── */
+            var _wcbObsQueued = false;
             var _wcbObserver = new MutationObserver(function () {
-                if (!sideCartUiMissing()) return;
-                var footer = document.querySelector('.xoo-wsc-footer');
-                if (footer) inject(initData);
+                if (_wcbObsQueued) return;
+                _wcbObsQueued = true;
+                requestAnimationFrame(function () {
+                    _wcbObsQueued = false;
+                    if (!sideCartUiMissing()) return;
+                    var footer = document.querySelector('.xoo-wsc-footer');
+                    if (footer) inject(initData);
+                });
             });
-            _wcbObserver.observe(document.body, { childList: true, subtree: true });
+            var _wcbMoRoot = document.querySelector('.xoo-wsc-markup') || document.querySelector('.xoo-wsc-modal') || document.body;
+            _wcbObserver.observe(_wcbMoRoot, { childList: true, subtree: true });
         })();
     </script>
     <?php
@@ -3306,12 +3542,16 @@ function wcb_wishlist_menu_item($items)
 }
 add_filter('woocommerce_account_menu_items', 'wcb_wishlist_menu_item');
 
-/* ── 3. Título da tab ────────────────────────────────────── */
+/* ── 3. Título da tab (só a página Minha conta — não os cards com the_title() do produto) ── */
 function wcb_wishlist_endpoint_title($title)
 {
     global $wp_query;
-    if (isset($wp_query->query_vars['favoritos']) && in_the_loop()) {
-        $title = 'Meus Favoritos';
+    if (!isset($wp_query->query_vars['favoritos']) || !in_the_loop()) {
+        return $title;
+    }
+    $account_id = function_exists('wc_get_page_id') ? (int) wc_get_page_id('myaccount') : 0;
+    if ($account_id > 0 && (int) get_the_ID() === $account_id) {
+        $title = __('Meus Favoritos', 'wcb-theme');
     }
     return $title;
 }
@@ -3375,80 +3615,36 @@ function wcb_wishlist_endpoint_content()
             </a>
         </div>
 
-        <!-- ══ Grid de produtos ══ -->
+        <!-- ══ Grid — mesmos cards da home (template-parts/product-card) ══ -->
         <div class="wcb-wl-grid">
-            <?php foreach ($products as $product):
-                $id = $product->get_id();
-                $img = wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_thumbnail') ?: wc_placeholder_img_src();
-                $current = (float) $product->get_price();
-                $regular = (float) $product->get_regular_price();
-                $is_sale = $product->is_on_sale() && $regular > 0 && $regular !== $current;
-                $pix = $current > 0 ? $current * 0.95 : 0;
-                $discount = ($is_sale && $regular > 0) ? round((1 - $current / $regular) * 100) : 0;
-                $terms = get_the_terms($id, 'product_cat');
-                $cat = ($terms && !is_wp_error($terms)) ? esc_html($terms[0]->name) : '';
-                $in_stock = $product->is_in_stock();
+            <?php
+            foreach ($products as $wc_product) {
+                $pid = $wc_product->get_id();
+                $post_object = get_post($pid);
+                if (!$post_object || $post_object->post_status !== 'publish') {
+                    continue;
+                }
+                global $post, $product;
+                $post    = $post_object;
+                $product = $wc_product;
+                setup_postdata($post);
                 ?>
-                <div class="wcb-wl-card" data-product-id="<?php echo $id; ?>">
-
-                    <!-- Imagem -->
-                    <div class="wcb-wl-card__img-wrap">
-                        <?php if ($discount > 0): ?>
-                            <span class="wcb-wl-card__badge">-<?php echo $discount; ?>%</span>
-                        <?php endif; ?>
-                        <button class="wcb-wl-card__remove" data-product-id="<?php echo $id; ?>" aria-label="Remover dos favoritos"
-                            title="Remover dos favoritos">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                        </button>
-                        <a href="<?php echo esc_url($product->get_permalink()); ?>">
-                            <img src="<?php echo esc_url($img); ?>" alt="<?php echo esc_attr($product->get_name()); ?>"
-                                loading="lazy">
-                        </a>
-                    </div>
-
-                    <!-- Corpo -->
-                    <div class="wcb-wl-card__body">
-                        <?php if ($cat): ?>
-                            <span class="wcb-wl-card__cat"><?php echo $cat; ?></span>
-                        <?php endif; ?>
-
-                        <a href="<?php echo esc_url($product->get_permalink()); ?>" class="wcb-wl-card__name">
-                            <?php echo esc_html($product->get_name()); ?>
-                        </a>
-
-                        <div class="wcb-wl-card__pricing">
-                            <?php if ($is_sale): ?>
-                                <span class="wcb-wl-card__price-old">R$ <?php echo number_format($regular, 2, ',', '.'); ?></span>
-                            <?php endif; ?>
-                            <span class="wcb-wl-card__price">R$ <?php echo number_format($current, 2, ',', '.'); ?></span>
-                            <?php if ($pix > 0): ?>
-                                <span class="wcb-wl-card__pix">✓ R$ <?php echo number_format($pix, 2, ',', '.'); ?> no PIX</span>
-                            <?php endif; ?>
-                        </div>
-
-                        <?php if (!$in_stock): ?>
-                            <span class="wcb-wl-card__stock wcb-wl-card__stock--out">Fora de estoque</span>
-                        <?php endif; ?>
-
-                        <a href="<?php echo esc_url($product->add_to_cart_url()); ?>"
-                            class="wcb-wl-card__add add_to_cart_button ajax_add_to_cart<?php echo !$in_stock ? ' disabled' : ''; ?>"
-                            data-quantity="1" data-product_id="<?php echo $id; ?>"
-                            data-product_sku="<?php echo esc_attr($product->get_sku()); ?>" <?php echo !$in_stock ? 'aria-disabled="true"' : ''; ?>>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="9" cy="21" r="1" />
-                                <circle cx="20" cy="21" r="1" />
-                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                            </svg>
-                            <?php echo $in_stock ? 'Adicionar ao carrinho' : 'Indisponível'; ?>
-                        </a>
-                    </div>
+                <div class="wcb-wl-card wcb-wl-card-shell" data-product-id="<?php echo esc_attr((string) $pid); ?>">
+                    <button type="button" class="wcb-wl-card__remove" data-product-id="<?php echo esc_attr((string) $pid); ?>"
+                        aria-label="<?php echo esc_attr(__('Remover dos favoritos', 'wcb-theme')); ?>"
+                        title="<?php echo esc_attr(__('Remover dos favoritos', 'wcb-theme')); ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                    <?php get_template_part('template-parts/product', 'card'); ?>
                 </div>
-            <?php endforeach; ?>
+                <?php
+                wp_reset_postdata();
+            }
+            ?>
         </div><!-- /.wcb-wl-grid -->
 
     <?php endif;
@@ -3605,3 +3801,34 @@ function wcb_pdp_output_subtotal_before_simple_qty()
     wcb_render_pdp_buybox_subtotal_markup();
 }
 add_action('woocommerce_before_add_to_cart_quantity', 'wcb_pdp_output_subtotal_before_simple_qty', 5);
+
+/**
+ * Trilha de navegação no topo da página do carrinho (Início → Loja → título da página).
+ */
+function wcb_render_cart_page_breadcrumb()
+{
+    if (!function_exists('is_cart') || !is_cart()) {
+        return;
+    }
+    ?>
+    <nav class="wcb-breadcrumb wcb-breadcrumb--cart-page" aria-label="<?php esc_attr_e('Trilha de navegação', 'wcb-theme'); ?>">
+        <a href="<?php echo esc_url(home_url('/')); ?>"><?php esc_html_e('Início', 'wcb-theme'); ?></a>
+        <span class="wcb-breadcrumb__sep" aria-hidden="true">/</span>
+        <?php
+        if (function_exists('wc_get_page_id')) {
+            $shop_id = (int) wc_get_page_id('shop');
+            if ($shop_id > 0 && get_post_status($shop_id) === 'publish') {
+                echo '<a href="' . esc_url(get_permalink($shop_id)) . '">' . esc_html(get_the_title($shop_id)) . '</a>';
+                echo '<span class="wcb-breadcrumb__sep" aria-hidden="true">/</span>';
+            }
+        }
+        $page_id = get_queried_object_id();
+        $cart_label = $page_id ? get_the_title($page_id) : '';
+        if ($cart_label === '') {
+            $cart_label = __('Carrinho', 'wcb-theme');
+        }
+        ?>
+        <span aria-current="page"><?php echo esc_html($cart_label); ?></span>
+    </nav>
+    <?php
+}

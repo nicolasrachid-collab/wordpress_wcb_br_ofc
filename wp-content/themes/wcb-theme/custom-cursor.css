@@ -1,0 +1,157 @@
+/**
+ * Cursor personalizado — só ativo com .wcb-custom-cursor--active (JS + pointer fino).
+ */
+:root {
+    --wcb-cursor-primary: #155dfd;
+    --wcb-cursor-primary-soft: rgba(21, 93, 253, 0.45);
+    --wcb-cursor-primary-glow: rgba(21, 93, 253, 0.35);
+    --wcb-cursor-z: 2147483000;
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .wcb-cursor-ring,
+    .wcb-cursor-dot {
+        display: none !important;
+    }
+}
+
+/* Esconde cursor nativo quando o custom está ligado */
+body.wcb-custom-cursor--active,
+body.wcb-custom-cursor--active * {
+    cursor: none !important;
+}
+
+/* Campos de texto: cursor padrão e esconde o custom */
+body.wcb-custom-cursor--active.wcb-custom-cursor--input,
+body.wcb-custom-cursor--active.wcb-custom-cursor--input * {
+    cursor: auto !important;
+}
+
+body.wcb-custom-cursor--active.wcb-custom-cursor--input input,
+body.wcb-custom-cursor--active.wcb-custom-cursor--input textarea,
+body.wcb-custom-cursor--active.wcb-custom-cursor--input [contenteditable='true'] {
+    cursor: text !important;
+}
+
+body.wcb-custom-cursor--hidden .wcb-cursor-ring,
+body.wcb-custom-cursor--hidden .wcb-cursor-dot {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.wcb-cursor-ring {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: var(--wcb-cursor-z);
+    box-sizing: border-box;
+    border: 1.5px solid var(--wcb-cursor-primary-soft);
+    background: color-mix(in srgb, var(--wcb-cursor-primary) 7%, transparent);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+        0 4px 24px -4px var(--wcb-cursor-primary-glow);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transform: translate3d(-100px, -100px, 0);
+    will-change: transform;
+    transition:
+        width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        margin 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.35s ease,
+        background 0.35s ease,
+        box-shadow 0.35s ease,
+        opacity 0.2s ease;
+}
+
+.wcb-cursor-ring.wcb-cursor-ring--hover {
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-color: color-mix(in srgb, var(--wcb-cursor-primary) 72%, transparent);
+    background: color-mix(in srgb, var(--wcb-cursor-primary) 12%, transparent);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.18) inset,
+        0 8px 32px -6px var(--wcb-cursor-primary-glow),
+        0 0 40px -8px color-mix(in srgb, var(--wcb-cursor-primary) 25%, transparent);
+}
+
+.wcb-cursor-dot {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: calc(var(--wcb-cursor-z) + 1);
+    box-sizing: border-box;
+    background: radial-gradient(
+        circle at 35% 30%,
+        #ffffff 0%,
+        color-mix(in srgb, #ffffff 88%, var(--wcb-cursor-primary)) 100%
+    );
+    border: 1px solid color-mix(in srgb, var(--wcb-cursor-primary) 35%, #ffffff);
+    box-shadow:
+        0 0 14px color-mix(in srgb, var(--wcb-cursor-primary) 40%, transparent),
+        0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+    transform: translate3d(-100px, -100px, 0);
+    will-change: transform;
+    transition:
+        opacity 0.15s ease,
+        transform 0.12s ease-out,
+        box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+        margin 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wcb-cursor-dot.wcb-cursor-dot--hover {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    box-shadow:
+        0 0 22px color-mix(in srgb, var(--wcb-cursor-primary) 55%, transparent),
+        0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+}
+
+.wcb-cursor-dot.wcb-cursor-dot--press {
+    opacity: 0.65;
+    box-shadow:
+        0 0 8px color-mix(in srgb, var(--wcb-cursor-primary) 30%, transparent),
+        0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+}
+
+body.wcb-custom-cursor--input .wcb-cursor-ring,
+body.wcb-custom-cursor--input .wcb-cursor-dot {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Barra admin WP: cursor nativo */
+body.wcb-custom-cursor--active.wcb-custom-cursor--chrome,
+body.wcb-custom-cursor--active.wcb-custom-cursor--chrome * {
+    cursor: auto !important;
+}
+
+body.wcb-custom-cursor--chrome .wcb-cursor-ring,
+body.wcb-custom-cursor--chrome .wcb-cursor-dot {
+    opacity: 0 !important;
+}
+
+/* Opt-out: mapas, iframes embutidos, etc. */
+body.wcb-custom-cursor--active .wcb-no-custom-cursor,
+body.wcb-custom-cursor--active .wcb-no-custom-cursor * {
+    cursor: auto !important;
+}
+
+body.wcb-custom-cursor--no-cursor-ui .wcb-cursor-ring,
+body.wcb-custom-cursor--no-cursor-ui .wcb-cursor-dot {
+    opacity: 0 !important;
+}

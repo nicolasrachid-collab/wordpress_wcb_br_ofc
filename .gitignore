@@ -39,6 +39,7 @@ desktop.ini
 *~
 
 # IDE
+.cursor/
 .vscode/
 .idea/
 *.code-workspace

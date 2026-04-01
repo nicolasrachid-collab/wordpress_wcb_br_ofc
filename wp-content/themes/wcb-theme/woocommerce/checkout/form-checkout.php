@@ -28,10 +28,9 @@ if (!$checkout->is_registration_enabled() && $checkout->is_registration_required
 }
 ?>
 <div class="wcb-container">
-	<form name="checkout" method="post" class="checkout woocommerce-checkout"
+	<form name="checkout" method="post" class="checkout woocommerce-checkout wcb-checkout-layout"
 		action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data"
-		aria-label="<?php echo esc_attr__('Checkout', 'woocommerce'); ?>"
-		style="display: grid; grid-template-columns: 1fr 450px; gap: var(--wcb-space-2xl); align-items: flex-start;">
+		aria-label="<?php echo esc_attr__('Checkout', 'woocommerce'); ?>">
 
 		<div class="wcb-checkout-fields">
 			<?php if ($checkout->get_checkout_fields()): ?>

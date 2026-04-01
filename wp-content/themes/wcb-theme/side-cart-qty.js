@@ -2,6 +2,9 @@
  * WCB Side Cart — Quantity Stepper (v2 — UI Otimista)
  * Atualiza o número instantaneamente (optimistic UI) e sincroniza
  * com o servidor em background. Sem spinner de modal — só o item.
+ *
+ * Debug no browser (tempo ida/volta do AJAX): localStorage.setItem('wcb_cart_debug','1')
+ * Desligar: localStorage.removeItem('wcb_cart_debug')
  */
 jQuery(document).ready(function ($) {
 
@@ -26,6 +29,9 @@ jQuery(document).ready(function ($) {
         // Marca o stepper como "sincronizando" (loading sutil apenas no item)
         $stepper.addClass('wcb-qty-syncing');
         $stepper.attr('aria-busy', 'true');
+
+        var _wcbAjaxT0 = (window.performance && performance.now) ? performance.now() : Date.now();
+        var _wcbDbg = typeof window.localStorage !== 'undefined' && localStorage.getItem('wcb_cart_debug') === '1';
 
         $.ajax({
             url: getWcUrl('xoo_wsc_update_item_quantity'),
@@ -60,6 +66,10 @@ jQuery(document).ready(function ($) {
                 }
             },
             complete: function () {
+                if (_wcbDbg) {
+                    var _t1 = (window.performance && performance.now) ? performance.now() : Date.now();
+                    console.log('[WCB cart] AJAX xoo_wsc_update_item_quantity round-trip: ' + Math.round(_t1 - _wcbAjaxT0) + ' ms (rede+servidor+DOM jQuery.replaceWith nos fragments)');
+                }
                 $modal.find('.wcb-qty-stepper[data-key="' + cartKey + '"]').removeClass('wcb-qty-syncing').attr('aria-busy', 'false');
             }
         });
@@ -67,7 +77,7 @@ jQuery(document).ready(function ($) {
 
     /**
      * Atualiza UI imediatamente (optimistic) e agenda sync com servidor.
-     * Clicks múltiplos rápidos são agrupados em 1 único request (debounce 350ms).
+     * Clicks múltiplos rápidos são agrupados em 1 único request (debounce 200ms).
      */
     function updateQty($stepper, cartKey, newQty) {
         if (!cartKey || newQty === undefined || newQty < 0) return;
@@ -80,7 +90,7 @@ jQuery(document).ready(function ($) {
         $stepper.find('.wcb-qty-btn').prop('disabled', true);
         setTimeout(function () {
             $stepper.find('.wcb-qty-btn').prop('disabled', false);
-        }, 400);
+        }, 280);
 
         // ── 2. Debounce: agrupa clicks rápidos em 1 único request ─────────
         clearTimeout(_debounceTimers[cartKey]);
@@ -88,7 +98,7 @@ jQuery(document).ready(function ($) {
             var finalQty = _pendingQty[cartKey];
             if (finalQty === undefined) return;
             syncWithServer($stepper, cartKey, finalQty);
-        }, 350);
+        }, 200);
     }
 
     // Delegação de eventos no modal (funciona após fragment refresh)
@@ -139,22 +149,52 @@ jQuery(document).ready(function ($) {
         });
     }
 
-    // Executa quando o carrinho lateral é aberto/atualizado
-    $(document.body).on('xoo_wsc_cart_updated wc_fragments_refreshed xoo_wsc_cart_loaded', reorderCardImages);
-    // Executa ao abrir o carrinho lateral
-    $(document).on('xoo_wsc_show_cart', reorderCardImages);
-    // Observer para quando o plugin renderiza via AJAX
-    var observer = new MutationObserver(function (mutations) {
-        mutations.forEach(function (m) {
-            if (m.addedNodes.length) {
-                reorderCardImages();
-            }
+    /* Uma passagem por frame — evita dezenas de reorder por burst de mutações do Xoo. */
+    var reorderRaf = null;
+    function scheduleReorderCardImages() {
+        if (reorderRaf !== null) {
+            return;
+        }
+        reorderRaf = window.requestAnimationFrame(function () {
+            reorderRaf = null;
+            reorderCardImages();
         });
+    }
+
+    function mutationsMightAffectProducts(mutations) {
+        var i, j, n;
+        for (i = 0; i < mutations.length; i++) {
+            var nodes = mutations[i].addedNodes;
+            for (j = 0; j < nodes.length; j++) {
+                n = nodes[j];
+                if (n.nodeType !== 1) {
+                    continue;
+                }
+                if (n.classList && n.classList.contains('xoo-wsc-product')) {
+                    return true;
+                }
+                if (n.querySelector && n.querySelector('.xoo-wsc-product')) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    $(document.body).on('xoo_wsc_cart_updated wc_fragments_refreshed xoo_wsc_cart_loaded', scheduleReorderCardImages);
+    $(document).on('xoo_wsc_show_cart', scheduleReorderCardImages);
+
+    var observer = new MutationObserver(function (mutations) {
+        if (!mutationsMightAffectProducts(mutations)) {
+            return;
+        }
+        scheduleReorderCardImages();
     });
     var $body = document.querySelector('.xoo-wsc-body');
     if ($body) {
         observer.observe($body, { childList: true, subtree: true });
     }
-    // Executa uma vez no carregamento
-    setTimeout(reorderCardImages, 500);
+    window.requestAnimationFrame(function () {
+        scheduleReorderCardImages();
+    });
 });

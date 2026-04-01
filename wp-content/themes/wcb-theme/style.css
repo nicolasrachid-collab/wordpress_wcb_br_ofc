@@ -1255,7 +1255,7 @@ button {
     flex-shrink: 0;
 }
 
-/* Cloud Club Button */
+/* Cloud Prime (header — sem link; estado em breve) */
 .wcb-header__cloud-club-btn {
     display: flex;
     align-items: center;
@@ -1284,6 +1284,94 @@ button {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
+}
+
+/* “Em breve”: destaque suave — altura próxima aos ícones do header, um pouco mais compacto */
+.wcb-header__cloud-club-btn--soon {
+    cursor: default;
+    pointer-events: none;
+    user-select: none;
+    gap: 0.4rem;
+    box-sizing: border-box;
+    min-height: 2.5rem;
+    padding: 0 0.75rem;
+    margin: 0;
+    border: 1.5px solid rgba(21, 93, 253, 0.22);
+    border-radius: var(--wcb-radius-full);
+    background: var(--wcb-blue-pale);
+    box-shadow: 0 1px 2px rgba(21, 93, 253, 0.07);
+    color: var(--wcb-blue-dark);
+    align-items: center;
+}
+
+.wcb-header__cloud-club-btn--soon:hover {
+    background: var(--wcb-blue-pale);
+    color: var(--wcb-blue-dark);
+    border-color: rgba(21, 93, 253, 0.22);
+}
+
+.wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: var(--wcb-blue);
+    opacity: 1;
+}
+
+.wcb-header__cloud-club-btn__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--wcb-blue-dark);
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.wcb-header__cloud-club-btn__divider {
+    width: 1px;
+    height: 1rem;
+    flex-shrink: 0;
+    background: rgba(21, 93, 253, 0.22);
+    align-self: center;
+}
+
+.wcb-header__cloud-club-btn__soon {
+    font-size: 0.5625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--wcb-blue);
+    white-space: nowrap;
+    line-height: 1.2;
+    opacity: 0.92;
+}
+
+@media (max-width: 768px) {
+    .wcb-header__cloud-club-btn--soon {
+        gap: 0.3rem;
+        margin: 0;
+        min-height: 2.35rem;
+        padding: 0 0.55rem;
+        align-items: center;
+    }
+
+    .wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark {
+        width: 14px;
+        height: 14px;
+    }
+
+    .wcb-header__cloud-club-btn__title {
+        display: none;
+    }
+
+    .wcb-header__cloud-club-btn__divider {
+        display: none;
+    }
+
+    .wcb-header__cloud-club-btn__soon {
+        font-size: 0.5625rem;
+        letter-spacing: 0.1em;
+    }
 }
 
 /* Header Actions (account, favorites, cart) */
@@ -2740,15 +2828,16 @@ button {
     justify-content: space-between;
     padding: 1.625rem 1.5rem 1.625rem 1.875rem;
     /* Mesma lógica da .wcb-nl4: 165° + #f8fafc, com lavanda só na zona média quando faz sentido */
+    /* Halos e corpo: pouca cor + muito branco/neutro — evita fundo “tinta” quando o Customizer usa azul médio (#82b0e5 etc.) */
     background:
-        radial-gradient(ellipse 88% 72% at 100% 108%, color-mix(in srgb, var(--dept-user-accent, var(--dept-accent, #155dfd)) 7%, transparent) 0%, transparent 52%),
-        radial-gradient(ellipse 90% 75% at 50% -22%, color-mix(in srgb, var(--dept-user-accent, var(--dept-accent, #155dfd)) 11%, transparent) 0%, transparent 58%),
+        radial-gradient(ellipse 88% 72% at 100% 108%, color-mix(in srgb, var(--dept-user-accent, var(--dept-accent, #155dfd)) 4%, transparent) 0%, transparent 52%),
+        radial-gradient(ellipse 90% 75% at 50% -22%, color-mix(in srgb, var(--dept-user-accent, var(--dept-accent, #155dfd)) 6%, transparent) 0%, transparent 58%),
         linear-gradient(
             165deg,
-            rgba(255, 255, 255, 0.98) 0%,
-            color-mix(in srgb, var(--dept-user-bg, var(--dept-accent-bg, #eef2ff)) 38%, rgba(255, 255, 255, 0.97)) 34%,
-            color-mix(in srgb, var(--dept-user-bg, var(--dept-accent-bg, #eef2ff)) 52%, rgba(241, 245, 255, 0.88)) 48%,
-            color-mix(in srgb, var(--dept-user-bg, var(--dept-accent-bg, #eef2ff)) 62%, rgba(248, 250, 252, 1)) 72%,
+            rgba(255, 255, 255, 0.99) 0%,
+            color-mix(in srgb, var(--dept-user-bg, var(--dept-accent-bg, #eef2ff)) 20%, #ffffff) 32%,
+            color-mix(in srgb, var(--dept-user-bg, var(--dept-accent-bg, #eef2ff)) 26%, #f8fafc) 46%,
+            color-mix(in srgb, var(--dept-user-bg, var(--dept-accent-bg, #eef2ff)) 32%, #f1f5f9) 70%,
             #f8fafc 100%
         );
     border-radius: 18px;
@@ -4714,6 +4803,89 @@ button {
     border-color: var(--wcb-blue);
     box-shadow: 0 0 0 4px rgba(21, 93, 253, 0.15);
     outline: none;
+}
+
+/* Checkout — coluna campos + resumo (substitui grid inline no form-checkout.php) */
+form.checkout.woocommerce-checkout.wcb-checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr min(450px, 100%);
+    gap: var(--wcb-space-2xl);
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 960px) {
+    form.checkout.woocommerce-checkout.wcb-checkout-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Checkout — títulos de secção (mesma linguagem do #order_review_heading) */
+body.woocommerce-checkout .wcb-checkout-fields .woocommerce-billing-fields > h3,
+body.woocommerce-checkout .wcb-checkout-fields .woocommerce-shipping-fields > h3,
+body.woocommerce-checkout .wcb-checkout-fields .woocommerce-additional-fields > h3 {
+    margin-top: 0;
+    font-size: var(--wcb-font-size-xl);
+    font-weight: 800;
+    color: var(--wcb-gray-900);
+    letter-spacing: -0.02em;
+    border-bottom: 1px solid var(--wcb-gray-200);
+    padding-bottom: var(--wcb-space-sm);
+    margin-bottom: var(--wcb-space-md);
+}
+
+/* Checkout — billing | shipping (duas colunas) */
+body.woocommerce-checkout .wcb-checkout-fields #customer_details.col2-set {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wcb-space-2xl);
+    align-items: start;
+    width: 100%;
+    float: none;
+}
+
+body.woocommerce-checkout .wcb-checkout-fields #customer_details .col-1,
+body.woocommerce-checkout .wcb-checkout-fields #customer_details .col-2 {
+    float: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+@media (max-width: 900px) {
+    body.woocommerce-checkout .wcb-checkout-fields #customer_details.col2-set {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Checkout — grelha 2 colunas nos campos (nome/sobrenome, etc.) */
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wcb-space-xl) 1.25rem;
+    align-items: start;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper > .clear,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper > .clear,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper > .clear {
+    display: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-row {
+    margin-bottom: 0 !important;
+    float: none !important;
+    width: 100% !important;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row-wide,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row-wide,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-row-wide {
+    grid-column: 1 / -1;
 }
 
 /* Payment Gateway Box */
@@ -7776,16 +7948,55 @@ button {
     border-radius: 6px;
     overflow: hidden;
     background-color: #0f172a;
-    background-size: cover;
-    background-position: center;
     color: #fff;
     text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+/* Moldura interior (igual .wcb-vendidos-banner-card::after) */
+.wcb-promo-banner-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* Foto de fundo + zoom no hover (igual .wcb-vendidos-banner-card__img) */
+.wcb-promo-banner-card__img {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1);
+    transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease;
+    pointer-events: none;
+}
+
+.wcb-promo-banner-card:hover .wcb-promo-banner-card__img {
+    transform: scale(1.1) !important;
+    filter: brightness(1.05) !important;
 }
 
 .wcb-promo-banner-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcb-promo-banner-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .wcb-promo-banner-card:hover {
+        transform: none;
+    }
 }
 
 /* ── Glow radial por card ─────────────────────── */
@@ -7796,7 +8007,7 @@ button {
     pointer-events: none;
     opacity: .15;
     transition: opacity .3s;
-    z-index: 0;
+    z-index: 1;
 }
 
 .wcb-promo-banner-card:hover::before {
@@ -7823,7 +8034,8 @@ button {
             rgba(7, 12, 26, .9),
             rgba(7, 12, 26, .55),
             rgba(7, 12, 26, .2));
-    z-index: 1;
+    z-index: 2;
+    pointer-events: none;
 }
 
 /* ── Body: conteúdo no rodapé ─────────────────── */
@@ -7834,7 +8046,7 @@ button {
     flex-direction: column;
     justify-content: flex-end;
     padding: 24px;
-    z-index: 2;
+    z-index: 3;
 }
 
 /* ── Badge pill ────────────────────────────────── */
@@ -7873,7 +8085,7 @@ button {
     margin: 0;
 }
 
-/* ── CTA ───────────────────────────────────────── */
+/* ── CTA (igual .wcb-vendidos-banner-card__btn) ── */
 .wcb-promo-banner-card__cta {
     display: inline-flex;
     align-items: center;
@@ -7885,12 +8097,23 @@ button {
     font-size: 14px;
     font-weight: 600;
     margin-top: 16px;
-    transition: background 0.18s;
+    transition: background 0.18s ease;
     width: fit-content;
 }
 
-.wcb-promo-banner-card__cta:hover {
+.wcb-promo-banner-card:hover .wcb-promo-banner-card__cta {
     background: #f3f4f6;
+}
+
+.wcb-promo-banner-card__cta svg {
+    flex-shrink: 0;
+    color: #111827;
+    stroke: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.wcb-promo-banner-card:hover .wcb-promo-banner-card__cta svg {
+    transform: translateX(2px);
 }
 
 
@@ -11576,6 +11799,89 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
     outline: none;
 }
 
+/* Checkout — coluna campos + resumo (substitui grid inline no form-checkout.php) */
+form.checkout.woocommerce-checkout.wcb-checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr min(450px, 100%);
+    gap: var(--wcb-space-2xl);
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 960px) {
+    form.checkout.woocommerce-checkout.wcb-checkout-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Checkout — títulos de secção (mesma linguagem do #order_review_heading) */
+body.woocommerce-checkout .wcb-checkout-fields .woocommerce-billing-fields > h3,
+body.woocommerce-checkout .wcb-checkout-fields .woocommerce-shipping-fields > h3,
+body.woocommerce-checkout .wcb-checkout-fields .woocommerce-additional-fields > h3 {
+    margin-top: 0;
+    font-size: var(--wcb-font-size-xl);
+    font-weight: 800;
+    color: var(--wcb-gray-900);
+    letter-spacing: -0.02em;
+    border-bottom: 1px solid var(--wcb-gray-200);
+    padding-bottom: var(--wcb-space-sm);
+    margin-bottom: var(--wcb-space-md);
+}
+
+/* Checkout — billing | shipping (duas colunas) */
+body.woocommerce-checkout .wcb-checkout-fields #customer_details.col2-set {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wcb-space-2xl);
+    align-items: start;
+    width: 100%;
+    float: none;
+}
+
+body.woocommerce-checkout .wcb-checkout-fields #customer_details .col-1,
+body.woocommerce-checkout .wcb-checkout-fields #customer_details .col-2 {
+    float: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+@media (max-width: 900px) {
+    body.woocommerce-checkout .wcb-checkout-fields #customer_details.col2-set {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Checkout — grelha 2 colunas nos campos (nome/sobrenome, etc.) */
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wcb-space-xl) 1.25rem;
+    align-items: start;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper > .clear,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper > .clear,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper > .clear {
+    display: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-row {
+    margin-bottom: 0 !important;
+    float: none !important;
+    width: 100% !important;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row-wide,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row-wide,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-row-wide {
+    grid-column: 1 / -1;
+}
+
 /* Payment Gateway Box */
 #payment {
     background: var(--wcb-gray-50) !important;
@@ -14632,20 +14938,59 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
 .wcb-promo-banner-card {
     position: relative;
     display: block;
-    min-height: 300px;
+    min-height: 360px;
     border-radius: 6px;
     overflow: hidden;
     background-color: #0f172a;
-    background-size: cover;
-    background-position: center;
     color: #fff;
     text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+/* Moldura interior (igual .wcb-vendidos-banner-card::after) */
+.wcb-promo-banner-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* Foto de fundo + zoom no hover (igual .wcb-vendidos-banner-card__img) */
+.wcb-promo-banner-card__img {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1);
+    transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease;
+    pointer-events: none;
+}
+
+.wcb-promo-banner-card:hover .wcb-promo-banner-card__img {
+    transform: scale(1.1) !important;
+    filter: brightness(1.05) !important;
 }
 
 .wcb-promo-banner-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcb-promo-banner-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .wcb-promo-banner-card:hover {
+        transform: none;
+    }
 }
 
 /* ── Glow radial por card ─────────────────────── */
@@ -14656,7 +15001,7 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
     pointer-events: none;
     opacity: .15;
     transition: opacity .3s;
-    z-index: 0;
+    z-index: 1;
 }
 
 .wcb-promo-banner-card:hover::before {
@@ -14683,7 +15028,8 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
             rgba(7, 12, 26, .9),
             rgba(7, 12, 26, .55),
             rgba(7, 12, 26, .2));
-    z-index: 1;
+    z-index: 2;
+    pointer-events: none;
 }
 
 /* ── Body: conteúdo no rodapé ─────────────────── */
@@ -14694,7 +15040,7 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
     flex-direction: column;
     justify-content: flex-end;
     padding: 24px;
-    z-index: 2;
+    z-index: 3;
 }
 
 /* ── Badge pill ────────────────────────────────── */
@@ -14733,7 +15079,7 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
     margin: 0;
 }
 
-/* ── CTA ───────────────────────────────────────── */
+/* ── CTA (igual .wcb-vendidos-banner-card__btn) ── */
 .wcb-promo-banner-card__cta {
     display: inline-flex;
     align-items: center;
@@ -14745,12 +15091,23 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
     font-size: 14px;
     font-weight: 600;
     margin-top: 16px;
-    transition: background 0.18s;
+    transition: background 0.18s ease;
     width: fit-content;
 }
 
-.wcb-promo-banner-card__cta:hover {
+.wcb-promo-banner-card:hover .wcb-promo-banner-card__cta {
     background: #f3f4f6;
+}
+
+.wcb-promo-banner-card__cta svg {
+    flex-shrink: 0;
+    color: #111827;
+    stroke: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.wcb-promo-banner-card:hover .wcb-promo-banner-card__cta svg {
+    transform: translateX(2px);
 }
 
 
@@ -20962,7 +21319,7 @@ button:hover {
     transition-delay: 60ms;
 }
 
-/* Pagamentos — chips premium (profundidade + acentos discretos por meio) */
+/* Pagamentos — chips com cor e borda uniformes */
 .wcb-f3__payments {
     display: flex;
     flex-wrap: wrap;
@@ -21000,29 +21357,6 @@ button:hover {
         transform 0.2s ease;
     cursor: default;
     user-select: none;
-}
-
-/* Acentos sutis (ordem no footer: PIX, Visa, Mastercard, Elo, Boleto) */
-.wcb-f3__pay:nth-child(1) {
-    border-color: color-mix(in srgb, #32bcad 28%, rgba(255, 255, 255, 0.11));
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.wcb-f3__pay:nth-child(2) {
-    border-color: color-mix(in srgb, #1a1f71 35%, rgba(255, 255, 255, 0.1));
-}
-
-.wcb-f3__pay:nth-child(3) {
-    border-color: color-mix(in srgb, #eb001b 24%, rgba(255, 255, 255, 0.1));
-}
-
-.wcb-f3__pay:nth-child(4) {
-    border-color: color-mix(in srgb, #ffcb05 25%, rgba(255, 255, 255, 0.1));
-}
-
-.wcb-f3__pay:nth-child(5) {
-    border-color: color-mix(in srgb, #94a3b8 30%, rgba(255, 255, 255, 0.09));
-    color: rgba(255, 255, 255, 0.72);
 }
 
 .wcb-f3__pay:hover {
@@ -23746,9 +24080,10 @@ html {
 }
 
 /* ── Vendidos Layout: Lifestyle Slider lateral + Grid padrão ── */
+/* Colunas ~36% / 64% (antes 40/60) para largura de card próxima ao carrossel Novidades (5×1fr no full width) */
 .wcb-vendidos-layout {
     display: grid;
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: 1.8fr 3.2fr;
     grid-template-rows: 1fr 1fr;
     gap: 14px 1.5rem;
     align-items: stretch;
@@ -23877,28 +24212,45 @@ html {
     grid-row: 2;
 }
 
-/* Fazer cada carrossel preencher seu espaço */
+/* Carrossel com altura pelo conteúdo (como Novidades), para a linha da grelha crescer com os cards */
 .wcb-vendidos-layout__products .wcb-paged-carousel {
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
 }
 .wcb-vendidos-layout__products .wcb-paged-carousel__track {
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
+    height: auto;
 }
-.wcb-vendidos-layout__products .wcb-paged-carousel__slide {
-    height: 100%;
-}
-
 /* Grid vendidos-row: 3 colunas × 1 linha — carousels independentes */
+/* gap e alinhamento iguais ao grid Novidades: cards com altura natural (não esticar ao banner) */
 .wcb-paged-carousel__grid--vendidos-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    height: 100%;
+    gap: 1rem;
+    align-items: start;
+    height: auto;
+    min-height: 0;
     padding-bottom: 0;
+}
+
+/* Mesmo “tamanho de card” que Novidades: sem height:100% forçado pela célula do carrossel */
+.wcb-vendidos-layout__products .wcb-paged-carousel__grid--vendidos-row .wcb-card5 {
+    height: auto;
+    align-self: start;
+    width: 100%;
+}
+
+.wcb-vendidos-layout__products .wcb-paged-carousel__slide {
+    height: auto;
+    align-self: start;
+}
+
+/* Viewport injetado pelo JS: altura acompanha o slide ativo */
+.wcb-vendidos-layout__products .wcb-carousel-viewport {
+    height: auto;
 }
 
 /* Grid vendidos: 3 colunas × 2 linhas — stretch para alinhar com banners */
@@ -24961,7 +25313,7 @@ html {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, var(--wcb-blue, #155dfd) 0%, var(--wcb-blue-mid, #3b72fe) 100%);
     color: #fff;
     display: flex;
     align-items: center;
@@ -24970,6 +25322,62 @@ html {
     font-weight: 700;
     letter-spacing: 0.03em;
     flex-shrink: 0;
+    overflow: hidden;
+    transition:
+        border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Logo do site — mesma linguagem dos cartões / newsletter (azul WCB + luz) */
+.wcb-blog-card__avatar--logo {
+    width: 36px;
+    height: 36px;
+    padding: 5px;
+    box-sizing: border-box;
+    background:
+        radial-gradient(120% 100% at 30% 0%, color-mix(in srgb, var(--wcb-blue, #155dfd) 9%, transparent) 0%, transparent 62%),
+        linear-gradient(
+            165deg,
+            #ffffff 0%,
+            var(--wcb-blue-pale, #f0f4ff) 42%,
+            color-mix(in srgb, var(--wcb-blue-bg, #eef3ff) 88%, #ffffff) 100%
+        );
+    border: 1px solid color-mix(in srgb, var(--wcb-blue, #155dfd) 16%, var(--wcb-gray-100, #e2e8f0));
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.92) inset,
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 3px 10px color-mix(in srgb, var(--wcb-blue, #155dfd) 10%, transparent);
+}
+
+.wcb-blog-card:hover .wcb-blog-card__avatar--logo {
+    border-color: color-mix(in srgb, var(--wcb-blue, #155dfd) 28%, var(--wcb-gray-100, #e2e8f0));
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.95) inset,
+        0 2px 4px rgba(15, 23, 42, 0.05),
+        0 6px 16px color-mix(in srgb, var(--wcb-blue, #155dfd) 14%, transparent);
+    transform: scale(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcb-blog-card__avatar {
+        transition-duration: 0.01ms;
+    }
+
+    .wcb-blog-card:hover .wcb-blog-card__avatar--logo {
+        transform: none;
+    }
+}
+
+.wcb-blog-card__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.06));
 }
 
 .wcb-blog-card__author-info {
@@ -25179,15 +25587,15 @@ html {
 }
 
 .wcb-swatch-btn.is-disabled:not(.wcb-swatch-btn--dot) {
-    opacity: 0.88;
     cursor: not-allowed;
-    text-decoration: line-through;
-    text-decoration-color: #dc2626;
-    text-decoration-thickness: 2px;
-    border-color: #fecaca;
-    background: #fef2f2;
+    text-decoration: none;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
     color: #94a3b8;
+    opacity: 0.72;
     box-shadow: none;
+    transform: none;
+    font-weight: 500;
 }
 
 .wcb-swatch-btn--dot.is-disabled {
@@ -25199,11 +25607,11 @@ html {
     box-shadow: none;
 }
 
-/* Sem estoque (bolinha): traço diagonal vermelho sobre o círculo */
+/* Sem estoque (bolinha): visual neutro, traço suave */
 .wcb-swatch-btn--dot.is-disabled .wcb-swatch-dot {
-    opacity: 0.52;
-    border-color: rgba(220, 38, 38, 0.35);
-    filter: saturate(0.7);
+    opacity: 0.5;
+    border-color: rgba(148, 163, 184, 0.45);
+    filter: saturate(0.55) brightness(0.96);
 }
 
 .wcb-swatch-btn--dot.is-disabled::after {
@@ -25212,13 +25620,13 @@ html {
     left: 50%;
     top: 50%;
     z-index: 2;
-    width: 44px;
-    height: 2px;
+    width: 40px;
+    height: 1.5px;
     margin: 0;
     pointer-events: none;
     border-radius: 2px;
-    background: linear-gradient(90deg, transparent 0%, #e11d48 18%, #dc2626 50%, #e11d48 82%, transparent 100%);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
+    background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.25) 15%, #cbd5e1 50%, rgba(148, 163, 184, 0.25) 85%, transparent 100%);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65);
     transform: translate(-50%, -50%) rotate(-45deg);
 }
 
@@ -27380,10 +27788,15 @@ html {
 
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__body {
     padding: 8px 12px 12px;
+    gap: 0;
 }
 
+/* Mesma hierarquia que os outros cards da home (categoria → título → nota → preço/PIX/parcelas → teor) */
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__cat {
-    display: none;
+    display: block;
+    font-size: 0.52rem;
+    margin-bottom: 3px;
+    letter-spacing: 0.1em;
 }
 
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__title {
@@ -27391,17 +27804,70 @@ html {
     -webkit-line-clamp: 2;
     min-height: auto;
     line-height: 1.3;
+    margin-bottom: 4px;
 }
 
-#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__rating,
-#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__pix,
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__rating {
+    margin-bottom: 6px;
+    gap: 3px;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__stars {
+    font-size: 0.56rem;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__rating-val {
+    font-size: 0.56rem;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__rating-count {
+    font-size: 0.5rem;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__price-block {
+    gap: 1px;
+    margin-top: 0;
+}
+
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__pix-tag {
-    display: none;
+    display: inline-flex;
+    font-size: 0.56rem;
+    padding: 1px 6px;
+    margin-top: 1px;
 }
 
-#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__installments,
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__pix-tag em {
+    font-size: 0.5rem;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__installments {
+    display: block;
+    font-size: 0.54rem;
+    margin-top: 1px;
+}
+
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__teor {
-    display: none;
+    display: flex;
+    margin-top: 4px;
+    gap: 3px;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__teor-label {
+    font-size: 0.5rem;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__teor-pill {
+    font-size: 0.5rem;
+    padding: 1px 5px;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-stock-bar {
+    margin-top: 4px;
+}
+
+#wcb-super-ofertas .wcb-flash-compact-card .wcb-stock-bar__label {
+    font-size: 0.5rem;
+    line-height: 1.35;
 }
 
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__price-current {
@@ -27413,6 +27879,7 @@ html {
 
 #wcb-super-ofertas .wcb-flash-compact-card .wcb-card5__cta-mobile {
     display: flex !important;
+    margin-top: 8px !important;
     background: var(--wcb-gradient-cta, linear-gradient(135deg, #155dfd, #3b72fe)) !important;
     color: #fff !important;
     font-weight: 700 !important;
@@ -28678,13 +29145,15 @@ header .wcb-card5:hover .wcb-card5__img-primary,
 }
 
 #wcb-pdp-buybox .wcb-swatch-btn.is-disabled:not(.wcb-swatch-btn--dot) {
-    opacity: 0.9 !important;
+    opacity: 0.72 !important;
     color: #94a3b8 !important;
-    text-decoration: line-through !important;
-    text-decoration-color: #dc2626 !important;
-    text-decoration-thickness: 2px !important;
-    border-color: #fecaca !important;
-    background: #fef2f2 !important;
+    text-decoration: none !important;
+    border: 1px dashed #cbd5e1 !important;
+    background: #f8fafc !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    cursor: not-allowed !important;
 }
 
 #wcb-pdp-buybox .wcb-swatch-btn--dot.is-disabled {
@@ -28694,9 +29163,9 @@ header .wcb-card5:hover .wcb-card5__img-primary,
 }
 
 #wcb-pdp-buybox .wcb-swatch-btn--dot.is-disabled .wcb-swatch-dot {
-    opacity: 0.52 !important;
-    border-color: rgba(220, 38, 38, 0.38) !important;
-    filter: saturate(0.7) !important;
+    opacity: 0.5 !important;
+    border-color: rgba(148, 163, 184, 0.45) !important;
+    filter: saturate(0.55) brightness(0.96) !important;
 }
 
 #wcb-pdp-buybox .wcb-swatch-btn--dot.is-disabled::after {
@@ -28705,12 +29174,12 @@ header .wcb-card5:hover .wcb-card5__img-primary,
     left: 50% !important;
     top: 50% !important;
     z-index: 2 !important;
-    width: 44px !important;
-    height: 2px !important;
+    width: 40px !important;
+    height: 1.5px !important;
     pointer-events: none !important;
     border-radius: 2px !important;
-    background: linear-gradient(90deg, transparent 0%, #e11d48 18%, #dc2626 50%, #e11d48 82%, transparent 100%) !important;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55) !important;
+    background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.25) 15%, #cbd5e1 50%, rgba(148, 163, 184, 0.25) 85%, transparent 100%) !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65) !important;
     transform: translate(-50%, -50%) rotate(-45deg) !important;
 }
 

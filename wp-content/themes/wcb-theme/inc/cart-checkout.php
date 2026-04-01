@@ -1,7 +1,7 @@
 <?php
 /**
  * WCB Theme — Cart & Checkout Customization
- * Simplified checkout-style header/footer on the WooCommerce cart page,
+ * Ajustes na página do carrinho WooCommerce (título/newsletter) e traduções Blocks.
  * and JS fallback translations for WooCommerce Blocks components.
  *
  * @package WCB_Theme
@@ -10,19 +10,13 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /* ============================================================
-   CART PAGE — Hide footer, newsletter, page title only
-   The site header and nav remain visible.
+   CART PAGE — Oculta newsletter e título da página (layout limpo).
+   Rodapé institucional (#wcb-footer) permanece visível.
    ============================================================ */
 function wcb_cart_custom_header() {
     if ( ! is_cart() ) return;
 
-    /* Keep the WCB header + nav — only hide footer, newsletter, and page title */
     echo '<style id="wcb-cart-header-override">
-        body.woocommerce-cart .wcb-footer,
-        body.woocommerce-cart footer#wcb-footer,
-        body.woocommerce-cart footer.site-footer,
-        body.woocommerce-cart .site-footer,
-        body.woocommerce-cart #colophon,
         body.woocommerce-cart .wcb-newsletter,
         body.woocommerce-cart .wcb-newsletter-section,
         body.woocommerce-cart .newsletter-section,
@@ -63,16 +57,7 @@ function wcb_cart_header_html() {
 // add_action( 'wp_body_open', 'wcb_cart_header_html', 1 ); // disabled
 
 
-/* Cart page footer */
-function wcb_cart_footer_html() {
-    if ( ! is_cart() ) return;
-    ?>
-    <div class="wcb-cart-footer">
-        &copy; <?php echo date( 'Y' ); ?> White Cloud Brasil. Todos os direitos reservados.
-    </div>
-    <?php
-}
-add_action( 'wp_footer', 'wcb_cart_footer_html', 1 );
+/* Rodapé mínimo removido: o tema usa footer.php (#wcb-footer) como nas outras páginas. */
 
 /* ============================================================
    FREE SHIPPING URGENCY BAR

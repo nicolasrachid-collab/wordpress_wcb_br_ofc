@@ -1,0 +1,162 @@
+/**
+ * Checkout WooCommerce Blocks + CartFlows
+ * Alinha campos, títulos e resumo ao padrão WCB (Minha conta / checkout clássico).
+ * Carregado só em is_checkout() ou cartflows_step.
+ */
+
+body.woocommerce-checkout .wc-block-checkout {
+	--wcb-cf-field-bg: var(--wcb-gray-50, #f9fafb);
+	--wcb-cf-field-border: var(--wcb-gray-200, #e5e7eb);
+	--wcb-cf-focus: 0 0 0 4px rgba(21, 93, 253, 0.15);
+}
+
+/* Títulos de passo (contacto, cobrança, envio, etc.) */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-title,
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-step__title {
+	font-size: var(--wcb-font-size-xl, 1.25rem) !important;
+	font-weight: 800 !important;
+	color: var(--wcb-gray-900, #111827) !important;
+	letter-spacing: -0.02em;
+	line-height: 1.25 !important;
+	border-bottom: 1px solid var(--wcb-gray-200, #e5e7eb);
+	padding-bottom: var(--wcb-space-sm, 0.5rem);
+	margin-top: 0;
+	margin-bottom: var(--wcb-space-md, 1rem) !important;
+}
+
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-step {
+	margin-bottom: var(--wcb-space-xl, 2rem) !important;
+}
+
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-step__content > * {
+	margin-bottom: var(--wcb-space-md, 1rem);
+}
+
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-step__content > :last-child {
+	margin-bottom: 0;
+}
+
+/* Labels flutuantes — cor/peso alinhados ao tema */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input label,
+body.woocommerce-checkout .wc-block-checkout .wc-blocks-components-select label {
+	color: var(--wcb-gray-600, #4b5563) !important;
+	font-size: var(--wcb-font-size-sm, 0.875rem) !important;
+	font-weight: 700 !important;
+}
+
+/* Inputs de texto / email / tel / número */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input input[type="text"],
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input input[type="email"],
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input input[type="tel"],
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input input[type="number"],
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input input[type="url"],
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input textarea {
+	background: var(--wcb-cf-field-bg) !important;
+	border: 1px solid var(--wcb-cf-field-border) !important;
+	border-radius: var(--wcb-radius-md, 8px) !important;
+	color: var(--wcb-gray-900, #111827) !important;
+	font-size: var(--wcb-font-size-base, 1rem) !important;
+	box-shadow: none !important;
+	transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input input:focus,
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-text-input textarea:focus {
+	background: var(--wcb-white, #fff) !important;
+	border-color: var(--wcb-blue, #155dfd) !important;
+	box-shadow: var(--wcb-cf-focus) !important;
+	outline: none !important;
+}
+
+/* Combobox país/estado (WordPress Components + Woo) */
+body.woocommerce-checkout .wc-block-checkout .components-combobox-control__input,
+body.woocommerce-checkout .wc-block-checkout input.components-combobox-control__input,
+body.woocommerce-checkout .wc-block-checkout .wc-blocks-components-select input[type="text"] {
+	background: var(--wcb-cf-field-bg) !important;
+	border: 1px solid var(--wcb-cf-field-border) !important;
+	border-radius: var(--wcb-radius-md, 8px) !important;
+	color: var(--wcb-gray-900, #111827) !important;
+}
+
+body.woocommerce-checkout .wc-block-checkout .components-combobox-control__input:focus,
+body.woocommerce-checkout .wc-block-checkout .wc-blocks-components-select input[type="text"]:focus {
+	background: var(--wcb-white, #fff) !important;
+	border-color: var(--wcb-blue, #155dfd) !important;
+	box-shadow: var(--wcb-cf-focus) !important;
+	outline: none !important;
+}
+
+/* Select nativo, se existir */
+body.woocommerce-checkout .wc-block-checkout select {
+	width: 100%;
+	max-width: 100%;
+	padding: 0.85rem 1rem !important;
+	background-color: var(--wcb-cf-field-bg) !important;
+	border: 1px solid var(--wcb-cf-field-border) !important;
+	border-radius: var(--wcb-radius-md, 8px) !important;
+	font-size: var(--wcb-font-size-base, 1rem) !important;
+	color: var(--wcb-gray-900, #111827) !important;
+}
+
+body.woocommerce-checkout .wc-block-checkout select:focus {
+	background: var(--wcb-white, #fff) !important;
+	border-color: var(--wcb-blue, #155dfd) !important;
+	box-shadow: var(--wcb-cf-focus) !important;
+	outline: none !important;
+}
+
+/* Cartão de endereço (resumo) */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-address-card {
+	border-color: var(--wcb-gray-200, #e5e7eb) !important;
+	border-radius: var(--wcb-radius-md, 8px) !important;
+}
+
+/* Coluna lateral — mesmo “card” do .wcb-checkout-review */
+body.woocommerce-checkout .wc-block-checkout .wc-block-checkout__sidebar {
+	background: var(--wcb-gray-50, #f9fafb) !important;
+	border: 1px solid var(--wcb-gray-200, #e5e7eb) !important;
+	border-radius: var(--wcb-radius-lg, 12px) !important;
+	padding: var(--wcb-space-xl, 1.5rem) !important;
+	box-sizing: border-box;
+}
+
+@media (min-width: 700px) {
+	body.woocommerce-checkout .wc-block-checkout .wc-block-checkout__sidebar.is-sticky {
+		top: calc(var(--wcb-header-h, 72px) + 16px);
+	}
+}
+
+/* Botão finalizar */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-place-order-button,
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-place-order-button:not(.is-link) {
+	background: var(--wcb-blue, #155dfd) !important;
+	color: #fff !important;
+	border: none !important;
+	border-radius: var(--wcb-radius-md, 8px) !important;
+	font-weight: 700 !important;
+	transition: background 0.2s, box-shadow 0.2s;
+}
+
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-place-order-button:hover,
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-place-order-button:not(.is-link):hover {
+	background: var(--wcb-blue-hover, #0f48d4) !important;
+	box-shadow: 0 4px 14px rgba(21, 93, 253, 0.35);
+}
+
+/* Métodos de envio / pagamento — cartões mais limpos */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-radio-control-accordion-option,
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-radio-control__option {
+	border-color: var(--wcb-gray-200, #e5e7eb) !important;
+	border-radius: var(--wcb-radius-md, 8px) !important;
+}
+
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-radio-control__input:checked {
+	accent-color: var(--wcb-blue, #155dfd);
+}
+
+/* Cupom / CEP em linha */
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-totals-coupon button,
+body.woocommerce-checkout .wc-block-checkout .wc-block-components-totals-shipping__button {
+	border-radius: var(--wcb-radius-md, 8px) !important;
+	font-weight: 600 !important;
+}

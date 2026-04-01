@@ -8,6 +8,40 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/**
+ * Google Fonts sem bloquear render: preload → stylesheet após download.
+ *
+ * @param string $href URL completa da folha de estilo.
+ * @return string HTML seguro.
+ */
+function wcb_google_fonts_nonblocking_link( $href ) {
+	$href_esc = esc_url( $href );
+	return sprintf(
+		'<link rel="preload" as="style" href="%1$s" onload="this.onload=null;this.rel=\'stylesheet\'" />' .
+		'<noscript><link rel="stylesheet" href="%1$s" /></noscript>',
+		$href_esc
+	) . "\n";
+}
+
+/**
+ * @param string $tag  HTML original.
+ * @param string $handle Style handle.
+ * @param string $href  URL (WP 5.9+).
+ */
+function wcb_async_google_fonts_stylesheet( $tag, $handle, $href = '', $media = 'all' ) {
+	if ( 'wcb-google-fonts' !== $handle ) {
+		return $tag;
+	}
+	if ( '' === $href && preg_match( '/href\s*=\s*["\']([^"\']+)/', $tag, $m ) ) {
+		$href = $m[1];
+	}
+	if ( '' === $href ) {
+		return $tag;
+	}
+	return wcb_google_fonts_nonblocking_link( $href );
+}
+add_filter( 'style_loader_tag', 'wcb_async_google_fonts_stylesheet', 10, 4 );
+
 /* ============================================================
    ENQUEUE STYLES & SCRIPTS
    ============================================================ */
@@ -27,10 +61,7 @@ function wcb_enqueue_assets() {
         return $html;
     }, 10, 2 );
 
-    // Google Fonts — Inter (com preload da variante mais usada para resolver bloqueio de renderização)
-    add_action( 'wp_head', function () {
-        echo '<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" crossorigin />' . "\n";
-    }, 1 );
+    // Google Fonts — Inter (tag não bloqueante via filtro style_loader_tag)
     wp_enqueue_style(
         'wcb-google-fonts',
         'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
@@ -50,6 +81,21 @@ function wcb_enqueue_assets() {
     wp_enqueue_script(
         'wcb-main',
         WCB_URI . '/js/main.js',
+        array(),
+        WCB_VERSION,
+        true
+    );
+
+    // Cursor personalizado (desktop; respeita reduced-motion e campos de texto)
+    wp_enqueue_style(
+        'wcb-custom-cursor',
+        WCB_URI . '/custom-cursor.css',
+        array( 'wcb-style' ),
+        WCB_VERSION
+    );
+    wp_enqueue_script(
+        'wcb-custom-cursor',
+        WCB_URI . '/js/custom-cursor.js',
         array(),
         WCB_VERSION,
         true
@@ -93,6 +139,16 @@ function wcb_enqueue_assets() {
         );
     }
 
+    // Checkout WooCommerce Blocks (CartFlows / finalizar-compra) — alinha com Minha conta
+    if ( function_exists( 'is_checkout' ) && ( is_checkout() || is_singular( 'cartflows_step' ) ) ) {
+        wp_enqueue_style(
+            'wcb-checkout-blocks-cartflows',
+            WCB_URI . '/inc/checkout-blocks-cartflows.css',
+            array( 'wcb-style' ),
+            WCB_VERSION
+        );
+    }
+
     // WCB Native Filter (shop + category pages)
     if ( is_shop() || is_product_category() || is_product_tag() ) {
         wp_enqueue_style(
@@ -110,21 +166,42 @@ function wcb_enqueue_assets() {
         );
     }
 
-    // Side Cart premium overrides (só com plugin Xoo ativo e tema permitindo)
-    if ( class_exists( 'WooCommerce' ) && function_exists( 'wcb_is_side_cart_active' ) && wcb_is_side_cart_active() ) {
+    $wcb_is_cart_page = class_exists( 'WooCommerce' ) && ( is_cart() || is_page( 'carrinho' ) || is_page( 'cart' ) );
+
+    // Página Carrinho (WooCommerce Blocks): layout + componentes alinhados ao carrinho lateral
+    if ( $wcb_is_cart_page ) {
+        $wcb_cart_premium_deps = array( 'wcb-style' );
+        // Ícone remover = .xoo-wsc-icon-trash (plugin só enfileira fontes em isSideCartPage; no /carrinho/ não carregavam)
+        if ( defined( 'XOO_WSC_URL' ) && defined( 'XOO_WSC_VERSION' ) ) {
+            wp_enqueue_style(
+                'wcb-xoo-wsc-fonts-cart',
+                XOO_WSC_URL . '/assets/css/xoo-wsc-fonts.css',
+                array(),
+                XOO_WSC_VERSION
+            );
+            $wcb_cart_premium_deps[] = 'wcb-xoo-wsc-fonts-cart';
+        }
+        wp_enqueue_style(
+            'wcb-cart-premium',
+            WCB_URI . '/cart-premium.css',
+            $wcb_cart_premium_deps,
+            WCB_VERSION
+        );
         wp_enqueue_style(
             'wcb-side-cart-premium',
             WCB_URI . '/side-cart-premium.css',
-            array( 'wcb-style', 'xoo-wsc-style' ),
+            array( 'wcb-style' ),
             WCB_VERSION
         );
+    }
 
-        // Cart page premium redesign
-        if ( is_cart() || is_page( 'carrinho' ) || is_page( 'cart' ) ) {
+    // Side Cart premium overrides (só com plugin Xoo ativo e tema permitindo)
+    if ( class_exists( 'WooCommerce' ) && function_exists( 'wcb_is_side_cart_active' ) && wcb_is_side_cart_active() ) {
+        if ( ! $wcb_is_cart_page ) {
             wp_enqueue_style(
-                'wcb-cart-premium',
-                WCB_URI . '/cart-premium.css',
-                array( 'wcb-style' ),
+                'wcb-side-cart-premium',
+                WCB_URI . '/side-cart-premium.css',
+                array( 'wcb-style', 'xoo-wsc-style' ),
                 WCB_VERSION
             );
         }
@@ -213,6 +290,10 @@ function wcb_defer_scripts( $tag, $handle, $src ) {
         'ti-wishlist',
         'alg-wc-wl',
         'yith-wfbt-frontend',
+        /* Tema — não bloqueiam primeira pintura (main.js mantém síncrono por causa de inline) */
+        'wcb-custom-cursor',
+        'wcb-filter',
+        'wcb-pdp-reviews',
     );
     
     if ( in_array( $handle, $defer_handles, true ) ) {
@@ -252,7 +333,7 @@ function wcb_dequeue_unnecessary_assets() {
         wp_dequeue_script( 'yith-wfbt-frontend' );
     }
 
-    // Quick View — only on shop/category/product pages
+    // Quick View — shop, categorias, produto e home (carrosséis / listagens)
     if ( ! is_shop() && ! is_product_category() && ! is_product() && ! is_front_page() ) {
         wp_dequeue_style( 'woosq-frontend' );
         wp_dequeue_script( 'woosq-frontend' );
@@ -336,7 +417,7 @@ function wcb_checkout_premium_css_head() {
         $fonts_url  = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-        echo '<link rel="stylesheet" href="' . esc_url( $fonts_url ) . '" />' . "\n";
+        echo wcb_google_fonts_nonblocking_link( $fonts_url );
         echo '<link rel="stylesheet" id="wcb-style-canvas-css" href="' . esc_url( $style_url ) . '?ver=' . WCB_VERSION . '" type="text/css" media="all" />' . "\n";
 
         $css_file = get_stylesheet_directory() . '/checkout-premium.css';
