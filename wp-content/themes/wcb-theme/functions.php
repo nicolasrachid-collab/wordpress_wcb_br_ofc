@@ -28,7 +28,7 @@ if ( ! defined( 'WCB_DEV' ) ) {
 	define( 'WCB_DEV', false );
 }
 
-define( 'WCB_VERSION', '1.4.20' );
+define( 'WCB_VERSION', '1.4.44' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
 
@@ -110,6 +110,7 @@ require_once WCB_DIR . '/inc/cart-page-blocks-extras.php';
 require_once WCB_DIR . '/inc/pdp-reviews.php';
 require_once WCB_DIR . '/inc/wcb-attribute-swatches.php';
 require_once WCB_DIR . '/inc/customizer.php';
+require_once WCB_DIR . '/inc/carousel-backfill.php';
 require_once WCB_DIR . '/inc/newsletter.php';
 require_once WCB_DIR . '/inc/widgets-sidebar.php';
 require_once WCB_DIR . '/inc/cep-autofill.php';

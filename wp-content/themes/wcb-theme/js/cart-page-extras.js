@@ -22,9 +22,12 @@
 		}
 	}
 	var L = cfg.i18n || {};
-	var debounceTimer = null;
 	var mergeLineTotalsTimer = null;
-	var orderSummaryTimer = null;
+	/** Um único pedido AJAX (brinde + resumo) após mudança do carrinho. */
+	var cartExtrasSyncRafId = null;
+	var bundleInFlight = false;
+	var bundleWantAgain = false;
+	var bundlePendingCbs = [];
 
 	/** No máximo uma execução por frame — reduz trabalho quando Blocks dispara muitas mutações. */
 	function wcbRafSchedule(fn) {
@@ -203,13 +206,54 @@
 		mountPgOrderSummaryMirrorWithRows(cfg.orderSummaryRows || []);
 	}
 
-	function fetchPgOrderSummaryRows(cb) {
-		if (!cfg.orderSummaryAction || !cfg.nonceSideCart) {
-			if (typeof cb === 'function') cb(null);
+	function applyCartPageBundleData(payload) {
+		if (!payload) {
 			return;
 		}
+		var d = payload.progress;
+		if (d) {
+			if (d.applied_coupons) state.appliedCoupons = d.applied_coupons;
+			if (d.coupon_discount_by_code) state.couponDiscountByCode = d.coupon_discount_by_code;
+			if (typeof d.threshold === 'number') {
+				cfg.giftThreshold = d.threshold;
+			}
+			if (typeof d.gift_incentive_active !== 'undefined') {
+				cfg.giftIncentiveActive = !!d.gift_incentive_active;
+			}
+			var bd = mapBarData(d);
+			if (bd) updateIncentiveDom(bd);
+		}
+		if (payload.rows && Array.isArray(payload.rows)) {
+			cfg.orderSummaryRows = payload.rows;
+			mountPgOrderSummaryMirrorWithRows(payload.rows);
+		}
+		syncCheckoutCtaLabel();
+		try {
+			document.dispatchEvent(new CustomEvent('wcb:mhfgfwc_refresh_gifts'));
+		} catch (e1) {}
+	}
+
+	function fetchCartPageBundle(cb) {
+		if (typeof cb === 'function') {
+			bundlePendingCbs.push(cb);
+		}
+		if (!cfg.bundleAction || !cfg.nonceSideCart) {
+			var pending0 = bundlePendingCbs.slice();
+			bundlePendingCbs = [];
+			for (var z = 0; z < pending0.length; z++) {
+				try {
+					pending0[z](null);
+				} catch (e0) {}
+			}
+			return;
+		}
+		if (bundleInFlight) {
+			bundleWantAgain = true;
+			return;
+		}
+		bundleInFlight = true;
 		var body = new URLSearchParams();
-		body.set('action', cfg.orderSummaryAction);
+		body.set('action', cfg.bundleAction);
 		body.set('nonce', cfg.nonceSideCart);
 		fetch(cfg.ajaxUrl, {
 			method: 'POST',
@@ -220,28 +264,138 @@
 			.then(function (r) {
 				return r.json();
 			})
-			.then(function (data) {
-				if (!data || !data.success || !data.data || !Array.isArray(data.data.rows)) {
-					if (typeof cb === 'function') cb(null);
-					return;
+			.then(function (res) {
+				var ok = res && res.success && res.data;
+				if (ok) {
+					applyCartPageBundleData(res.data);
 				}
-				if (typeof cb === 'function') cb(data.data.rows);
+				var cbs = bundlePendingCbs.slice();
+				bundlePendingCbs = [];
+				var prog = ok && res.data && res.data.progress ? res.data.progress : null;
+				for (var i = 0; i < cbs.length; i++) {
+					try {
+						cbs[i](prog);
+					} catch (err) {}
+				}
 			})
 			.catch(function () {
-				if (typeof cb === 'function') cb(null);
+				var cbs2 = bundlePendingCbs.slice();
+				bundlePendingCbs = [];
+				for (var j = 0; j < cbs2.length; j++) {
+					try {
+						cbs2[j](null);
+					} catch (err2) {}
+				}
+			})
+			.finally(function () {
+				bundleInFlight = false;
+				if (bundleWantAgain) {
+					bundleWantAgain = false;
+					fetchCartPageBundle(null);
+				}
 			});
 	}
 
-	function scheduleOrderSummaryRefresh() {
-		clearTimeout(orderSummaryTimer);
-		orderSummaryTimer = setTimeout(function () {
-			fetchPgOrderSummaryRows(function (rows) {
-				if (rows === null) {
-					return;
-				}
-				mountPgOrderSummaryMirrorWithRows(rows);
-			});
-		}, 150);
+	/** Sem setTimeout: alinha ao próximo frame após o store do Blocks atualizar (remove ~80ms artificiais). */
+	function scheduleCartPageExtrasSync() {
+		if (!document.getElementById('wcb-pg-incentive-stack')) {
+			return;
+		}
+		if (cartExtrasSyncRafId !== null) {
+			return;
+		}
+		cartExtrasSyncRafId = requestAnimationFrame(function () {
+			cartExtrasSyncRafId = null;
+			fetchCartPageBundle(null);
+		});
+	}
+
+	function wcbCartItemLooksLikeFreeGift(item) {
+		if (!item || !item.extensions || typeof item.extensions !== 'object') {
+			return false;
+		}
+		var ex = item.extensions;
+		if (ex['mh-free-gifts-for-woocommerce'] || ex.mhfgfwc_free_gift || ex.mhfgfwc_is_free_gift) {
+			return true;
+		}
+		return false;
+	}
+
+	function wcbLineSubtotalFromCartItem(item) {
+		if (!item || !item.totals) {
+			return 0;
+		}
+		var t = item.totals;
+		var raw = t.line_subtotal;
+		if (raw == null || raw === '') {
+			raw = t.line_total;
+		}
+		if (raw == null) {
+			return 0;
+		}
+		var v = parseFloat(String(raw).replace(',', '.'), 10);
+		return isNaN(v) ? 0 : v;
+	}
+
+	/**
+	 * Atualiza brinde/frete no DOM a partir do store do Blocks (sem esperar admin-ajax).
+	 * Alinha à lógica PHP de wcb_gift_progress_payload (subtotal por linha, excl. brinde MH).
+	 */
+	function applyOptimisticIncentivesFromCart(cart) {
+		if (!cart) {
+			return;
+		}
+		var stack = document.getElementById('wcb-pg-incentive-stack');
+		if (!stack) {
+			return;
+		}
+		var giftThr = Number(cfg.giftThreshold) || 500;
+		var shipThr = Number(cfg.shipThreshold) || 199;
+		var giftOn = cfg.giftIncentiveActive !== false;
+		var items = cart.items || [];
+		var subtotal = 0;
+		var i;
+		for (i = 0; i < items.length; i++) {
+			if (wcbCartItemLooksLikeFreeGift(items[i])) {
+				continue;
+			}
+			subtotal += wcbLineSubtotalFromCartItem(items[i]);
+		}
+		var shipRem = Math.max(0, shipThr - subtotal);
+		var shipUnlocked = shipRem <= 0 && subtotal > 0;
+		var shipProgress = shipThr > 0 && subtotal > 0 ? Math.min(100, (subtotal / shipThr) * 100) : 0;
+		var payload = {
+			subtotal: subtotal,
+			gift_incentive_active: giftOn,
+			ship_progress: shipProgress,
+			ship_remaining: shipRem,
+			ship_unlocked: shipUnlocked,
+		};
+		if (giftOn) {
+			var remainingGift = Math.max(0, giftThr - subtotal);
+			var unlockedGift = remainingGift <= 0 && subtotal > 0;
+			var giftProgress = giftThr > 0 && subtotal > 0 ? Math.min(100, (subtotal / giftThr) * 100) : 0;
+			var giftHtml;
+			if (subtotal <= 0) {
+				giftHtml = L.giftTextEmptyHtml || '';
+			} else if (unlockedGift) {
+				giftHtml = L.giftTextUnlockedHtml || '';
+			} else {
+				var amt = Number(remainingGift).toLocaleString('pt-BR', {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2,
+				});
+				giftHtml = (L.giftTextMissingTpl || '').replace(/%s/, amt);
+			}
+			payload.gift_progress = giftProgress;
+			payload.gift_unlocked = unlockedGift;
+			payload.gift_text = giftHtml;
+		} else {
+			payload.gift_progress = 0;
+			payload.gift_unlocked = false;
+			payload.gift_text = '';
+		}
+		updateIncentiveDom(payload);
 	}
 
 	function subscribeWpDataCartForSummary() {
@@ -257,21 +411,34 @@
 		} catch (e) {
 			return;
 		}
-		var prev = '';
+		var prevCombo = '';
 		wp.data.subscribe(function () {
 			try {
 				var cart = sel.getCartData();
-				var sig = '';
+				var totalsSig = '';
 				if (cart && cart.cartTotals && typeof cart.cartTotals === 'object') {
-					sig = JSON.stringify(cart.cartTotals);
+					totalsSig = JSON.stringify(cart.cartTotals);
 				} else if (cart && cart.totals) {
-					sig = JSON.stringify(cart.totals);
+					totalsSig = JSON.stringify(cart.totals);
 				}
-				if (sig === prev) {
+				var items = (cart && cart.items) || [];
+				var itemsSig = JSON.stringify(
+					items.map(function (it) {
+						return [
+							it.key,
+							it.quantity,
+							it.totals && it.totals.line_subtotal,
+							it.totals && it.totals.line_total,
+						];
+					})
+				);
+				var combo = itemsSig + '\n' + totalsSig;
+				if (combo === prevCombo) {
 					return;
 				}
-				prev = sig;
-				scheduleOrderSummaryRefresh();
+				prevCombo = combo;
+				applyOptimisticIncentivesFromCart(cart);
+				scheduleCartPageExtrasSync();
 			} catch (err) { /* */ }
 		});
 	}
@@ -297,37 +464,24 @@
 		return 0;
 	}
 
-	function fetchProgress(cb) {
-		var fd = new FormData();
-		fd.append('action', 'wcb_gift_progress_data');
-		if (cfg.noncePublicAjax) {
-			fd.append('nonce', cfg.noncePublicAjax);
-		}
-		fetch(cfg.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
-			.then(function (r) {
-				return r.json();
-			})
-			.then(function (d) {
-				if (d.applied_coupons) state.appliedCoupons = d.applied_coupons;
-				if (d.coupon_discount_by_code) state.couponDiscountByCode = d.coupon_discount_by_code;
-				if (typeof cb === 'function') cb(d);
-			})
-			.catch(function () {
-				if (typeof cb === 'function') cb(null);
-			});
-	}
-
 	function mapBarData(d) {
 		if (!d) return null;
+		var giftOn = d.gift_incentive_active !== false;
 		return {
 			subtotal: d.subtotal,
 			gift_progress: d.progress,
 			gift_unlocked: !!d.unlocked,
 			gift_text: d.gift_text || '',
+			gift_incentive_active: giftOn,
 			ship_progress: d.ship_progress,
 			ship_remaining: d.ship_remaining,
 			ship_unlocked: !!d.ship_unlocked,
 		};
+	}
+
+	/** Compat: chamadas antigas usam só o payload de brinde/frete; o bundle atualiza também o resumo. */
+	function fetchProgress(cb) {
+		fetchCartPageBundle(cb);
 	}
 
 	function buildGiftBar(data) {
@@ -402,12 +556,19 @@
 	}
 
 	function buildIncentiveStack(data) {
+		var shipOnly = data && data.gift_incentive_active === false;
+		var suiteCls =
+			'wcb-incentive-rail__stack-inner wcb-incentive-suite' +
+			(shipOnly ? ' wcb-incentive-suite--ship-only' : '');
+		var giftBlock = shipOnly ? '' : buildGiftBar(data);
 		return (
 			'<div id="wcb-pg-incentive-stack" class="wcb-incentive-rail wcb-incentive-rail--cart-page-stack" role="region" aria-label="' +
 			escAttr(L.ariaIncentives) +
 			'">' +
-			'<div class="wcb-incentive-rail__stack-inner wcb-incentive-suite">' +
-			buildGiftBar(data) +
+			'<div class="' +
+			suiteCls +
+			'">' +
+			giftBlock +
 			buildShipBar(data) +
 			'</div></div>'
 		);
@@ -418,7 +579,9 @@
 			'#wcb-pg-incentive-stack .wcb-incentive-rail__stack-inner'
 		);
 		if (!inner || !data) return;
-		inner.innerHTML = buildGiftBar(data) + buildShipBar(data);
+		var shipOnly = data.gift_incentive_active === false;
+		inner.classList.toggle('wcb-incentive-suite--ship-only', shipOnly);
+		inner.innerHTML = (shipOnly ? '' : buildGiftBar(data)) + buildShipBar(data);
 	}
 
 	function buildCouponBlock() {
@@ -767,11 +930,7 @@
 				if (cont) cont.textContent = prevLabel || L.shipConfirm;
 				syncCouponUi();
 				invalidateBlocksCart();
-				scheduleOrderSummaryRefresh();
-				fetchProgress(function (d) {
-					var bd = mapBarData(d);
-					if (bd) updateIncentiveDom(bd);
-				});
+				fetchCartPageBundle(null);
 			})
 			.catch(function () {
 				state.wcbShipApplying = false;
@@ -919,11 +1078,7 @@
 					setCouponMsg('');
 					syncCouponUi();
 					invalidateBlocksCart();
-					scheduleOrderSummaryRefresh();
-					fetchProgress(function (d) {
-						var bd = mapBarData(d);
-						if (bd) updateIncentiveDom(bd);
-					});
+					fetchCartPageBundle(null);
 				})
 				.catch(function () {
 					btn.disabled = false;
@@ -965,11 +1120,7 @@
 					}
 					syncCouponUi();
 					invalidateBlocksCart();
-					scheduleOrderSummaryRefresh();
-					fetchProgress(function (d) {
-						var bd = mapBarData(d);
-						if (bd) updateIncentiveDom(bd);
-					});
+					fetchCartPageBundle(null);
 				})
 				.catch(function () {
 					rm.disabled = false;
@@ -1299,27 +1450,14 @@
 		}, 250);
 	}
 
-	function scheduleRefresh() {
-		clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(function () {
-			if (!document.getElementById('wcb-pg-incentive-stack')) return;
-			fetchProgress(function (d) {
-				var bd = mapBarData(d);
-				if (bd) updateIncentiveDom(bd);
-				syncCheckoutCtaLabel();
-			});
-		}, 400);
-	}
-
 	function bindGlobalListeners() {
 		document.addEventListener('keydown', function (e) {
 			if (e.key !== 'Escape') return;
 			var m = document.getElementById('wcb-pg-ship-modal');
 			if (m && !m.hidden) closePgModal();
 		});
-		document.body.addEventListener('wc-blocks_added_to_cart', scheduleRefresh);
+		document.body.addEventListener('wc-blocks_added_to_cart', scheduleCartPageExtrasSync);
 		document.body.addEventListener('wc-blocks_added_to_cart', scheduleMergeLineTotals);
-		document.body.addEventListener('wc-blocks_added_to_cart', scheduleOrderSummaryRefresh);
 	}
 
 	function observeSidebarForRefresh() {
@@ -1328,8 +1466,7 @@
 			if (s) {
 				ensurePremiumStackAfterOrderSummary(s);
 			}
-			scheduleRefresh();
-			scheduleOrderSummaryRefresh();
+			// Brinde/resumo: só via wp.data (totais) e wc-blocks_added_to_cart — evita AJAX em loop na sidebar.
 		});
 		var side = document.querySelector('.wc-block-cart__sidebar');
 		if (side && typeof MutationObserver !== 'undefined') {

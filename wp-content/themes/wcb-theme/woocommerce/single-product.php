@@ -63,24 +63,7 @@ while (have_posts()):
             ?>
 
             <!-- ════════════════════════════════════════════════════
-                 1. BARRA DE OFERTA COM COUNTDOWN
-                 ════════════════════════════════════════════════════ -->
-            <?php if ($is_on_sale && $saving_pct > 0): ?>
-                <div class="wcb-pdp-offer-bar">
-                    <div class="wcb-pdp-offer-bar__inner">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="wcb-pdp-offer-bar__text">Oferta por tempo limitado!</span>
-                        <span class="wcb-pdp-offer-bar__timer" id="wcb-pdp-countdown">02:00:00</span>
-                        <span class="wcb-pdp-offer-bar__secondary">ou enquanto durarem os estoques</span>
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <!-- ════════════════════════════════════════════════════
-                 2. SEÇÃO HERO (Galeria + BuyBox)
+                 1. SEÇÃO HERO (Galeria + BuyBox)
                  ════════════════════════════════════════════════════ -->
             <!-- Breadcrumb -->
             <nav class="wcb-breadcrumb" aria-label="Breadcrumb">
@@ -216,6 +199,24 @@ while (have_posts()):
                             </div>
                         <?php endif; ?>
                     </div>
+
+                    <?php if ($is_on_sale && $saving_pct > 0): ?>
+                    <div class="wcb-pdp-offer-bar wcb-pdp-offer-bar--buybox" role="status" aria-live="polite">
+                        <div class="wcb-pdp-offer-bar__inner">
+                            <span class="wcb-pdp-offer-bar__icon" aria-hidden="true">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </span>
+                            <span class="wcb-pdp-offer-bar__text">Oferta por tempo limitado!</span>
+                            <div class="wcb-pdp-offer-bar__timer-row">
+                                <span class="wcb-pdp-offer-bar__timer" id="wcb-pdp-countdown">02:00:00</span>
+                                <span class="wcb-pdp-offer-bar__secondary">ou enquanto durarem os estoques</span>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <!-- Bloco de Preço Premium (dinâmico via JS para variações) -->
                     <div class="wcb-pdp-buybox__price-block" id="wcb-pdp-price-block"

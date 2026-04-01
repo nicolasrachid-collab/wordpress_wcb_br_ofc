@@ -18,6 +18,24 @@ function wcb_sanitize_tag_label( $value ) {
     return sanitize_text_field( wp_strip_all_tags( $value ) );
 }
 
+/**
+ * @param mixed $value
+ * @return string slide|carousel|homepage
+ */
+function wcb_sanitize_carousel_dedupe_scope( $value ) {
+    $allowed = array( 'slide', 'carousel', 'homepage' );
+    return in_array( $value, $allowed, true ) ? $value : 'carousel';
+}
+
+/**
+ * @param mixed $value
+ * @return string shop|category|mixed
+ */
+function wcb_sanitize_carousel_fb_mode( $value ) {
+    $allowed = array( 'shop', 'category', 'mixed' );
+    return in_array( $value, $allowed, true ) ? $value : 'shop';
+}
+
 /* ============================================================
    CUSTOMIZER — Hero Banner + Super Ofertas
    ============================================================ */
@@ -426,6 +444,84 @@ function wcb_customize_register( $wp_customize ) {
             'step' => 1,
         ),
     ) );
+
+    // ── Carrosséis: preencher slots vazios + desduplicação ─────────────
+    $wp_customize->add_setting( 'wcb_carousel_dedupe_scope', array(
+        'default'           => 'carousel',
+        'sanitize_callback' => 'wcb_sanitize_carousel_dedupe_scope',
+        'transport'         => 'refresh',
+    ) );
+    $wp_customize->add_control( 'wcb_carousel_dedupe_scope', array(
+        'label'       => __( 'Desduplicação ao preencher slots vazios', 'wcb-theme' ),
+        'description' => __( 'Slide: só evita repetir no mesmo slide. Carrossel: não repete em nenhum slide desse carrossel. Homepage: não repete entre todos os carrosséis da home.', 'wcb-theme' ),
+        'section'     => 'wcb_product_carousels',
+        'type'        => 'select',
+        'choices'     => array(
+            'slide'     => __( 'Apenas neste slide', 'wcb-theme' ),
+            'carousel'  => __( 'Todo o carrossel (recomendado)', 'wcb-theme' ),
+            'homepage'  => __( 'Toda a homepage', 'wcb-theme' ),
+        ),
+    ) );
+
+    $carousel_fb_cats = array( 0 => __( '— (Categoria fixa: escolher abaixo) —', 'wcb-theme' ) );
+    if ( class_exists( 'WooCommerce' ) ) {
+        $wc_fb = get_terms( array(
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+            'orderby'    => 'name',
+        ) );
+        if ( ! is_wp_error( $wc_fb ) ) {
+            foreach ( $wc_fb as $ct ) {
+                $carousel_fb_cats[ (string) $ct->term_id ] = $ct->name . ' (' . (int) $ct->count . ')';
+            }
+        }
+    }
+
+    $wcb_carousel_fb_sections = array(
+        'novidades' => __( 'Novidades (linhas 1 e 2)', 'wcb-theme' ),
+        'vendidos'  => __( 'Mais vendidos', 'wcb-theme' ),
+        'estoque'   => __( 'De volta ao estoque', 'wcb-theme' ),
+        'ofertas'   => __( 'Super ofertas (grelha ao lado do hero)', 'wcb-theme' ),
+    );
+
+    foreach ( $wcb_carousel_fb_sections as $slug => $fb_label ) {
+        $wp_customize->add_setting( 'wcb_carousel_fb_' . $slug . '_mode', array(
+            'default'           => 'shop',
+            'sanitize_callback' => 'wcb_sanitize_carousel_fb_mode',
+            'transport'         => 'refresh',
+        ) );
+        $wp_customize->add_control( 'wcb_carousel_fb_' . $slug . '_mode', array(
+            'label'       => sprintf(
+                /* translators: %s: section name */
+                __( '%s — fallback para slots vazios', 'wcb-theme' ),
+                $fb_label
+            ),
+            'description' => __( 'Loja toda: qualquer produto em stock. Categoria fixa: só a categoria escolhida (completamento na loja se faltar). Misto: usa a categoria mais comum entre os produtos já listados, depois loja.', 'wcb-theme' ),
+            'section'     => 'wcb_product_carousels',
+            'type'        => 'select',
+            'choices'     => array(
+                'shop'     => __( 'Loja toda', 'wcb-theme' ),
+                'category' => __( 'Categoria fixa (Customizer)', 'wcb-theme' ),
+                'mixed'    => __( 'Misto (categoria inferida + loja)', 'wcb-theme' ),
+            ),
+        ) );
+
+        $wp_customize->add_setting( 'wcb_carousel_fb_' . $slug . '_cat', array(
+            'default'           => 0,
+            'sanitize_callback' => 'absint',
+            'transport'         => 'refresh',
+        ) );
+        $wp_customize->add_control( 'wcb_carousel_fb_' . $slug . '_cat', array(
+            'label'       => sprintf(
+                /* translators: %s: section name */
+                __( '%s — categoria fixa (se modo “Categoria fixa”)', 'wcb-theme' ),
+                $fb_label
+            ),
+            'section'     => 'wcb_product_carousels',
+            'type'        => 'select',
+            'choices'     => $carousel_fb_cats,
+        ) );
+    }
 
     // ── NEWSLETTER (rodapé wcb-nl4) ───────────────────────────
     $wp_customize->add_section( 'wcb_newsletter_nl4', array(

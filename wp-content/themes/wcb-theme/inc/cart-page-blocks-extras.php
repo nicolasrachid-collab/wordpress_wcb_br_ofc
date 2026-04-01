@@ -12,14 +12,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Linhas do resumo do pedido na página carrinho (Blocks) — mesma lógica do carrinho lateral (`xoo_wsc_cart_totals`).
  *
+ * @param bool $recalculate_totals Se true (padrão), chama WC()->cart->calculate_totals() antes de montar as linhas.
  * @return array<int, array{key: string, label: string, value: string, action: string}>
  */
-function wcb_get_cart_page_order_summary_rows() {
+function wcb_get_cart_page_order_summary_rows( $recalculate_totals = true ) {
 	if ( ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
 		return array();
 	}
 
-	WC()->cart->calculate_totals();
+	if ( $recalculate_totals ) {
+		WC()->cart->calculate_totals();
+	}
 
 	if ( ! function_exists( 'wcb_xoo_wsc_cart_totals_discounts' ) ) {
 		return array();
@@ -63,14 +66,41 @@ function wcb_ajax_cart_page_summary_rows() {
 		wp_send_json_error( array( 'message' => 'cart' ), 400 );
 	}
 
+	$rows = wcb_get_cart_page_order_summary_rows();
+
 	wp_send_json_success(
 		array(
-			'rows' => wcb_get_cart_page_order_summary_rows(),
+			'rows' => $rows,
 		)
 	);
 }
 add_action( 'wp_ajax_wcb_cart_page_summary_rows', 'wcb_ajax_cart_page_summary_rows' );
 add_action( 'wp_ajax_nopriv_wcb_cart_page_summary_rows', 'wcb_ajax_cart_page_summary_rows' );
+
+/**
+ * AJAX — brinde/frete + linhas do resumo num único pedido (menos RTT e um único calculate_totals).
+ */
+function wcb_ajax_cart_page_extras_bundle() {
+	check_ajax_referer( 'wcb_side_cart', 'nonce' );
+
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		wp_send_json_error( array( 'message' => 'cart' ), 400 );
+	}
+
+	WC()->cart->calculate_totals();
+
+	$progress = function_exists( 'wcb_gift_progress_payload' ) ? wcb_gift_progress_payload() : array();
+	$rows     = wcb_get_cart_page_order_summary_rows( false );
+
+	wp_send_json_success(
+		array(
+			'progress' => $progress,
+			'rows'     => $rows,
+		)
+	);
+}
+add_action( 'wp_ajax_wcb_cart_page_extras_bundle', 'wcb_ajax_cart_page_extras_bundle' );
+add_action( 'wp_ajax_nopriv_wcb_cart_page_extras_bundle', 'wcb_ajax_cart_page_extras_bundle' );
 
 /**
  * Enfileira script: brinde/frete acima do layout do carrinho; CEP e cupom na sidebar.
@@ -102,8 +132,10 @@ function wcb_enqueue_cart_page_blocks_extras() {
 		true
 	);
 
-	$gift_threshold = 500;
-	$ship_threshold = function_exists( 'wcb_get_free_ship_threshold' ) ? (int) wcb_get_free_ship_threshold() : 199;
+	$mh_gift_cfg    = function_exists( 'wcb_mh_gift_incentive_config' ) ? wcb_mh_gift_incentive_config() : array( 'active' => true, 'threshold' => 500.0 );
+	$gift_threshold = (float) $mh_gift_cfg['threshold'];
+	$gift_active      = (bool) $mh_gift_cfg['active'];
+	$ship_threshold   = function_exists( 'wcb_get_free_ship_threshold' ) ? (int) wcb_get_free_ship_threshold() : 199;
 
 	$user_postcode = '';
 	if ( is_user_logged_in() ) {
@@ -140,6 +172,7 @@ function wcb_enqueue_cart_page_blocks_extras() {
 			/* Primeira pintura imediata (sem admin-ajax) */
 			'initialProgress'        => $initial_progress,
 			'giftThreshold'          => $gift_threshold,
+			'giftIncentiveActive'    => $gift_active,
 			'shipThreshold'          => $ship_threshold,
 			'svgGift'                => $svg_gift,
 			'svgTruck'               => $svg_truck,
@@ -151,6 +184,7 @@ function wcb_enqueue_cart_page_blocks_extras() {
 			'couponDiscountByCode'   => function_exists( 'wcb_side_cart_coupon_discount_by_code' ) ? wcb_side_cart_coupon_discount_by_code() : array(),
 			'checkoutButtonLabel'    => __( 'Finalizar Compra', 'wcb-theme' ),
 			'orderSummaryAction'     => 'wcb_cart_page_summary_rows',
+			'bundleAction'           => 'wcb_cart_page_extras_bundle',
 			'orderSummaryRows'       => wcb_get_cart_page_order_summary_rows(),
 			'i18n'                   => array(
 				'orderSummaryAria'  => __( 'Resumo dos valores do pedido', 'wcb-theme' ),
@@ -194,8 +228,62 @@ function wcb_enqueue_cart_page_blocks_extras() {
 				'shipSaveTotal'     => __( 'Economia total no frete', 'wcb-theme' ),
 				'cepBadge'          => __( 'CEP', 'wcb-theme' ),
 				'cepEdit'           => __( 'Alterar CEP', 'wcb-theme' ),
+				/* Pré-visualização instantânea (Store API) — mesmo texto que wcb_gift_progress_payload */
+				'giftTextEmptyHtml'   => __( 'Adicione produtos para ganhar um <strong class="wcb-incentive-accent">brinde grátis</strong>!', 'wcb-theme' ),
+				'giftTextUnlockedHtml' => __( '<strong class="wcb-incentive-accent">Parabéns!</strong> Você ganhou um <strong class="wcb-incentive-accent">brinde</strong>!', 'wcb-theme' ),
+				'giftTextMissingTpl'  => __( 'Faltam <strong class="wcb-incentive-accent">R$ %s</strong> para <strong class="wcb-incentive-accent">ganhar um brinde!</strong>', 'wcb-theme' ),
 			),
 		)
 	);
 }
 add_action( 'wp_enqueue_scripts', 'wcb_enqueue_cart_page_blocks_extras', 25 );
+
+/**
+ * MH Free Gifts (Blocks): esconde o painel quando o AJAX não devolve HTML de brinde.
+ *
+ * Depende do script do plugin `mhfgfwc-blocks`; corre em carrinho e checkout em blocos.
+ */
+function wcb_enqueue_mhfgfwc_hide_empty_gift_slot() {
+	if ( ! wp_script_is( 'mhfgfwc-blocks', 'enqueued' ) ) {
+		return;
+	}
+
+	$handle = 'wcb-mhfgfwc-hide-empty-slot';
+	wp_enqueue_script(
+		$handle,
+		WCB_URI . '/js/wcb-mhfgfwc-hide-empty-slot.js',
+		array( 'mhfgfwc-blocks' ),
+		WCB_VERSION,
+		true
+	);
+
+	wp_add_inline_style(
+		'wcb-style',
+		'#mhfgfwc-blocks-slot.wcb-mhfgfwc-slot--empty{display:none!important;height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;visibility:hidden!important}'
+	);
+}
+add_action( 'wp_enqueue_scripts', 'wcb_enqueue_mhfgfwc_hide_empty_gift_slot', 100 );
+
+/**
+ * MH Free Gifts: forçar render do painel via wc/store/cart (bug do plugin com wc/store).
+ */
+function wcb_enqueue_mhfgfwc_cart_store_sync() {
+	if ( ! wp_script_is( 'mhfgfwc-blocks', 'enqueued' ) ) {
+		return;
+	}
+	$deps = array( 'mhfgfwc-blocks' );
+	foreach ( array( 'wc-cart-block-frontend', 'wc-blocks-checkout', 'wc-blocks-data' ) as $h ) {
+		if ( wp_script_is( $h, 'registered' ) ) {
+			$deps[] = $h;
+			break;
+		}
+	}
+	wp_enqueue_script(
+		'wcb-mhfgfwc-cart-store-sync',
+		WCB_URI . '/js/wcb-mhfgfwc-cart-store-sync.js',
+		$deps,
+		WCB_VERSION,
+		true
+	);
+}
+add_action( 'wp_enqueue_scripts', 'wcb_enqueue_mhfgfwc_cart_store_sync', 105 );

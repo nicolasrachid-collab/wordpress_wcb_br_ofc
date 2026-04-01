@@ -1096,22 +1096,74 @@ add_action('wp_enqueue_scripts', 'wcb_enqueue_qty_stepper_script', 99);
    ============================================================ */
 
 /**
+ * Configuração da barra de brinde vs plugin MH Free Gifts (regras ativas e limiar mínimo).
+ *
+ * @return array{active: bool, threshold: float}
+ */
+function wcb_mh_gift_incentive_config()
+{
+    $default_threshold = 500.0;
+    if (! class_exists('MHFGFWC_DB') || ! method_exists('MHFGFWC_DB', 'get_active_rules')) {
+        return array(
+            'active'    => true,
+            'threshold' => $default_threshold,
+        );
+    }
+    $rules = MHFGFWC_DB::get_active_rules();
+    if (empty($rules)) {
+        return array(
+            'active'    => false,
+            'threshold' => $default_threshold,
+        );
+    }
+    $candidates = array();
+    foreach ((array) $rules as $row) {
+        $r  = is_object($row) ? get_object_vars($row) : (array) $row;
+        $op = isset($r['subtotal_operator']) ? trim((string) $r['subtotal_operator']) : '';
+        if ('' === $op || ! isset($r['subtotal_amount']) || null === $r['subtotal_amount'] || '' === $r['subtotal_amount']) {
+            continue;
+        }
+        if (! in_array($op, array('>=', '>'), true)) {
+            continue;
+        }
+        $amt = (float) $r['subtotal_amount'];
+        if ($amt > 0) {
+            $candidates[] = $amt;
+        }
+    }
+    if (empty($candidates)) {
+        return array(
+            'active'    => true,
+            'threshold' => $default_threshold,
+        );
+    }
+
+    return array(
+        'active'    => true,
+        'threshold' => (float) min($candidates),
+    );
+}
+
+/**
  * Mesmo shape que wp_send_json no AJAX wcb_gift_progress_data.
  *
  * @return array<string, mixed>
  */
 function wcb_gift_progress_payload()
 {
-    $gift_threshold = 500;
+    $mh_cfg           = wcb_mh_gift_incentive_config();
+    $gift_threshold   = (float) $mh_cfg['threshold'];
+    $gift_bar_active  = (bool) $mh_cfg['active'];
 
     if (!function_exists('WC') || !WC()->cart) {
         return array(
             'subtotal' => 0,
-            'remaining' => $gift_threshold,
+            'remaining' => $gift_bar_active ? $gift_threshold : 0,
             'progress' => 0,
             'unlocked' => false,
             'gift_text' => '',
             'threshold' => $gift_threshold,
+            'gift_incentive_active' => $gift_bar_active,
             'ship_remaining' => 0,
             'ship_progress' => 0,
             'ship_unlocked' => false,
@@ -1129,13 +1181,30 @@ function wcb_gift_progress_payload()
         $subtotal += (float) $cart_item['line_subtotal'];
     }
 
-    $remaining = max(0, $gift_threshold - $subtotal);
-    $progress = $subtotal > 0 ? min(100, ($subtotal / $gift_threshold) * 100) : 0;
-    $unlocked = $remaining <= 0 && $subtotal > 0;
-
     $ship_remaining = max(0, $free_ship_threshold - $subtotal);
     $ship_progress = $subtotal > 0 ? min(100, ($subtotal / $free_ship_threshold) * 100) : 0;
     $ship_unlocked = $ship_remaining <= 0 && $subtotal > 0;
+
+    if (! $gift_bar_active) {
+        return array(
+            'subtotal' => $subtotal,
+            'remaining' => 0,
+            'progress' => 0,
+            'unlocked' => false,
+            'gift_text' => '',
+            'threshold' => $gift_threshold,
+            'gift_incentive_active' => false,
+            'ship_remaining' => $ship_remaining,
+            'ship_progress' => round($ship_progress, 1),
+            'ship_unlocked' => $ship_unlocked,
+            'applied_coupons' => array_values(WC()->cart->get_applied_coupons()),
+            'coupon_discount_by_code' => function_exists('wcb_side_cart_coupon_discount_by_code') ? wcb_side_cart_coupon_discount_by_code() : array(),
+        );
+    }
+
+    $remaining = max(0, $gift_threshold - $subtotal);
+    $progress = $subtotal > 0 && $gift_threshold > 0 ? min(100, ($subtotal / $gift_threshold) * 100) : 0;
+    $unlocked = $remaining <= 0 && $subtotal > 0;
 
     if ($subtotal <= 0) {
         $gift_text = __('Adicione produtos para ganhar um <strong class="wcb-incentive-accent">brinde grátis</strong>!', 'wcb-theme');
@@ -1156,6 +1225,7 @@ function wcb_gift_progress_payload()
         'unlocked' => $unlocked,
         'gift_text' => $gift_text,
         'threshold' => $gift_threshold,
+        'gift_incentive_active' => true,
         'ship_remaining' => $ship_remaining,
         'ship_progress' => round($ship_progress, 1),
         'ship_unlocked' => $ship_unlocked,

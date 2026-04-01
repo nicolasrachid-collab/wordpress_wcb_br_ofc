@@ -7,6 +7,9 @@
  */
 
 get_header();
+
+/** @var int[] IDs já usados na homepage (desduplicação “homepage” nos carrosséis) */
+$wcb_carousel_homepage_used_ids = array();
 ?>
 
 <?php get_template_part( 'template-parts/home/hero' ); ?>
@@ -76,9 +79,10 @@ get_header();
         <div class="wcb-container">
 
             <?php
-            // ── Novidades: cache de 12h via transient ────────────────────────
-            $all_cards = get_transient('wcb_home_novidades_v2');
-            if (false === $all_cards) {
+            // ── Novidades: cache de 12h (ids + html) ─────────────────────────
+            $nov_cached = get_transient('wcb_home_novidades_v2');
+            $nov_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($nov_cached) : false;
+            if (false === $nov_pack) {
                 $novidades = new WP_Query(array(
                     'post_type'      => 'product',
                     'posts_per_page' => 30,
@@ -92,32 +96,49 @@ get_header();
                         ),
                     ),
                 ));
-                $all_cards = array();
-                if ($novidades->have_posts()):
-                    while ($novidades->have_posts()):
-                        $novidades->the_post();
-                        ob_start();
-                        get_template_part('template-parts/product-card');
-                        $all_cards[] = ob_get_clean();
-                    endwhile;
-                    wp_reset_postdata();
-                endif;
-                set_transient('wcb_home_novidades_v2', $all_cards, 12 * HOUR_IN_SECONDS);
+                $all_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($novidades) : array();
+                $nov_pack  = array(
+                    'ids'  => array_column($all_pairs, 'id'),
+                    'html' => array_column($all_pairs, 'html'),
+                );
+                set_transient('wcb_home_novidades_v2', $nov_pack, 12 * HOUR_IN_SECONDS);
+            }
+            $all_pairs_n = array();
+            foreach ($nov_pack['ids'] as $ni => $nid) {
+                $all_pairs_n[] = array(
+                    'id'   => (int) $nid,
+                    'html' => isset($nov_pack['html'][$ni]) ? $nov_pack['html'][$ni] : '',
+                );
             }
 
-            // Divide em 2 linhas equilibradas (arredonda para múltiplos de 5)
-            $total_cards = count($all_cards);
-            $half_rounded = (int)(ceil($total_cards / 2 / 5) * 5); // arredonda para cima em múltiplos de 5
-            if ($half_rounded >= $total_cards) $half_rounded = max(5, $total_cards - 5); // garante ao menos 5 para row2
-            $row1_cards = array_slice($all_cards, 0, $half_rounded);
-            $row2_cards = array_slice($all_cards, $half_rounded);
+            // Divide em 2 linhas equilibradas (múltiplos de 5)
+            $total_cards  = count($all_pairs_n);
+            $half_rounded = (int) (ceil($total_cards / 2 / 5) * 5);
+            if ($half_rounded >= $total_cards) {
+                $half_rounded = max(5, $total_cards - 5);
+            }
+            $row1_pairs = array_slice($all_pairs_n, 0, $half_rounded);
+            $row2_pairs = array_slice($all_pairs_n, $half_rounded);
 
-            // Cada linha vira páginas de 5
-            $chunks_r1    = !empty($row1_cards) ? array_chunk($row1_cards, 5) : array();
+            $dedupe_n   = function_exists('wcb_carousel_get_dedupe_scope') ? wcb_carousel_get_dedupe_scope() : 'carousel';
+            $fb_mode_n  = function_exists('wcb_carousel_get_fallback_mode') ? wcb_carousel_get_fallback_mode('novidades') : 'shop';
+            $fb_cat_n   = function_exists('wcb_carousel_get_fallback_cat_id') ? wcb_carousel_get_fallback_cat_id('novidades') : 0;
+
+            $chunks_r1 = !empty($row1_pairs) ? array_chunk($row1_pairs, 5) : array();
+            if (!empty($chunks_r1) && function_exists('wcb_carousel_pad_all_chunks')) {
+                $chunks_r1 = wcb_carousel_pad_all_chunks($chunks_r1, 5, $dedupe_n, 'novidades', $fb_mode_n, $fb_cat_n, $wcb_carousel_homepage_used_ids, null);
+            }
+            $chunks_r1 = array_map('wcb_carousel_pairs_to_html_list', $chunks_r1);
             $num_pages_r1 = count($chunks_r1);
 
-            $chunks_r2    = !empty($row2_cards) ? array_chunk($row2_cards, 5) : array();
+            $chunks_r2 = !empty($row2_pairs) ? array_chunk($row2_pairs, 5) : array();
+            if (!empty($chunks_r2) && function_exists('wcb_carousel_pad_all_chunks')) {
+                $chunks_r2 = wcb_carousel_pad_all_chunks($chunks_r2, 5, $dedupe_n, 'novidades', $fb_mode_n, $fb_cat_n, $wcb_carousel_homepage_used_ids, null);
+            }
+            $chunks_r2 = array_map('wcb_carousel_pairs_to_html_list', $chunks_r2);
             $num_pages_r2 = count($chunks_r2);
+
+            $all_cards = array_column($all_pairs_n, 'html');
             ?>
 
             <!-- ── Linha 1: Novidades ── -->
@@ -283,14 +304,13 @@ get_header();
 
             <?php
             // ── Mais Vendidos: cache de 12h via transient ────────────────────
-            $all_cards_v = get_transient('wcb_home_vendidos');
-            // Se o transient retorna vazio (array vazio cacheado), deletar para re-query
-            if (is_array($all_cards_v) && empty($all_cards_v)) {
+            $v_cached = get_transient('wcb_home_vendidos');
+            $v_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($v_cached) : false;
+            if (is_array($v_cached) && isset($v_cached['html']) && empty($v_cached['html'])) {
                 delete_transient('wcb_home_vendidos');
-                $all_cards_v = false;
+                $v_pack = false;
             }
-            if (false === $all_cards_v) {
-                // Tentar buscar por total_sales (mais vendidos reais)
+            if (false === $v_pack) {
                 $vendidos = new WP_Query(array(
                     'post_type'      => 'product',
                     'posts_per_page' => 20,
@@ -299,19 +319,9 @@ get_header();
                     'orderby'        => 'meta_value_num',
                     'order'          => 'DESC',
                 ));
-                $all_cards_v = array();
-                if ($vendidos->have_posts()):
-                    while ($vendidos->have_posts()):
-                        $vendidos->the_post();
-                        ob_start();
-                        get_template_part('template-parts/product-card');
-                        $all_cards_v[] = ob_get_clean();
-                    endwhile;
-                    wp_reset_postdata();
-                endif;
+                $v_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($vendidos) : array();
 
-                // Fallback: mostrar produtos recentes se não houver vendas
-                if (empty($all_cards_v)) {
+                if (empty($v_pairs)) {
                     $fallback = new WP_Query(array(
                         'post_type'      => 'product',
                         'posts_per_page' => 20,
@@ -319,36 +329,57 @@ get_header();
                         'orderby'        => 'date',
                         'order'          => 'DESC',
                     ));
-                    if ($fallback->have_posts()):
-                        while ($fallback->have_posts()):
-                            $fallback->the_post();
-                            ob_start();
-                            get_template_part('template-parts/product-card');
-                            $all_cards_v[] = ob_get_clean();
-                        endwhile;
-                        wp_reset_postdata();
-                    endif;
+                    $v_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($fallback) : array();
                 }
 
-                set_transient('wcb_home_vendidos', $all_cards_v, 12 * HOUR_IN_SECONDS);
+                $v_pack = array(
+                    'ids'  => array_column($v_pairs, 'id'),
+                    'html' => array_column($v_pairs, 'html'),
+                );
+                set_transient('wcb_home_vendidos', $v_pack, 12 * HOUR_IN_SECONDS);
             }
 
-            // Split cards into odd/even for row1 and row2 carousels
-            $v_row1_cards = array();
-            $v_row2_cards = array();
-            if (!empty($all_cards_v)) {
-                foreach ($all_cards_v as $i => $card) {
+            $all_pairs_v = array();
+            foreach ($v_pack['ids'] as $vi => $vid) {
+                $all_pairs_v[] = array(
+                    'id'   => (int) $vid,
+                    'html' => isset($v_pack['html'][$vi]) ? $v_pack['html'][$vi] : '',
+                );
+            }
+
+            $v_row1_pairs = array();
+            $v_row2_pairs = array();
+            if (!empty($all_pairs_v)) {
+                foreach ($all_pairs_v as $i => $row) {
                     if ($i % 2 === 0) {
-                        $v_row1_cards[] = $card;
+                        $v_row1_pairs[] = $row;
                     } else {
-                        $v_row2_cards[] = $card;
+                        $v_row2_pairs[] = $row;
                     }
                 }
             }
-            $chunks_v1 = !empty($v_row1_cards) ? array_chunk($v_row1_cards, 3) : array();
-            $chunks_v2 = !empty($v_row2_cards) ? array_chunk($v_row2_cards, 3) : array();
+
+            $dedupe_v  = function_exists('wcb_carousel_get_dedupe_scope') ? wcb_carousel_get_dedupe_scope() : 'carousel';
+            $fb_mode_v = function_exists('wcb_carousel_get_fallback_mode') ? wcb_carousel_get_fallback_mode('vendidos') : 'shop';
+            $fb_cat_v  = function_exists('wcb_carousel_get_fallback_cat_id') ? wcb_carousel_get_fallback_cat_id('vendidos') : 0;
+
+            $chunks_v1 = !empty($v_row1_pairs) ? array_chunk($v_row1_pairs, 3) : array();
+            if (!empty($chunks_v1) && function_exists('wcb_carousel_pad_all_chunks')) {
+                $chunks_v1 = wcb_carousel_pad_all_chunks($chunks_v1, 3, $dedupe_v, 'vendidos', $fb_mode_v, $fb_cat_v, $wcb_carousel_homepage_used_ids, null);
+            }
+            $chunks_v1 = array_map('wcb_carousel_pairs_to_html_list', $chunks_v1);
+
+            $chunks_v2 = !empty($v_row2_pairs) ? array_chunk($v_row2_pairs, 3) : array();
+            if (!empty($chunks_v2) && function_exists('wcb_carousel_pad_all_chunks')) {
+                $chunks_v2 = wcb_carousel_pad_all_chunks($chunks_v2, 3, $dedupe_v, 'vendidos', $fb_mode_v, $fb_cat_v, $wcb_carousel_homepage_used_ids, null);
+            }
+            $chunks_v2 = array_map('wcb_carousel_pairs_to_html_list', $chunks_v2);
+
             $num_pages_v1 = count($chunks_v1);
             $num_pages_v2 = count($chunks_v2);
+            $num_pages_v  = max($num_pages_v1, $num_pages_v2);
+
+            $all_cards_v = array_column($all_pairs_v, 'html');
             ?>
 
             <div class="wcb-section__header wcb-section__header--with-controls">
@@ -365,7 +396,7 @@ get_header();
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                         </button>
                         <div class="wcb-header-carousel-controls__dots">
-                            <?php for ($p = 0; $p < $num_pages_v; $p++): ?>
+                            <?php for ($p = 0; $p < $num_pages_v; $p++) : ?>
                             <button class="wcb-header-carousel-controls__dot<?php echo $p === 0 ? ' active' : ''; ?>"
                                     data-index="<?php echo $p; ?>"
                                     aria-label="Página <?php echo $p + 1; ?>"></button>
@@ -508,10 +539,11 @@ get_header();
         <div class="wcb-container">
 
             <?php
-            // ── Super Ofertas: cache de 12h (chave inclui IDs de promos) ──────
-            $sale_cache_key  = 'wcb_home_ofertas_' . md5(serialize(array_slice($on_sale_ids, 0, 20)));
-            $all_cards_sale  = !empty($on_sale_ids) ? get_transient($sale_cache_key) : array();
-            if (!empty($on_sale_ids) && false === $all_cards_sale) {
+            // ── Super Ofertas: cache de 12h (ids + html), chave por IDs em promo ─
+            $sale_cache_key = 'wcb_home_ofertas_' . md5(serialize(array_slice($on_sale_ids, 0, 20)));
+            $sale_raw       = !empty($on_sale_ids) ? get_transient($sale_cache_key) : false;
+            $sale_pack      = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($sale_raw) : false;
+            if (!empty($on_sale_ids) && false === $sale_pack) {
                 $sale_products = new WP_Query(array(
                     'post_type'      => 'product',
                     'posts_per_page' => 20,
@@ -525,24 +557,30 @@ get_header();
                         ),
                     ),
                 ));
-                $all_cards_sale = array();
-                if ($sale_products->have_posts()):
-                    while ($sale_products->have_posts()):
-                        $sale_products->the_post();
-                        ob_start();
-                        get_template_part('template-parts/product-card');
-                        $all_cards_sale[] = ob_get_clean();
-                    endwhile;
-                    wp_reset_postdata();
-                endif;
-                set_transient($sale_cache_key, $all_cards_sale, 12 * HOUR_IN_SECONDS);
+                $sale_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($sale_products) : array();
+                $sale_pack  = array(
+                    'ids'  => array_column($sale_pairs, 'id'),
+                    'html' => array_column($sale_pairs, 'html'),
+                );
+                set_transient($sale_cache_key, $sale_pack, 12 * HOUR_IN_SECONDS);
             }
 
-            // Hero fixo = 1º produto em oferta (com cache de 1h)
+            $all_sale_pairs = array();
+            if (is_array($sale_pack) && isset($sale_pack['ids'], $sale_pack['html'])) {
+                foreach ($sale_pack['ids'] as $si => $sid) {
+                    $all_sale_pairs[] = array(
+                        'id'   => (int) $sid,
+                        'html' => isset($sale_pack['html'][$si]) ? $sale_pack['html'][$si] : '',
+                    );
+                }
+            }
+
+            // Hero fixo = 1 produto em oferta (cache 1h)
             $hero_product = null;
+            $hero_id      = null;
             if (!empty($on_sale_ids)) {
                 $hero_id = get_transient('wcb_hero_sale_id');
-                if (false === $hero_id || !in_array($hero_id, $on_sale_ids)) {
+                if (false === $hero_id || ! in_array((int) $hero_id, array_map('intval', $on_sale_ids), true)) {
                     $hero_q = new WP_Query(array(
                         'post_type'      => 'product',
                         'posts_per_page' => 1,
@@ -562,10 +600,37 @@ get_header();
                 }
             }
 
-            // Restante em chunks de 4 para o carousel
-            $remaining_sale = !empty($all_cards_sale) ? array_slice($all_cards_sale, 1) : array();
-            $chunks_sale    = !empty($remaining_sale) ? array_chunk($remaining_sale, 4) : array();
+            $carousel_sale_pairs = $all_sale_pairs;
+            if ($hero_id) {
+                $carousel_sale_pairs = array_values(
+                    array_filter(
+                        $all_sale_pairs,
+                        static function ( $row ) use ( $hero_id ) {
+                            return (int) $row['id'] !== (int) $hero_id;
+                        }
+                    )
+                );
+            }
+
+            if (function_exists('wcb_carousel_get_dedupe_scope') && wcb_carousel_get_dedupe_scope() === 'homepage' && $hero_id) {
+                $hid = (int) $hero_id;
+                if (! in_array($hid, $wcb_carousel_homepage_used_ids, true)) {
+                    $wcb_carousel_homepage_used_ids[] = $hid;
+                }
+            }
+
+            $dedupe_o  = function_exists('wcb_carousel_get_dedupe_scope') ? wcb_carousel_get_dedupe_scope() : 'carousel';
+            $fb_mode_o = function_exists('wcb_carousel_get_fallback_mode') ? wcb_carousel_get_fallback_mode('ofertas') : 'shop';
+            $fb_cat_o  = function_exists('wcb_carousel_get_fallback_cat_id') ? wcb_carousel_get_fallback_cat_id('ofertas') : 0;
+
+            $chunks_sale = !empty($carousel_sale_pairs) ? array_chunk($carousel_sale_pairs, 4) : array();
+            if (!empty($chunks_sale) && function_exists('wcb_carousel_pad_all_chunks')) {
+                $chunks_sale = wcb_carousel_pad_all_chunks($chunks_sale, 4, $dedupe_o, 'ofertas', $fb_mode_o, $fb_cat_o, $wcb_carousel_homepage_used_ids, $on_sale_ids);
+            }
+            $chunks_sale = array_map('wcb_carousel_pairs_to_html_list', $chunks_sale);
             $num_pages_sale = count($chunks_sale);
+
+            $all_cards_sale = array_column($all_sale_pairs, 'html');
 
             // Dados do hero para CRO
             $hero_regular   = $hero_product ? (float) $hero_product->get_regular_price() : 0;
@@ -766,9 +831,10 @@ get_header();
         <div class="wcb-container">
 
             <?php
-            // ── De Volta ao Estoque: cache de 12h via transient ───────────
-            $all_cards_q = get_transient('wcb_home_estoque');
-            if (false === $all_cards_q) {
+            // ── De Volta ao Estoque: cache de 12h (ids + html) ─────────────
+            $q_cached = get_transient('wcb_home_estoque');
+            $q_pack     = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($q_cached) : false;
+            if (false === $q_pack) {
                 $queridinhos = new WP_Query(array(
                     'post_type'      => 'product',
                     'posts_per_page' => 20,
@@ -784,20 +850,31 @@ get_header();
                         ),
                     ),
                 ));
-                $all_cards_q = array();
-                if ($queridinhos->have_posts()):
-                    while ($queridinhos->have_posts()):
-                        $queridinhos->the_post();
-                        ob_start();
-                        get_template_part('template-parts/product-card');
-                        $all_cards_q[] = ob_get_clean();
-                    endwhile;
-                    wp_reset_postdata();
-                endif;
-                set_transient('wcb_home_estoque', $all_cards_q, 12 * HOUR_IN_SECONDS);
+                $q_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($queridinhos) : array();
+                $q_pack  = array(
+                    'ids'  => array_column($q_pairs, 'id'),
+                    'html' => array_column($q_pairs, 'html'),
+                );
+                set_transient('wcb_home_estoque', $q_pack, 12 * HOUR_IN_SECONDS);
             }
-            $chunks_q    = !empty($all_cards_q) ? array_chunk($all_cards_q, 5) : array();
+            $all_pairs_q = array();
+            foreach ($q_pack['ids'] as $qi => $qid) {
+                $all_pairs_q[] = array(
+                    'id'   => (int) $qid,
+                    'html' => isset($q_pack['html'][$qi]) ? $q_pack['html'][$qi] : '',
+                );
+            }
+            $dedupe_q  = function_exists('wcb_carousel_get_dedupe_scope') ? wcb_carousel_get_dedupe_scope() : 'carousel';
+            $fb_mode_q = function_exists('wcb_carousel_get_fallback_mode') ? wcb_carousel_get_fallback_mode('estoque') : 'shop';
+            $fb_cat_q  = function_exists('wcb_carousel_get_fallback_cat_id') ? wcb_carousel_get_fallback_cat_id('estoque') : 0;
+
+            $chunks_q = !empty($all_pairs_q) ? array_chunk($all_pairs_q, 5) : array();
+            if (!empty($chunks_q) && function_exists('wcb_carousel_pad_all_chunks')) {
+                $chunks_q = wcb_carousel_pad_all_chunks($chunks_q, 5, $dedupe_q, 'estoque', $fb_mode_q, $fb_cat_q, $wcb_carousel_homepage_used_ids, null);
+            }
+            $chunks_q = array_map('wcb_carousel_pairs_to_html_list', $chunks_q);
             $num_pages_q = count($chunks_q);
+            $all_cards_q = array_column($all_pairs_q, 'html');
             ?>
 
             <div class="wcb-section__header wcb-section__header--with-controls">

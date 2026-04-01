@@ -2312,6 +2312,15 @@ body.woocommerce-cart #wcb-shipping-bar {
     pointer-events: none;
 }
 
+/* Só frete: sem coluna de brinde (MH sem regras ativas) */
+.woocommerce-cart #wcb-cart-page-premium-incentives .wcb-incentive-suite.wcb-incentive-suite--ship-only {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.woocommerce-cart #wcb-cart-page-premium-incentives .wcb-incentive-suite.wcb-incentive-suite--ship-only::after {
+    display: none !important;
+}
+
 .woocommerce-cart #wcb-cart-page-premium-incentives .wcb-incentive-suite__kicker {
     display: block !important;
     text-align: left !important;
