@@ -27,6 +27,8 @@ logs/
 
 # Arquivos de compilação / build
 node_modules/
+wp-content/themes/wcb-theme/vendor/
+wp-content/themes/wcb-theme/.phpunit.cache/
 .sass-cache/
 .cache/
 
@@ -64,3 +66,10 @@ wp-content/plugins/woocommerce/logs/
 
 # Arquivos temporários do XAMPP
 xampp/
+
+# Local / ferramentas / saídas de debug (não versionar)
+.sfdx/
+.htaccess.bk
+products-output.txt
+wp-content/litespeed/
+wp-content/plugins/litespeed-cache/

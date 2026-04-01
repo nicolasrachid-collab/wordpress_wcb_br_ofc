@@ -1,7 +1,7 @@
 <?php
 /**
  * WCB — Import product images to WordPress media library
- * Run once via: http://localhost/wcb/?wcb_import_images=1
+ * Run once via: Ferramentas → WCB Dev (nonce) ou wcb_import_images=1&_wpnonce=...
  */
 
 if (!defined('ABSPATH'))
@@ -10,6 +10,9 @@ if (!defined('ABSPATH'))
 add_action('init', function () {
     if (!isset($_GET['wcb_import_images']) || !current_user_can('manage_options'))
         return;
+    if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'wcb_import_images')) {
+        wp_die(esc_html__('Link inválido ou expirado. Use Ferramentas → WCB Dev.', 'wcb-theme'), esc_html__('Erro de segurança', 'wcb-theme'), array('response' => 403));
+    }
     if (get_option('wcb_images_imported')) {
         wp_die('Images already imported!');
     }

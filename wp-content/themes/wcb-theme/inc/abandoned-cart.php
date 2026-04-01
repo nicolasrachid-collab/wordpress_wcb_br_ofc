@@ -56,6 +56,20 @@ add_action( 'admin_init', 'wcb_create_abandoned_cart_table' );
    3. AJAX — Salvar/Atualizar carrinho abandonado
    ============================================================ */
 function wcb_save_abandoned_cart_ajax() {
+	if ( ! check_ajax_referer( 'wcb-ab-cart', 'nonce', false ) ) {
+		wp_send_json_error( array( 'message' => 'invalid_nonce' ), 403 );
+	}
+
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	if ( $ip !== '' ) {
+		$rl_key = 'wcb_ab_cart_rl_' . md5( $ip );
+		$hits   = (int) get_transient( $rl_key );
+		if ( $hits >= 45 ) {
+			wp_send_json_error( array( 'message' => 'rate_limited' ), 429 );
+		}
+		set_transient( $rl_key, $hits + 1, 10 * MINUTE_IN_SECONDS );
+	}
+
     $email      = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
     $first_name = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
     $last_name  = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );

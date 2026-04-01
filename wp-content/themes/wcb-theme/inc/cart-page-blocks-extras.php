@@ -136,6 +136,7 @@ function wcb_enqueue_cart_page_blocks_extras() {
 			'ajaxUrl'                => admin_url( 'admin-ajax.php' ),
 			'nonceSideCart'          => wp_create_nonce( 'wcb_side_cart' ),
 			'nonceCep'               => wp_create_nonce( 'wcb_calc_shipping' ),
+			'noncePublicAjax'        => wp_create_nonce( 'wcb_public_ajax' ),
 			/* Primeira pintura imediata (sem admin-ajax) */
 			'initialProgress'        => $initial_progress,
 			'giftThreshold'          => $gift_threshold,

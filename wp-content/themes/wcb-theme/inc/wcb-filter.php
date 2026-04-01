@@ -32,6 +32,23 @@ function wcb_render_native_filter() {
         ]);
     }
 
+    $get_sig = [];
+    foreach ( $_GET as $gk => $gv ) {
+        if ( in_array( $gk, [ 'wcb_cat', 'wcb_stock', 'wcb_min', 'wcb_max' ], true ) || strpos( $gk, 'wcb_attr_' ) === 0 ) {
+            $get_sig[ $gk ] = $gv;
+        }
+    }
+    ksort( $get_sig );
+    $paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+    $filter_cache_key = 'wcb_filt_sb_v1_' . md5( wp_json_encode( [ 'ids' => $context_ids, 'get' => $get_sig, 'paged' => $paged ] ) );
+    $filter_cached    = get_transient( $filter_cache_key );
+    if ( false !== $filter_cached ) {
+        echo $filter_cached;
+        return;
+    }
+
+    ob_start();
+
     // ── Categories (somente as que têm produtos no contexto) ──
     $sem_cat = get_term_by('slug', 'sem-categoria', 'product_cat');
     $exclude_ids = $sem_cat ? [$sem_cat->term_id] : [];
@@ -324,6 +341,9 @@ function wcb_render_native_filter() {
 
     </form>
     <?php
+    $filter_html = ob_get_clean();
+    set_transient( $filter_cache_key, $filter_html, 15 * MINUTE_IN_SECONDS );
+    echo $filter_html;
 }
 
 

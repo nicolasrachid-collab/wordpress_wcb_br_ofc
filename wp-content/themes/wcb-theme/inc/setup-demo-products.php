@@ -3,7 +3,7 @@
  * WCB Theme — Demo Products Setup (run once via admin)
  * Creates sample products with categories for visual testing
  *
- * Usage: Navigate to http://localhost/wcb/?wcb_setup_demo=1 while logged in as admin
+ * Usage: Ferramentas → WCB Dev (link com nonce) ou URL com wcb_setup_demo=1&_wpnonce=...
  *
  * @package WCB_Theme
  */
@@ -14,6 +14,9 @@ if (!defined('ABSPATH'))
 add_action('init', function () {
     if (!isset($_GET['wcb_setup_demo']) || !current_user_can('manage_options'))
         return;
+    if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'wcb_setup_demo')) {
+        wp_die(esc_html__('Link inválido ou expirado. Use Ferramentas → WCB Dev.', 'wcb-theme'), esc_html__('Erro de segurança', 'wcb-theme'), array('response' => 403));
+    }
     if (!class_exists('WooCommerce')) {
         wp_die('WooCommerce not active');
     }

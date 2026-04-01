@@ -237,6 +237,42 @@
         }
     })();
 
+    /**
+     * Sincroniza favoritos com o servidor (POST + nonce). Opcional: bfcache / multi-aba.
+     * O carregamento inicial continua a usar window.wcbWishlist.wishlist (PHP).
+     */
+    window.wcbFetchWishlist = function () {
+        const wl = window.wcbWishlist;
+        if (!wl || !wl.ajaxUrl || !wl.nonce) {
+            return Promise.resolve([]);
+        }
+        const fd = new FormData();
+        fd.append('action', 'wcb_get_wishlist');
+        fd.append('nonce', wl.nonce);
+        return fetch(wl.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || !data.success || !data.data) {
+                    return wl.wishlist || [];
+                }
+                const ids = Array.isArray(data.data.wishlist) ? data.data.wishlist : [];
+                wl.wishlist = ids;
+                document.querySelectorAll('.wcb-product-card__fav.active').forEach(function (btn) {
+                    btn.classList.remove('active');
+                });
+                ids.forEach(function (id) {
+                    document.querySelectorAll('.wcb-product-card__fav[data-product-id="' + id + '"]').forEach(function (btn) {
+                        btn.classList.add('active');
+                    });
+                });
+                updateFavBadge(ids.length);
+                return ids;
+            })
+            .catch(function () {
+                return wl.wishlist || [];
+            });
+    };
+
     // ── Click no coração ─────────────────────────────────────────
     document.addEventListener('click', function (e) {
         const favBtn = e.target.closest('.wcb-product-card__fav');
@@ -876,6 +912,8 @@
     if (!searchInput.id) searchInput.id = 'wcb-search-input';
 
     const ajaxUrl = (window.wcbData && window.wcbData.ajaxUrl) || '/wp-admin/admin-ajax.php';
+    const pubNonce = (window.wcbData && window.wcbData.publicAjaxNonce)
+        ? encodeURIComponent(window.wcbData.publicAjaxNonce) : '';
     const form = searchInput.closest('form');
 
     // --- Mount dropdown on BODY to escape overflow:hidden parents ---
@@ -1111,9 +1149,15 @@
         renderSkeleton();
 
         debounceTimer = setTimeout(() => {
-            fetch(`${ajaxUrl}?action=wcb_live_search&q=${encodeURIComponent(q)}`)
+            fetch(`${ajaxUrl}?action=wcb_live_search&q=${encodeURIComponent(q)}&nonce=${pubNonce}`)
                 .then(r => r.json())
-                .then(data => renderResults(data, q))
+                .then(data => {
+                    if (!Array.isArray(data)) {
+                        hideDropdown();
+                        return;
+                    }
+                    renderResults(data, q);
+                })
                 .catch(() => hideDropdown());
         }, 300);
     });
@@ -1368,7 +1412,8 @@
             const ajaxUrl = (window.wcbData && window.wcbData.ajaxUrl) || '/wp-admin/admin-ajax.php';
             if (body) body.innerHTML = '<div class="wcb-mini-cart__loading"><div class="wcb-mini-cart__spinner"></div><span>Carregando...</span></div>';
             if (footer) footer.style.display = 'none';
-            fetch(ajaxUrl + '?action=wcb_mini_cart', { credentials: 'same-origin' })
+            var mcNonce = (window.wcbData && window.wcbData.miniCartNonce) ? '&nonce=' + encodeURIComponent(window.wcbData.miniCartNonce) : '';
+            fetch(ajaxUrl + '?action=wcb_mini_cart' + mcNonce, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
                     if (body) body.innerHTML = data.html || '';
@@ -1519,6 +1564,8 @@
     'use strict';
 
     const ajaxUrl = (window.wcbData && window.wcbData.ajaxUrl) || window.ajaxurl || '/wp-admin/admin-ajax.php';
+    const pubNonce = (window.wcbData && window.wcbData.publicAjaxNonce)
+        ? encodeURIComponent(window.wcbData.publicAjaxNonce) : '';
 
     const overlay = document.getElementById('wcb-qv-overlay');
     const modal   = overlay && overlay.querySelector('.wcb-qv-modal');
@@ -2024,7 +2071,7 @@
         openModal();
 
         // Fetch product data
-        fetch(`${ajaxUrl}?action=wcb_quick_view&product_id=${productId}`, { credentials: 'same-origin' })
+        fetch(`${ajaxUrl}?action=wcb_quick_view&product_id=${productId}&nonce=${pubNonce}`, { credentials: 'same-origin' })
             .then(r => r.json())
             .then(data => {
                 if (!data.success) throw new Error('product error');

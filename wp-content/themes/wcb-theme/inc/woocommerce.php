@@ -892,109 +892,36 @@ function wcb_cart_count_fragment($fragments)
 }
 add_filter('woocommerce_add_to_cart_fragments', 'wcb_cart_count_fragment');
 
-/* ============================================================
-   MINI-CART FLYOUT — AJAX Handler
-   ============================================================ */
-function wcb_mini_cart_ajax()
+/**
+ * Nonce partilhado para AJAX público de leitura (live search, quick view, gift progress).
+ */
+function wcb_verify_public_ajax_request()
 {
-    if (!function_exists('WC') || !WC()->cart) {
-        wp_send_json(['html' => '', 'count' => 0, 'subtotal' => 'R$ 0,00']);
+    $nonce = isset($_REQUEST['nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['nonce'])) : '';
+    if (!wp_verify_nonce($nonce, 'wcb_public_ajax')) {
+        wp_send_json_error(['message' => 'invalid_nonce'], 403);
     }
+}
 
-    $cart = WC()->cart;
-    $cart_items = $cart->get_cart();
-    $count = $cart->get_cart_contents_count();
-    $subtotal = $cart->get_cart_subtotal();
-    $html = '';
-
-    if (empty($cart_items)) {
-        $shop_url = esc_url(wc_get_page_permalink('shop'));
-        $html = '<div class="wcb-mini-cart__empty">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            <p>Seu carrinho está vazio</p>
-            <a href="' . $shop_url . '" class="wcb-btn">Ver produtos</a>
-        </div>';
-
-    } else {
-        foreach ($cart_items as $cart_item_key => $cart_item) {
-            $_product = apply_filters('woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key);
-            $product_id = apply_filters('woocommerce_cart_item_product_id', $cart_item['product_id'], $cart_item, $cart_item_key);
-
-            if (!$_product || !$_product->exists() || $cart_item['quantity'] === 0)
-                continue;
-
-            $thumbnail_id = $_product->get_image_id();
-            $thumbnail_url = $thumbnail_id
-                ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail')
-                : wc_placeholder_img_src('woocommerce_thumbnail');
-
-            $product_name = $_product->get_name();
-            $product_price = apply_filters('woocommerce_cart_item_price', WC()->cart->get_product_price($_product), $cart_item, $cart_item_key);
-            $product_qty = $cart_item['quantity'];
-            $product_url = $_product->get_permalink();
-
-            $remove_url = esc_url(wc_get_cart_remove_url($cart_item_key));
-
-            $html .= '<div class="wcb-mini-cart__item" data-key="' . esc_attr($cart_item_key) . '">';
-            $html .= '  <a href="' . esc_url($product_url) . '" class="wcb-mini-cart__item-img"><img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($product_name) . '" width="64" height="64"></a>';
-            $html .= '  <div class="wcb-mini-cart__item-info">';
-            $html .= '    <a href="' . esc_url($product_url) . '" class="wcb-mini-cart__item-name">' . esc_html($product_name) . '</a>';
-            $html .= '    <div class="wcb-mini-cart__item-price">' . $product_price . '</div>';
-            $html .= '    <div class="wcb-mini-cart__item-actions">';
-            $html .= '      <div class="wcb-mini-qty" data-key="' . esc_attr($cart_item_key) . '">';
-            $html .= '        <button class="wcb-mini-qty__btn wcb-mini-qty__minus" aria-label="Diminuir">−</button>';
-            $html .= '        <span class="wcb-mini-qty__val">' . esc_html($product_qty) . '</span>';
-            $html .= '        <button class="wcb-mini-qty__btn wcb-mini-qty__plus" aria-label="Aumentar">+</button>';
-            $html .= '      </div>';
-            $html .= '      <button class="wcb-mini-cart__remove" data-key="' . esc_attr($cart_item_key) . '" data-nonce="' . wp_create_nonce('wcb-mini-cart') . '" aria-label="Remover">';
-            $html .= '        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-            $html .= '      </button>';
-            $html .= '    </div>';
-            $html .= '  </div>';
-            $html .= '</div>';
-        }
+/**
+ * Limite simples por IP para reduzir abuso de admin-ajax.
+ *
+ * @param string $bucket Identificador da action.
+ * @param int    $max    Máximo de pedidos por janela de 10 minutos.
+ */
+function wcb_rate_limit_public_ajax($bucket, $max = 120)
+{
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+    if ($ip === '') {
+        return;
     }
-
-    wp_send_json([
-        'html' => $html,
-        'count' => $count,
-        'subtotal' => html_entity_decode(wp_strip_all_tags($subtotal), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-        'empty' => empty($cart_items),
-    ]);
+    $key = 'wcb_rl_' . sanitize_key($bucket) . '_' . md5($ip);
+    $n = (int) get_transient($key);
+    if ($n >= $max) {
+        wp_send_json_error(['message' => 'rate_limited'], 429);
+    }
+    set_transient($key, $n + 1, 10 * MINUTE_IN_SECONDS);
 }
-add_action('wp_ajax_wcb_mini_cart', 'wcb_mini_cart_ajax');
-add_action('wp_ajax_nopriv_wcb_mini_cart', 'wcb_mini_cart_ajax');
-
-/* AJAX: update cart item quantity from mini-cart */
-function wcb_mini_cart_update_qty()
-{
-    if (!check_ajax_referer('wcb-mini-cart', 'nonce', false))
-        wp_send_json_error('invalid_nonce');
-    $key = sanitize_text_field(wp_unslash($_POST['key'] ?? ''));
-    $qty = max(0, intval($_POST['qty'] ?? 1));
-    if (!$key)
-        wp_send_json_error('invalid_key');
-    WC()->cart->set_quantity($key, $qty, true);
-    WC()->cart->calculate_totals();
-    wcb_mini_cart_ajax();
-}
-add_action('wp_ajax_wcb_mini_cart_update_qty', 'wcb_mini_cart_update_qty');
-add_action('wp_ajax_nopriv_wcb_mini_cart_update_qty', 'wcb_mini_cart_update_qty');
-
-/* AJAX: remove cart item from mini-cart */
-function wcb_mini_cart_remove()
-{
-    if (!check_ajax_referer('wcb-mini-cart', 'nonce', false))
-        wp_send_json_error('invalid_nonce');
-    $key = sanitize_text_field(wp_unslash($_POST['key'] ?? ''));
-    if (!$key)
-        wp_send_json_error('invalid_key');
-    WC()->cart->remove_cart_item($key);
-    WC()->cart->calculate_totals();
-    wcb_mini_cart_ajax();
-}
-add_action('wp_ajax_wcb_mini_cart_remove', 'wcb_mini_cart_remove');
-add_action('wp_ajax_nopriv_wcb_mini_cart_remove', 'wcb_mini_cart_remove');
 
 /** Change WooCommerce products per page */
 function wcb_products_per_page()
@@ -1239,6 +1166,8 @@ function wcb_gift_progress_payload()
 
 function wcb_gift_progress_ajax()
 {
+    wcb_verify_public_ajax_request();
+    wcb_rate_limit_public_ajax('gift_prog', 150);
     wp_send_json(wcb_gift_progress_payload());
 }
 add_action('wp_ajax_wcb_gift_progress_data', 'wcb_gift_progress_ajax');
@@ -1249,12 +1178,18 @@ add_action('wp_ajax_nopriv_wcb_gift_progress_data', 'wcb_gift_progress_ajax');
    ============================================================ */
 function wcb_calc_shipping_ajax()
 {
+    if (!check_ajax_referer('wcb_calc_shipping', 'nonce', false)) {
+        wp_send_json_error(['message' => 'invalid_nonce'], 403);
+        return;
+    }
+    wcb_rate_limit_public_ajax('calc_ship', 100);
+
     if (!function_exists('WC') || !WC()->cart) {
         wp_send_json_error('Carrinho não disponível');
         return;
     }
 
-    $postcode = isset($_POST['postcode']) ? preg_replace('/\D/', '', sanitize_text_field(wp_unslash($_POST['postcode']))) : '';
+    $postcode = isset($_POST['postcode']) ? wcb_normalize_cep_digits(sanitize_text_field(wp_unslash($_POST['postcode']))) : '';
     if (strlen($postcode) < 8) {
         wp_send_json_error('CEP inválido');
         return;
@@ -3138,11 +3073,20 @@ add_action('wp_footer', 'wcb_gift_progress_bar', 99);
    ============================================================ */
 function wcb_live_search_handler()
 {
+    wcb_verify_public_ajax_request();
+    wcb_rate_limit_public_ajax('live_search', 100);
+
     global $wpdb;
 
     $query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
     if (strlen($query) < 2) {
         wp_send_json([]);
+    }
+
+    $cache_key = 'wcb_ls_v1_' . md5(strtolower($query));
+    $cached = get_transient($cache_key);
+    if ($cached !== false && is_array($cached)) {
+        wp_send_json($cached);
     }
 
     $like = '%' . $wpdb->esc_like($query) . '%';
@@ -3281,6 +3225,7 @@ function wcb_live_search_handler()
         ];
     }
 
+    set_transient($cache_key, $results, 5 * MINUTE_IN_SECONDS);
     wp_send_json($results);
 }
 add_action('wp_ajax_wcb_live_search', 'wcb_live_search_handler');
@@ -3293,6 +3238,9 @@ add_action('wp_ajax_nopriv_wcb_live_search', 'wcb_live_search_handler');
    ============================================================ */
 function wcb_quick_view_handler()
 {
+    wcb_verify_public_ajax_request();
+    wcb_rate_limit_public_ajax('quick_view', 80);
+
     $product_id = intval($_GET['product_id'] ?? 0);
     if (!$product_id) {
         wp_send_json_error('invalid_product');
@@ -3684,9 +3632,14 @@ function wcb_toggle_wishlist_ajax()
 }
 add_action('wp_ajax_wcb_toggle_wishlist', 'wcb_toggle_wishlist_ajax');
 
-/* ── 6. AJAX: Buscar lista de favoritos (para restaurar estado visual) ── */
+/* ── 6. AJAX: Buscar lista de favoritos (sincronizar com o servidor) ── */
 function wcb_get_wishlist_ajax()
 {
+    if (!check_ajax_referer('wcb_wishlist_nonce', 'nonce', false)) {
+        wp_send_json_error(['message' => 'invalid_nonce'], 403);
+    }
+    wcb_rate_limit_public_ajax('wishlist_get', 120);
+
     if (!is_user_logged_in()) {
         wp_send_json_success(['wishlist' => []]);
     }

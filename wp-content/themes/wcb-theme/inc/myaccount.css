@@ -904,7 +904,7 @@ body.admin-bar.woocommerce-account .woocommerce-MyAccount-navigation {
   display: inline-flex !important;
   align-items: center; gap: 0.45rem;
   background: var(--wcb-blue, #155dfd) !important;
-  color: #fff !important;
+  color: var(--wcb-white, #fff) !important;
   font-size: 0.82rem !important; font-weight: 700 !important;
   letter-spacing: 0.02em;
   padding: 0.68rem 1.6rem !important;
@@ -923,7 +923,14 @@ body.admin-bar.woocommerce-account .woocommerce-MyAccount-navigation {
 .woocommerce-MyAccount-content input[type="submit"]:hover {
   background: var(--wcb-blue-hover, #0f48d4) !important;
   box-shadow: 0 4px 12px rgba(21, 93, 253, 0.28) !important;
-  color: #fff !important; text-decoration: none !important;
+  color: var(--wcb-white, #fff) !important; text-decoration: none !important;
+}
+
+.woocommerce-MyAccount-content .button:focus-visible,
+.woocommerce-MyAccount-content button[type="submit"]:focus-visible,
+.woocommerce-MyAccount-content input[type="submit"]:focus-visible {
+  outline: 2px solid var(--wcb-blue, #155dfd);
+  outline-offset: 2px;
 }
 
 /* ================================================================
@@ -1511,50 +1518,50 @@ mark.status-refunded,   mark.refunded   { background: #ede9fe; color: #5b21b6; }
 }
 
 /* Links da conta (azul + sublinhado) não podem sobrepor o card da home */
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__title {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__title {
   color: #1a1a2e !important;
   font-weight: 650 !important;
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__title:hover {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__title:hover {
   color: #2563eb !important;
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__img {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__img {
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 .wcb-card5__quickview-btn {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card .wcb-product-card__quickview-btn {
   color: #111 !important;
   font-weight: 600 !important;
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 .wcb-card5__quickview-btn:hover {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card .wcb-product-card__quickview-btn:hover {
   color: #111 !important;
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__add-btn {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__add-btn {
   color: #fff !important;
   font-weight: 600 !important;
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__add-btn:hover {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__add-btn:hover {
   color: #fff !important;
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__cta-mobile {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__cta-mobile {
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__cta-mobile:hover {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__cta-mobile:hover {
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__cta-soldout {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__cta-soldout {
   text-decoration: none !important;
 }
-.woocommerce-MyAccount-content .wcb-wl-grid .wcb-card5 a.wcb-card5__cta-soldout:hover {
+.woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__cta-soldout:hover {
   text-decoration: none !important;
 }
 
-/* Shell: card visual = .wcb-card5 (home); só posiciona o botão remover */
+/* Shell: card visual = product-card oficial; só posiciona o botão remover */
 .wcb-wl-grid > .wcb-wl-card-shell {
   background: transparent !important;
   border: none !important;
@@ -1573,7 +1580,7 @@ mark.status-refunded,   mark.refunded   { background: #ede9fe; color: #5b21b6; }
   border: none !important;
   box-shadow: none !important;
 }
-.wcb-wl-grid > .wcb-wl-card-shell > .wcb-card5 {
+.wcb-wl-grid > .wcb-wl-card-shell > .wcb-product-card {
   width: 100% !important;
   max-width: 100% !important;
   height: 100%;

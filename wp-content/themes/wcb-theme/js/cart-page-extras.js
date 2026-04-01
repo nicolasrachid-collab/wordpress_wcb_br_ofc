@@ -300,6 +300,9 @@
 	function fetchProgress(cb) {
 		var fd = new FormData();
 		fd.append('action', 'wcb_gift_progress_data');
+		if (cfg.noncePublicAjax) {
+			fd.append('nonce', cfg.noncePublicAjax);
+		}
 		fetch(cfg.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
 			.then(function (r) {
 				return r.json();

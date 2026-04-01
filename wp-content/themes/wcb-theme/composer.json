@@ -1,0 +1,20 @@
+{
+	"name": "wcb/wcb-theme",
+	"description": "White Cloud Brasil — tema (ferramentas de desenvolvimento)",
+	"type": "wordpress-theme",
+	"license": "proprietary",
+	"require": {},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"squizlabs/php_codesniffer": "^3.10",
+		"wp-coding-standards/wpcs": "^3.1"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"suggest": {
+		"phpunit/phpunit": "Testes com PHPUnit: composer require --dev phpunit/phpunit — em geral requer ext-zip no PHP (Windows/XAMPP)."
+	}
+}

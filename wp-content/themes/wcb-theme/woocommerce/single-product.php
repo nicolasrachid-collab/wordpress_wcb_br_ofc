@@ -529,27 +529,33 @@ while (have_posts()):
                 );
                 $related_products = new WP_Query($args);
                 ?>
-                <section class="wcb-pdp-similar">
+                <section class="wcb-section wcb-pdp-similar">
                     <div class="wcb-section__header">
-                        <h2 class="wcb-section__title">Você também pode gostar</h2>
-                        <a href="<?php echo esc_url(home_url('/loja/')); ?>" class="wcb-section__link">
-                            Ver mais
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5">
-                                <path d="M5 12h14M12 5l7 7-7 7" />
-                            </svg>
-                        </a>
+                        <div class="wcb-section__headline">
+                            <h2 class="wcb-section__title">Você também pode gostar</h2>
+                        </div>
+                        <div class="wcb-section__actions">
+                            <a href="<?php echo esc_url(home_url('/loja/')); ?>" class="wcb-section__link">
+                                Ver mais
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
-                    <div class="wcb-products__grid">
-                        <?php
-                        if ($related_products->have_posts()):
-                            while ($related_products->have_posts()):
-                                $related_products->the_post();
-                                get_template_part('template-parts/product-card');
-                            endwhile;
-                            wp_reset_postdata();
-                        endif;
-                        ?>
+                    <div class="wcb-section__content">
+                        <div class="wcb-products__grid">
+                            <?php
+                            if ($related_products->have_posts()):
+                                while ($related_products->have_posts()):
+                                    $related_products->the_post();
+                                    get_template_part('template-parts/product-card');
+                                endwhile;
+                                wp_reset_postdata();
+                            endif;
+                            ?>
+                        </div>
                     </div>
                 </section>
             <?php endif; ?>

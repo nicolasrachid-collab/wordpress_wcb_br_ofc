@@ -1,9 +1,11 @@
 <?php
 /**
- * WCB Theme — Product Card v5 (Premium Minimal)
+ * WCB Theme — Product Card (fonte oficial de listagem)
  *
  * Hierarquia: Imagem → Nome → Avaliação → Preço (destaque) → CTA no hover
- * Princípio: menos é mais — o que não converte, sai.
+ * BEM: .wcb-product-card, .wcb-product-card__*, modificadores --out-of-stock
+ *
+ * Legado .wcb-card5* foi unificado neste ficheiro; não duplicar markup noutros templates.
  *
  * @package WCB_Theme
  */
@@ -97,28 +99,28 @@ if ($product->is_type('variable')) {
 }
 ?>
 
-<div class="wcb-card5 wcb-product-card<?php echo !$in_stock ? ' wcb-card5--out-of-stock' : ''; ?>" data-product-id="<?php echo $product->get_id(); ?>">
+<div class="wcb-product-card<?php echo !$in_stock ? ' wcb-product-card--out-of-stock' : ''; ?>" data-product-id="<?php echo $product->get_id(); ?>">
 
     <!-- ══ IMAGE AREA ══════════════════════════════════════ -->
-    <div class="wcb-card5__img-wrap">
+    <div class="wcb-product-card__img-wrap">
 
         <!-- Badge (top-left, posição fixa) -->
-        <div class="wcb-card5__badges">
+        <div class="wcb-product-card__badges">
             <?php if ($is_on_sale && $saving > 0): ?>
-                <span class="wcb-card5__badge wcb-card5__badge--sale">-<?php echo $saving; ?>%</span>
+                <span class="wcb-product-card__badge wcb-product-card__badge--sale">-<?php echo $saving; ?>%</span>
             <?php endif; ?>
             <?php if ($low_stock): ?>
-                <span class="wcb-card5__badge wcb-card5__badge--low">Últimas und.</span>
+                <span class="wcb-product-card__badge wcb-product-card__badge--low">Últimas und.</span>
             <?php elseif ($is_popular && !($is_on_sale && $saving > 0)): ?>
-                <span class="wcb-card5__badge wcb-card5__badge--hot">🔥 Mais vendido</span>
+                <span class="wcb-product-card__badge wcb-product-card__badge--hot">🔥 Mais vendido</span>
             <?php endif; ?>
             <?php if (!$in_stock): ?>
-                <span class="wcb-card5__badge wcb-card5__badge--sold-out">ESGOTADO</span>
+                <span class="wcb-product-card__badge wcb-product-card__badge--sold-out">ESGOTADO</span>
             <?php endif; ?>
         </div>
 
         <!-- Favorite (top-right) -->
-        <button class="wcb-card5__fav wcb-product-card__fav" title="Favoritar" data-product-id="<?php echo $product->get_id(); ?>">
+        <button class="wcb-product-card__fav" title="Favoritar" data-product-id="<?php echo $product->get_id(); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -126,22 +128,22 @@ if ($product->is_type('variable')) {
         </button>
 
         <!-- Image -->
-        <a href="<?php the_permalink(); ?>" class="wcb-card5__img" tabindex="-1">
+        <a href="<?php the_permalink(); ?>" class="wcb-product-card__img" tabindex="-1">
             <?php if (has_post_thumbnail()):
                 // Imagem principal
-                the_post_thumbnail('wcb-product-thumb', ['loading' => 'lazy', 'class' => 'wcb-card5__img-primary']);
+                the_post_thumbnail('wcb-product-thumb', ['loading' => 'lazy', 'class' => 'wcb-product-card__img-primary']);
                 
                 // Segunda imagem (galeria) para hover swap
                 $gallery_ids = $product->get_gallery_image_ids();
                 if (!empty($gallery_ids)):
                     echo wp_get_attachment_image($gallery_ids[0], 'wcb-product-thumb', false, [
                         'loading' => 'lazy',
-                        'class'   => 'wcb-card5__img-secondary',
+                        'class'   => 'wcb-product-card__img-secondary',
                     ]);
                 endif;
             ?>
             <?php else: ?>
-                <div class="wcb-card5__no-img">
+                <div class="wcb-product-card__no-img">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="1" opacity="0.2">
                         <rect x="3" y="3" width="18" height="18" rx="2"></rect>
@@ -154,8 +156,8 @@ if ($product->is_type('variable')) {
 
         <?php if ($in_stock): ?>
         <!-- Hover overlay: Quick View + Add to Cart -->
-        <div class="wcb-card5__hover-actions">
-            <span class="wcb-card5__quickview-btn wcb-product-card__quickview-btn" data-product-id="<?php echo $product->get_id(); ?>" title="Compra rápida">
+        <div class="wcb-product-card__hover-actions">
+            <span class="wcb-product-card__quickview-btn" data-product-id="<?php echo $product->get_id(); ?>" title="Compra rápida">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -164,7 +166,7 @@ if ($product->is_type('variable')) {
                 Compra rápida
             </span>
             <a href="<?php echo esc_url($product->add_to_cart_url()); ?>"
-                class="wcb-card5__add-btn add_to_cart_button ajax_add_to_cart"
+                class="wcb-product-card__add-btn add_to_cart_button ajax_add_to_cart"
                 data-quantity="1"
                 data-product_id="<?php echo $product->get_id(); ?>"
                 data-product_sku="<?php echo esc_attr($product->get_sku()); ?>"
@@ -183,51 +185,51 @@ if ($product->is_type('variable')) {
     </div>
 
     <!-- ══ BODY ════════════════════════════════════════════ -->
-    <div class="wcb-card5__body">
+    <div class="wcb-product-card__body">
 
         <!-- Category -->
         <?php if ($cat_name && !in_array(strtolower($cat_name), ['sem categoria', 'uncategorized'])): ?>
-            <span class="wcb-card5__cat"><?php echo esc_html($cat_name); ?></span>
+            <span class="wcb-product-card__cat"><?php echo esc_html($cat_name); ?></span>
         <?php endif; ?>
 
         <!-- Product Name -->
-        <a href="<?php the_permalink(); ?>" class="wcb-card5__title">
+        <a href="<?php the_permalink(); ?>" class="wcb-product-card__title">
             <?php the_title(); ?>
         </a>
 
         <!-- Rating -->
-        <div class="wcb-card5__rating">
+        <div class="wcb-product-card__rating">
             <?php if ($rating_count > 0): ?>
-                <div class="wcb-card5__stars" style="--rating: <?php echo $avg_rating; ?>">
-                    <span class="wcb-card5__stars-fill">★★★★★</span>
-                    <span class="wcb-card5__stars-empty">★★★★★</span>
+                <div class="wcb-product-card__stars" style="--rating: <?php echo $avg_rating; ?>">
+                    <span class="wcb-product-card__stars-fill">★★★★★</span>
+                    <span class="wcb-product-card__stars-empty">★★★★★</span>
                 </div>
-                <span class="wcb-card5__rating-val"><?php echo number_format($avg_rating, 1); ?></span>
-                <span class="wcb-card5__rating-count">(<?php echo $rating_count; ?>)</span>
+                <span class="wcb-product-card__rating-val"><?php echo number_format($avg_rating, 1); ?></span>
+                <span class="wcb-product-card__rating-count">(<?php echo $rating_count; ?>)</span>
             <?php else: ?>
-                <div class="wcb-card5__stars" style="--rating: 4.8">
-                    <span class="wcb-card5__stars-fill">★★★★★</span>
-                    <span class="wcb-card5__stars-empty">★★★★★</span>
+                <div class="wcb-product-card__stars" style="--rating: 4.8">
+                    <span class="wcb-product-card__stars-fill">★★★★★</span>
+                    <span class="wcb-product-card__stars-empty">★★★★★</span>
                 </div>
-                <span class="wcb-card5__rating-val">4.8</span>
-                <span class="wcb-card5__rating-count">(<?php echo max($total_sales, rand(12, 128)); ?>)</span>
+                <span class="wcb-product-card__rating-val">4.8</span>
+                <span class="wcb-product-card__rating-count">(<?php echo max($total_sales, rand(12, 128)); ?>)</span>
             <?php endif; ?>
         </div>
 
 <!-- ══ PRICE BLOCK ══════════════════════════════════ -->
-        <div class="wcb-card5__price-block">
+        <div class="wcb-product-card__price-block">
 
             <!-- Preço principal (grande + destaque) -->
-            <div class="wcb-card5__price-main">
+            <div class="wcb-product-card__price-main">
                 <?php if ($is_on_sale && $regular_price > 0): ?>
-                    <span class="wcb-card5__price-old">R$ <?php echo number_format($regular_price, 2, ',', '.'); ?></span>
+                    <span class="wcb-product-card__price-old">R$ <?php echo number_format($regular_price, 2, ',', '.'); ?></span>
                 <?php endif; ?>
-                <span class="wcb-card5__price-current">R$ <?php echo number_format($current_price, 2, ',', '.'); ?></span>
+                <span class="wcb-product-card__price-current">R$ <?php echo number_format($current_price, 2, ',', '.'); ?></span>
             </div>
 
             <!-- Micro detalhe PIX (-5%) -->
             <?php if ($pix_price > 0): ?>
-                <span class="wcb-card5__pix-tag">
+                <span class="wcb-product-card__pix-tag">
                     <strong>R$ <?php echo number_format($pix_price, 2, ',', '.'); ?></strong> no PIX
                     <em>(-5%)</em>
                 </span>
@@ -235,17 +237,17 @@ if ($product->is_type('variable')) {
 
             <!-- Parcelamento -->
             <?php if ($current_price >= 30): ?>
-                <span class="wcb-card5__installments">ou 12x no cartão</span>
+                <span class="wcb-product-card__installments">ou 12x no cartão</span>
             <?php endif; ?>
 
         </div>
 
                 <!-- Teor / Nicotina (se existir) -->
         <?php if (!empty($teor_values)): ?>
-            <div class="wcb-card5__teor">
-                <span class="wcb-card5__teor-label">Teor:</span>
+            <div class="wcb-product-card__teor">
+                <span class="wcb-product-card__teor-label">Teor:</span>
                 <?php foreach ($teor_values as $tv): ?>
-                    <span class="wcb-card5__teor-pill"><?php echo esc_html($tv); ?></span>
+                    <span class="wcb-product-card__teor-pill"><?php echo esc_html($tv); ?></span>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
@@ -270,7 +272,7 @@ if ($product->is_type('variable')) {
         <?php if ($in_stock): ?>
         <!-- CTA visível mobile (desktop usa hover) -->
         <a href="<?php echo esc_url($product->add_to_cart_url()); ?>"
-            class="wcb-card5__cta-mobile add_to_cart_button ajax_add_to_cart"
+            class="wcb-product-card__cta-mobile add_to_cart_button ajax_add_to_cart"
             data-quantity="1"
             data-product_id="<?php echo $product->get_id(); ?>"
             data-product_sku="<?php echo esc_attr($product->get_sku()); ?>"
@@ -285,7 +287,7 @@ if ($product->is_type('variable')) {
         </a>
         <?php else: ?>
         <!-- Out of stock CTA -->
-        <a href="<?php the_permalink(); ?>" class="wcb-card5__cta-soldout">
+        <a href="<?php the_permalink(); ?>" class="wcb-product-card__cta-soldout">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -297,4 +299,4 @@ if ($product->is_type('variable')) {
 
 
     </div><!-- /.body -->
-</div><!-- /.wcb-card5 -->
+</div><!-- /.wcb-product-card -->

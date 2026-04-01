@@ -24,9 +24,53 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WCB_VERSION', '1.4.13' );
+if ( ! defined( 'WCB_DEV' ) ) {
+	define( 'WCB_DEV', false );
+}
+
+define( 'WCB_VERSION', '1.4.20' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
+
+/**
+ * Quando WCB_VERSION muda, apaga transients da home que guardam HTML de product cards
+ * (evita markup antigo até expirar o TTL de 12h).
+ */
+function wcb_maybe_bust_home_product_card_transients() {
+	if ( ! function_exists( 'delete_transient' ) ) {
+		return;
+	}
+	$stored = get_option( 'wcb_home_cards_transients_version', '' );
+	if ( $stored === WCB_VERSION ) {
+		return;
+	}
+
+	$fixed_keys = array(
+		'wcb_home_novidades_v2',
+		'wcb_home_vendidos',
+		'wcb_home_estoque',
+	);
+	foreach ( $fixed_keys as $key ) {
+		delete_transient( $key );
+	}
+
+	// IDs em promoção / hero: recalculam na próxima visita (coerente com cards novos).
+	delete_transient( 'wcb_on_sale_ids' );
+	delete_transient( 'wcb_hero_sale_id' );
+
+	// Super Ofertas: chave dinâmica wcb_home_ofertas_{md5(...)} — remover todas as instâncias.
+	global $wpdb;
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+			$wpdb->esc_like( '_transient_wcb_home_ofertas_' ) . '%',
+			$wpdb->esc_like( '_transient_timeout_wcb_home_ofertas_' ) . '%'
+		)
+	);
+
+	update_option( 'wcb_home_cards_transients_version', WCB_VERSION, false );
+}
+add_action( 'after_setup_theme', 'wcb_maybe_bust_home_product_card_transients', 1 );
 
 /**
  * URL da imagem do promo banner na front: evita fundo sólido (zoom invisível) quando
@@ -55,10 +99,12 @@ function wcb_promo_banner_image_src( $mod_key, $legacy_basename, $fallback_url )
 /* ============================================================
    MODULAR INCLUDES
    ============================================================ */
+require_once WCB_DIR . '/inc/wcb-pure-helpers.php';
 require_once WCB_DIR . '/inc/nav-walker.php';
 require_once WCB_DIR . '/inc/enqueue.php';
 require_once WCB_DIR . '/inc/translations.php';
 require_once WCB_DIR . '/inc/cart-checkout.php';
+require_once WCB_DIR . '/inc/woocommerce/cart-mini-ajax.php';
 require_once WCB_DIR . '/inc/woocommerce.php';
 require_once WCB_DIR . '/inc/cart-page-blocks-extras.php';
 require_once WCB_DIR . '/inc/pdp-reviews.php';
@@ -77,10 +123,13 @@ if ( defined( 'WCB_PROFILE_CART_AJAX' ) && WCB_PROFILE_CART_AJAX ) {
 }
 
 
-// Demo products setup (one-time, remove after use)
-require_once WCB_DIR . '/inc/setup-demo-products.php';
-require_once WCB_DIR . '/inc/import-product-images.php';
-require_once WCB_DIR . '/inc/apply-images-logo.php';
+// Demo/import: apenas em desenvolvimento (produção: WCB_DEV false em wp-config.php).
+if ( defined( 'WCB_DEV' ) && WCB_DEV ) {
+	require_once WCB_DIR . '/inc/setup-demo-products.php';
+	require_once WCB_DIR . '/inc/import-product-images.php';
+	require_once WCB_DIR . '/inc/apply-images-logo.php';
+	require_once WCB_DIR . '/inc/wcb-dev-tools-admin.php';
+}
 
 /* ============================================================
    THEME SETUP
@@ -152,6 +201,16 @@ function wcb_flush_home_transients() {
          WHERE option_name LIKE '_transient_wcb_home_ofertas_%'
             OR option_name LIKE '_transient_timeout_wcb_home_ofertas_%'"
     );
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_wcb_filt_sb_%'
+            OR option_name LIKE '_transient_timeout_wcb_filt_sb_%'"
+    );
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_wcb_ls_v1_%'
+            OR option_name LIKE '_transient_timeout_wcb_ls_v1_%'"
+    );
 }
 
 /* ============================================================
@@ -202,13 +261,28 @@ add_action( 'pre_get_posts', function ( $query ) {
 
     if ( is_product_category( 'promocoes' ) ) {
         $on_sale_ids = wc_get_product_ids_on_sale();
-
-        if ( ! empty( $on_sale_ids ) ) {
-            // Mostra os produtos em promoção, ignorando a taxonomy
-            $query->set( 'post__in', $on_sale_ids );
-            $query->set( 'tax_query', array() ); // Remove filtro de categoria
-            $query->set( 'orderby', 'date' );
-            $query->set( 'order', 'DESC' );
+        if ( empty( $on_sale_ids ) ) {
+            return;
         }
+        $max_post_in = (int) apply_filters( 'wcb_promocoes_post_in_max', 500 );
+        $query->set( 'tax_query', array() );
+        $query->set( 'orderby', 'date' );
+        $query->set( 'order', 'DESC' );
+        if ( wcb_promocoes_should_use_post_in( $on_sale_ids, $max_post_in ) ) {
+            $query->set( 'post__in', $on_sale_ids );
+            return;
+        }
+        // Catálogos grandes: evita post__in gigante — meta_query aproximada (testar variações em QA)
+        $query->set(
+            'meta_query',
+            array(
+                array(
+                    'key'     => '_sale_price',
+                    'value'   => '',
+                    'compare' => '!=',
+                    'type'    => 'CHAR',
+                ),
+            )
+        );
     }
 } );

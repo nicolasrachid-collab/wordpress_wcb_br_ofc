@@ -7,6 +7,13 @@
  *
  * CSS necessário: classes wcb-testi__* em style.css
  * Design: branco, 3 colunas scrolling, estrelas douradas, badge com ponto azul
+ *
+ * @package wcb-theme
+ *
+ * Exceção ao padrão `.wcb-section` (governança de secções):
+ * Este bloco permanece em `wcb-testi` / `wcb-testi__header` por ser componente legado com
+ * padding, fundo e tipografia próprios. Unificar com `.wcb-section__header` + tokens exige
+ * refactor dedicado (CSS + markup) para evitar dobro de espaçamento e regressões visuais.
  */
 
 $testimonials = [

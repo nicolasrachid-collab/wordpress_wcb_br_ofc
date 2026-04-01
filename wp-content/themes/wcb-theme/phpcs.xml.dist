@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<ruleset name="WCB Theme">
+	<description>PHPCS — WordPress Coding Standards (tema wcb-theme)</description>
+
+	<file>.</file>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/assets/dist/*</exclude-pattern>
+
+	<!-- Requer: composer install na pasta do tema (PHPCS + WPCS). -->
+	<rule ref="WordPress-Core"/>
+
+	<config name="minimum_supported_wp_version" value="6.0"/>
+</ruleset>

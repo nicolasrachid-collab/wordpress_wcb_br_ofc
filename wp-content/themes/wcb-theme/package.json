@@ -1,0 +1,16 @@
+{
+  "name": "wcb-theme",
+  "private": true,
+  "scripts": {
+    "lint:php": "php -d memory_limit=512M vendor/bin/phpcs --standard=phpcs.xml.dist",
+    "lint:php:fix": "php -d memory_limit=512M vendor/bin/phpcbf --standard=phpcs.xml.dist",
+    "test": "npm run test:php && npm run test:http",
+    "test:php": "php tests/php/run-pure-tests.php",
+    "test:http": "node tests/http/run.mjs",
+    "test:phpunit": "php vendor/bin/phpunit -c phpunit.xml.dist"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}
