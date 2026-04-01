@@ -55,6 +55,7 @@ desktop.ini
 *.bak
 *.backup
 *.old
+*.bk
 
 # Zip temporários
 *.zip
@@ -69,7 +70,6 @@ xampp/
 
 # Local / ferramentas / saídas de debug (não versionar)
 .sfdx/
-.htaccess.bk
 products-output.txt
 wp-content/litespeed/
 wp-content/plugins/litespeed-cache/
