@@ -7,30 +7,75 @@
 
 defined('ABSPATH') || exit;
 
+/**
+ * IDs de todos os produtos que correspondem à query principal (loja / arquivo / taxonomia de produto), sem paginação.
+ * Necessário para as contagens do filtro lateral baterem com o catálogo real, não só com a página atual.
+ *
+ * @return int[]
+ */
+function wcb_filter_get_context_product_ids() {
+    global $wp_query;
+
+    if ( ! isset( $wp_query ) || ! ( $wp_query instanceof WP_Query ) ) {
+        return [];
+    }
+
+    $use_full_query = false;
+    if ( $wp_query->get( 'post_type' ) === 'product' || ( is_array( $wp_query->get( 'post_type' ) ) && in_array( 'product', (array) $wp_query->get( 'post_type' ), true ) ) ) {
+        $use_full_query = true;
+    } elseif ( function_exists( 'is_shop' ) && ( is_shop() || is_product_taxonomy() || $wp_query->is_post_type_archive( 'product' ) ) ) {
+        $use_full_query = true;
+    } elseif ( $wp_query->is_tax() ) {
+        $tax = $wp_query->get( 'taxonomy' );
+        if ( $tax && is_string( $tax ) && taxonomy_exists( $tax ) && in_array( 'product', (array) get_taxonomy( $tax )->object_type, true ) ) {
+            $use_full_query = true;
+        }
+    }
+
+    if ( $use_full_query ) {
+        $args = $wp_query->query_vars;
+        $args['posts_per_page'] = -1;
+        $args['nopaging']       = true;
+        $args['paged']          = 1;
+        $args['fields']         = 'ids';
+        $args['no_found_rows']  = true;
+        $args['update_post_meta_cache'] = false;
+        $args['update_term_meta_cache'] = false;
+        unset( $args['offset'], $args['page'] );
+
+        $q = new WP_Query( $args );
+        return array_map( 'intval', $q->posts );
+    }
+
+    $context_ids = [];
+    if ( ! empty( $wp_query->posts ) ) {
+        foreach ( $wp_query->posts as $p ) {
+            $context_ids[] = is_object( $p ) ? (int) $p->ID : (int) $p;
+        }
+    }
+
+    if ( empty( $context_ids ) ) {
+        $context_ids = get_posts(
+            [
+                'post_type'      => 'product',
+                'post_status'    => 'publish',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+            ]
+        );
+    }
+
+    return array_map( 'intval', $context_ids );
+}
+
 /* ================================================================
    1. RENDER FILTER SIDEBAR
    ================================================================ */
 
 function wcb_render_native_filter() {
-    // ── Obter IDs dos produtos da query atual (contexto da página) ──
     global $wp_query, $wpdb;
-    $context_ids = [];
 
-    if ( isset($wp_query) && $wp_query->posts ) {
-        foreach ( $wp_query->posts as $p ) {
-            $context_ids[] = is_object($p) ? $p->ID : intval($p);
-        }
-    }
-
-    // Fallback: se não tiver contexto, pega todos os produtos publicados
-    if ( empty($context_ids) ) {
-        $context_ids = get_posts([
-            'post_type'      => 'product',
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-        ]);
-    }
+    $context_ids = wcb_filter_get_context_product_ids();
 
     $get_sig = [];
     foreach ( $_GET as $gk => $gv ) {
@@ -39,8 +84,12 @@ function wcb_render_native_filter() {
         }
     }
     ksort( $get_sig );
-    $paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
-    $filter_cache_key = 'wcb_filt_sb_v1_' . md5( wp_json_encode( [ 'ids' => $context_ids, 'get' => $get_sig, 'paged' => $paged ] ) );
+
+    // Cache por query da loja + filtros URL (sem página — contagens são iguais em todas as páginas).
+    $qv_for_key = isset( $wp_query ) && $wp_query instanceof WP_Query ? $wp_query->query_vars : [];
+    unset( $qv_for_key['paged'], $qv_for_key['posts_per_page'], $qv_for_key['offset'], $qv_for_key['fields'], $qv_for_key['page'], $qv_for_key['nopaging'] );
+    ksort( $qv_for_key );
+    $filter_cache_key = 'wcb_filt_sb_v2_' . md5( wp_json_encode( [ 'qv' => $qv_for_key, 'get' => $get_sig ] ) );
     $filter_cached    = get_transient( $filter_cache_key );
     if ( false !== $filter_cached ) {
         echo $filter_cached;
@@ -169,7 +218,7 @@ function wcb_render_native_filter() {
         <!-- ── Result count (dynamic) ── -->
         <div class="wcb-filter__result-count" id="wcb-filter-count">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <span id="wcb-filter-count-text"><?php echo count($context_ids); ?> produtos</span>
+            <span id="wcb-filter-count-text"><?php echo esc_html( (string) count( $context_ids ) ); ?> produtos</span>
         </div>
 
         <!-- ── Categorias ── -->
