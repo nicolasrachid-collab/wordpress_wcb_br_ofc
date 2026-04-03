@@ -97,6 +97,8 @@ body.cartflows-canvas {
     display: none !important;
 }
 
+/* Header checkout/canvas: ver checkout-header-guard.css (injetado no wp_footer). */
+
 /* ==========================================================
    PAYMENT LOGOS — above the submit button
    ========================================================== */

@@ -1,0 +1,111 @@
+/**
+ * Checkout / CartFlows — injetado no wp_footer (inc/cart-checkout.php).
+ * Seletores sem body.woocommerce-checkout: alguns funis não mantêm a classe no body.
+ */
+html #wcb-site-header .wcb-header .wcb-header__inner,
+html header#wcb-header .wcb-header__inner {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-height: var(--wcb-header-h, 80px) !important;
+    height: var(--wcb-header-h, 80px) !important;
+    contain: layout style !important;
+}
+
+@media (min-width: 769px) {
+    html #wcb-site-header .wcb-header .wcb-header__inner,
+    html header#wcb-header .wcb-header__inner {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        height: var(--wcb-header-h, 80px) !important;
+        min-height: var(--wcb-header-h, 80px) !important;
+    }
+}
+
+html #wcb-site-header {
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__logo,
+html #wcb-site-header .wcb-header .wcb-header__search,
+html #wcb-site-header .wcb-header .wcb-header__actions,
+html header#wcb-header .wcb-header__logo,
+html header#wcb-header .wcb-header__search,
+html header#wcb-header .wcb-header__actions {
+    align-self: center !important;
+    min-height: 0 !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__actions,
+html header#wcb-header .wcb-header__actions {
+    width: auto !important;
+    max-width: min(100%, 720px) !important;
+    max-height: 120px !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    justify-content: flex-end !important;
+    margin-left: 0 !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__action,
+html header#wcb-header .wcb-header__action {
+    flex-shrink: 0 !important;
+    max-width: 100% !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__action svg,
+html header#wcb-header .wcb-header__action svg {
+    width: 22px !important;
+    height: 22px !important;
+    max-width: 22px !important;
+    max-height: 22px !important;
+    flex-shrink: 0 !important;
+    box-sizing: content-box !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__search-btn svg,
+html header#wcb-header .wcb-header__search-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__login-btn svg,
+html header#wcb-header .wcb-header__login-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__cloud-club-btn svg,
+html header#wcb-header .wcb-header__cloud-club-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark,
+html header#wcb-header .wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark {
+    width: 15px !important;
+    height: 15px !important;
+    max-width: 15px !important;
+    max-height: 15px !important;
+}
+
+html #wcb-site-header .wcb-header .wcb-header__logo img,
+html header#wcb-header .wcb-header__logo img {
+    width: auto !important;
+    height: 64px !important;
+    max-height: 64px !important;
+    max-width: min(220px, 100%) !important;
+    object-fit: contain !important;
+}

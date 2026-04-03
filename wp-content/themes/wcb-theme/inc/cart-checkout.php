@@ -32,22 +32,67 @@ function wcb_cart_custom_header() {
 add_action( 'wp_head', 'wcb_cart_custom_header', 999 );
 
 /* ============================================================
-   CARTFLOWS PAGES — Inject full WCB site header
-   CartFlows Canvas template skips get_header(), so the 
-   top bar, header, and nav are never rendered. We capture
-   just the body-level HTML from header.php and inject it.
+   CARTFLOWS / checkout sem header do tema — injeta topbar + header
+   CartFlows canvas & boxed não chamam get_header(); aí o partial é necessário.
+   Checkout Woo com template padrão JÁ passa por header.php + wp_body_open: injetar
+   aqui duplicava #wcb-site-header / #wcb-header e estourava o layout.
    ============================================================ */
-function wcb_inject_site_header_on_cartflows() {
-    // Inject on CartFlows steps OR WooCommerce native checkout (page with cartflows-canvas class)
-    if ( ! is_singular( 'cartflows_step' ) && ! is_checkout() ) return;
+function wcb_needs_injected_site_header() {
+    if ( is_singular( 'cartflows_step' ) ) {
+        return true;
+    }
+    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+        return false;
+    }
+    $tpl = get_page_template_slug();
+    if ( ! $tpl ) {
+        return false;
+    }
+    return in_array( $tpl, array( 'cartflows-canvas', 'cartflows-default' ), true );
+}
 
-    // Directly include the nav-only partial that outputs topbar + header + nav
+function wcb_inject_site_header_on_cartflows() {
+    if ( ! wcb_needs_injected_site_header() ) {
+        return;
+    }
     $partial = get_template_directory() . '/inc/site-header-partial.php';
     if ( file_exists( $partial ) ) {
         include $partial;
     }
 }
 add_action( 'wp_body_open', 'wcb_inject_site_header_on_cartflows', 0 );
+
+/**
+ * CSS do header no fim do body — depois de wc-blocks / Spectra, para não perder para !important de terceiros.
+ */
+function wcb_needs_checkout_header_guard_css() {
+    if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
+        return false;
+    }
+    if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+        return true;
+    }
+    if ( is_singular( 'cartflows_step' ) ) {
+        return true;
+    }
+    return false;
+}
+
+function wcb_print_checkout_header_guard_css() {
+    if ( ! wcb_needs_checkout_header_guard_css() ) {
+        return;
+    }
+    $file = get_template_directory() . '/checkout-header-guard.css';
+    if ( ! is_readable( $file ) ) {
+        return;
+    }
+    $css = file_get_contents( $file );
+    if ( false === $css ) {
+        return;
+    }
+    echo '<style id="wcb-checkout-header-guard">' . "\n" . $css . "\n" . '</style>' . "\n";
+}
+add_action( 'wp_footer', 'wcb_print_checkout_header_guard_css', 9999 );
 
 /* Kept for reference — no longer injected on cart page since the real
    WCB site header is now visible. The progress bar is shown separately. */

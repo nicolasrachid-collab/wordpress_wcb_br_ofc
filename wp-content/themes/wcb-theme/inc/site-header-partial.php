@@ -12,7 +12,13 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+/** Sem menu principal / drawer no checkout — restantes páginas inalteradas. */
+$wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
 ?>
+
+<!-- Mesmo wrapper que header.php: sem isto, o grid desktop (#wcb-site-header .wcb-header__inner) não aplica no canvas. -->
+<div class="wcb-site-header" id="wcb-site-header">
 
 <!-- ==================== TOP BAR ==================== -->
 <div class="wcb-topbar">
@@ -35,6 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <header class="wcb-header" id="wcb-header">
     <div class="wcb-container wcb-header__inner">
 
+        <?php if ( ! $wcb_skip_shop_nav ) : ?>
         <!-- Mobile Toggle -->
         <button class="wcb-mobile-toggle" id="wcb-mobile-toggle" aria-label="Abrir menu">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -44,6 +51,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
+        <?php endif; ?>
 
         <!-- Logo -->
         <div class="wcb-header__logo">
@@ -125,6 +133,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
     </div>
 </header>
 
+<?php if ( ! $wcb_skip_shop_nav ) : ?>
 <!-- ==================== NAVIGATION BAR ==================== -->
 <nav class="wcb-nav" id="wcb-nav" role="navigation" aria-label="Menu principal">
     <div class="wcb-container wcb-nav__inner">
@@ -163,6 +172,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <div class="wcb-subnav" id="wcb-subnav" role="navigation" aria-label="Submenu da categoria">
     <div class="wcb-subnav__inner" id="wcb-subnav-inner"></div>
 </div>
+
+<?php endif; ?>
+
+</div><!-- /.wcb-site-header -->
+
+<?php if ( ! $wcb_skip_shop_nav ) : ?>
 
 <script>
 (function () {
@@ -317,3 +332,5 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         ?>
     </nav>
 </div>
+
+<?php endif; ?>

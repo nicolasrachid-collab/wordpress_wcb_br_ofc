@@ -17,6 +17,10 @@
 
 <body <?php body_class(); ?>>
     <?php wp_body_open(); ?>
+    <?php
+    /** Checkout: sem barra de menu / drawer (apenas is_checkout; demais páginas iguais). */
+    $wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
+    ?>
 
     <!-- ==================== SITE HEADER WRAPPER (STICKY) ==================== -->
     <div class="wcb-site-header" id="wcb-site-header">
@@ -56,6 +60,7 @@
     <header class="wcb-header" id="wcb-header">
         <div class="wcb-container wcb-header__inner">
 
+            <?php if ( ! $wcb_skip_shop_nav ) : ?>
             <!-- Mobile Toggle -->
             <button class="wcb-mobile-toggle" id="wcb-mobile-toggle" aria-label="Abrir menu">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -65,6 +70,7 @@
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
+            <?php endif; ?>
 
             <!-- Logo -->
             <div class="wcb-header__logo">
@@ -174,6 +180,7 @@
         </div>
     </header>
 
+    <?php if ( ! $wcb_skip_shop_nav ) : ?>
     <!-- ==================== NAVIGATION BAR ==================== -->
     <nav class="wcb-nav" id="wcb-nav" role="navigation" aria-label="Menu principal">
         <div class="wcb-container wcb-nav__inner">
@@ -336,6 +343,7 @@
         <?php endif; ?>
 
     </nav>
+    <?php endif; ?>
 
     </div><!-- /.wcb-site-header -->
 
@@ -635,6 +643,7 @@
     })();
     </script>
 
+    <?php if ( ! $wcb_skip_shop_nav ) : ?>
     <!-- ==================== MOBILE MENU ==================== -->
 
     <div class="wcb-mobile-overlay" id="wcb-mobile-overlay"></div>
@@ -670,6 +679,7 @@
             ?>
         </nav>
     </div>
+    <?php endif; ?>
 
     <!-- ==================== MINI-CART FLYOUT ==================== -->
     <div class="wcb-mini-cart-overlay" id="wcb-mini-cart-overlay" aria-hidden="true"></div>
