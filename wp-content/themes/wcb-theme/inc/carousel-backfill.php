@@ -66,7 +66,7 @@ function wcb_carousel_normalize_cache( $cached ) {
  * Build id+html rows from a WP_Query loop (caller must reset postdata).
  *
  * @param WP_Query $query Query com posts.
- * @param array<string, string>|null $wcb_track Opcional: data-wcb-track e data-role no card (ex. Super Ofertas).
+ * @param array<string, string|bool>|null $wcb_track Opcional: data-wcb-track, data-role; hide_stock_bar=true omite barra de estoque no card.
  * @return array<int, array{id:int, html:string}>
  */
 function wcb_carousel_pairs_from_query( WP_Query $query, $wcb_track = null ) {
@@ -313,8 +313,11 @@ function wcb_carousel_query_backfill_ids( $needed, array $exclude_ids, $section,
 
 /**
  * Render product card HTML for a single ID (no global carousel state).
+ *
+ * @param int                                                         $product_id   Post ID.
+ * @param array<string, string|bool>|null                             $wcb_track    Opcional: mesmo formato que wcb_carousel_pairs_from_query (ex. Super Ofertas + hide_stock_bar).
  */
-function wcb_carousel_render_card_html( $product_id ) {
+function wcb_carousel_render_card_html( $product_id, $wcb_track = null ) {
 	$product_id = (int) $product_id;
 	if ( $product_id < 1 || ! class_exists( 'WooCommerce' ) ) {
 		return '';
@@ -328,6 +331,11 @@ function wcb_carousel_render_card_html( $product_id ) {
 	if ( ! $post ) {
 		return '';
 	}
+	$restore = null;
+	if ( is_array( $wcb_track ) && isset( $wcb_track['wcb_track'], $wcb_track['role'] ) ) {
+		$restore = array_key_exists( 'wcb_product_card_track', $GLOBALS ) ? $GLOBALS['wcb_product_card_track'] : false;
+		$GLOBALS['wcb_product_card_track'] = $wcb_track;
+	}
 	setup_postdata( $post );
 	$GLOBALS['product'] = $product;
 	if ( function_exists( 'wc_setup_product_data' ) ) {
@@ -338,6 +346,13 @@ function wcb_carousel_render_card_html( $product_id ) {
 	$html = ob_get_clean();
 	wp_reset_postdata();
 	unset( $GLOBALS['product'] );
+	if ( null !== $restore ) {
+		if ( false === $restore ) {
+			unset( $GLOBALS['wcb_product_card_track'] );
+		} else {
+			$GLOBALS['wcb_product_card_track'] = $restore;
+		}
+	}
 	return is_string( $html ) ? $html : '';
 }
 
@@ -369,6 +384,15 @@ function wcb_carousel_pad_chunk( array $chunk, $slot_size, array $carousel_all_b
 
 		$ids_on_slide = wcb_carousel_pairs_collect_ids( $out );
 
+		$wcb_pad_track = null;
+		if ( $section === 'ofertas' ) {
+			$wcb_pad_track = array(
+				'wcb_track'      => 'super-ofertas',
+				'role'           => 'carousel',
+				'hide_stock_bar' => true,
+			);
+		}
+
 		while ( count( $out ) < $slot_size && $need > 0 ) {
 			$exclude = $ids_on_slide;
 
@@ -379,13 +403,13 @@ function wcb_carousel_pad_chunk( array $chunk, $slot_size, array $carousel_all_b
 				$exclude = array_values( array_unique( array_merge( $exclude, $homepage_used ) ) );
 			}
 
-			$fetch   = wcb_carousel_query_backfill_ids( $need, $exclude, $section, $mode, $fallback_cat_id, $mixed_source_ids, $ofertas_sale_pool );
-			$added   = 0;
+			$fetch = wcb_carousel_query_backfill_ids( $need, $exclude, $section, $mode, $fallback_cat_id, $mixed_source_ids, $ofertas_sale_pool );
+			$added = 0;
 			foreach ( $fetch as $pid ) {
 				if ( count( $out ) >= $slot_size ) {
 					break;
 				}
-				$html = wcb_carousel_render_card_html( $pid );
+				$html = wcb_carousel_render_card_html( $pid, $wcb_pad_track );
 				if ( $html === '' ) {
 					continue;
 				}

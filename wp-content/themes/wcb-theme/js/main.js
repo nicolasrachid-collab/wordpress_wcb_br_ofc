@@ -322,26 +322,47 @@
                 // Atualizar lista local
                 wl.wishlist = data.data.wishlist || [];
                 updateFavBadge(wl.wishlist.length);
+
+                // Página Meus Favoritos: ao desfavoritar, remove o card (só o coração permanece na UI)
+                if (data.data && data.data.action === 'removed') {
+                    const shell = favBtn.closest('.wcb-wl-card');
+                    if (shell) {
+                        shell.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                        shell.style.opacity = '0';
+                        shell.style.transform = 'scale(0.95)';
+                        setTimeout(function () {
+                            shell.remove();
+                            var wlHeaderSub = document.querySelector('.wcb-wl-header__sub');
+                            if (wlHeaderSub) {
+                                var c = wl.wishlist.length;
+                                wlHeaderSub.textContent = c + ' produto' + (c !== 1 ? 's' : '') + ' salvo' + (c !== 1 ? 's' : '');
+                            }
+                            var remaining = document.querySelectorAll('.wcb-wl-card, .wcb-wishlist-card');
+                            if (remaining.length === 0) {
+                                location.reload();
+                            }
+                        }, 260);
+                    }
+                }
             })
             .catch(() => {
                 favBtn.classList.toggle('active');
             });
     });
 
-    // ── Remover da página de favoritos (botão X do card) ─────────
+    // ── Remover (layout legado wcb-wishlist-card, se existir) ───
     document.addEventListener('click', function (e) {
-        const removeBtn = e.target.closest('.wcb-wishlist-card__remove, .wcb-wl-card__remove');
+        const removeBtn = e.target.closest('.wcb-wishlist-card__remove');
         if (!removeBtn) return;
 
         e.preventDefault();
 
         const productId = parseInt(removeBtn.dataset.productId, 10);
-        const card = removeBtn.closest('.wcb-wishlist-card, .wcb-wl-card');
+        const card = removeBtn.closest('.wcb-wishlist-card');
         const wl = window.wcbWishlist;
 
         if (!productId || !wl || !wl.isLoggedIn) return;
 
-        // Animar saída
         if (card) {
             card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
             card.style.opacity = '0';
@@ -361,13 +382,11 @@
                     wl.wishlist = data.data.wishlist || [];
                     updateFavBadge(wl.wishlist.length);
                     window.wcbShowFavToast('💔 Removido dos favoritos', 'removed');
-                    // Atualizar contagem no header da página de favoritos
                     var wlHeaderSub = document.querySelector('.wcb-wl-header__sub');
                     if (wlHeaderSub) {
                         var c = wl.wishlist.length;
                         wlHeaderSub.textContent = c + ' produto' + (c !== 1 ? 's' : '') + ' salvo' + (c !== 1 ? 's' : '');
                     }
-                    // Verificar se ficou vazio
                     var remaining = document.querySelectorAll('.wcb-wl-card, .wcb-wishlist-card');
                     if (remaining.length === 0) {
                         setTimeout(function() { location.reload(); }, 500);
@@ -625,16 +644,23 @@
             });
         }
 
-        function run() {
-            document.querySelectorAll('.wcb-pdp-buybox__desc[data-wcb-short-desc]').forEach(measureAndBind);
+        function run(root) {
+            var nodes = root && root.querySelectorAll
+                ? root.querySelectorAll('.wcb-pdp-buybox__desc[data-wcb-short-desc]')
+                : document.querySelectorAll('.wcb-pdp-buybox__desc[data-wcb-short-desc]');
+            nodes.forEach(measureAndBind);
         }
+
+        window.wcbInitBuyboxShortDesc = function (root) {
+            requestAnimationFrame(function () { run(root); });
+        };
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () {
-                requestAnimationFrame(run);
+                window.wcbInitBuyboxShortDesc();
             });
         } else {
-            requestAnimationFrame(run);
+            window.wcbInitBuyboxShortDesc();
         }
     })();
 
@@ -1079,14 +1105,14 @@
 
         // ── All results kept for filter logic ────────────────────────────────
         currentResults = items;
-        let activeFilter = null; // { type: 'all'|'promo'|'new'|'stock' }
+        let activeFilter = null; // { type: 'all'|'promo'|'flash'|'new' }
 
         function applyFilter(allItems, filter) {
             if (!filter || filter.type === 'all') return allItems;
             return allItems.filter(item => {
                 if (filter.type === 'promo') return !!item.price_old;
+                if (filter.type === 'flash') return !!item.is_flash_offer;
                 if (filter.type === 'new') return !!item.is_new;
-                if (filter.type === 'stock') return item.in_stock === true;
                 return true;
             });
         }
@@ -1110,7 +1136,7 @@
                 <div class="wcb-search-item__info">
                     <div class="wcb-search-item__badges">
                         ${item.is_bestseller ? '<span class="wcb-badge wcb-badge--best">🏆 Mais vendido</span>' : ''}
-                        ${item.is_trending && !item.is_bestseller ? '<span class="wcb-badge wcb-badge--trend">🔥 Trending</span>' : ''}
+                        ${item.is_trending && !item.is_bestseller ? '<span class="wcb-badge wcb-badge--trend">🔥 Em alta</span>' : ''}
                     </div>
                     <div class="wcb-search-item__name">${highlightTerm(item.title, query)}</div>
                     <div class="wcb-search-item__meta">
@@ -1143,27 +1169,25 @@
 
         function buildFilterBar(allItems, currentFilter) {
             const hasPromo = allItems.some(i => !!i.price_old);
+            const hasFlash = allItems.some(i => !!i.is_flash_offer);
             const hasNew = allItems.some(i => !!i.is_new);
-            const hasInStock = allItems.some(i => !!i.in_stock);
 
             // Don't show the bar at all if no optional filters apply
-            if (!hasPromo && !hasNew && !hasInStock) return '';
+            if (!hasPromo && !hasFlash && !hasNew) return '';
 
             function chip(label, type, emoji) {
                 const isActive = type === 'all'
                     ? !currentFilter
                     : (currentFilter && currentFilter.type === type);
-                return `<button class="wcb-filter-chip${isActive ? ' wcb-filter-chip--active' : ''}" data-filter-type="${type}" data-filter-value="">${emoji ? emoji + ' ' : ''}${label}</button>`;
+                return `<button type="button" class="wcb-filter-chip${isActive ? ' wcb-filter-chip--active' : ''}" data-filter-type="${type}" data-filter-value="">${emoji ? emoji + ' ' : ''}${label}</button>`;
             }
 
             let chips = chip('Todos', 'all', '');
             if (hasPromo) chips += chip('Promoção', 'promo', '🏷️');
+            if (hasFlash) chips += chip('Ofertas relâmpago', 'flash', '⚡');
             if (hasNew) chips += chip('Novidades', 'new', '✨');
-            if (hasInStock) chips += chip('Em estoque', 'stock', '●');
 
-            if (currentFilter) {
-                chips += `<button class="wcb-filter-chip wcb-filter-chip--clear" data-filter-type="clear" data-filter-value="">✕ Limpar</button>`;
-            }
+            chips += `<button type="button" class="wcb-filter-chip wcb-filter-chip--clear" data-filter-type="clear" data-filter-value="">Limpar</button>`;
 
             return `<div class="wcb-search-filters">${chips}</div>`;
         }
@@ -1689,7 +1713,11 @@
         currentProduct = null;
         selectedAttributes = {};
         setTimeout(() => {
-            if (content) { content.innerHTML = ''; content.classList.remove('is-visible'); }
+            if (content) {
+                content.innerHTML = '';
+                content.classList.remove('is-visible');
+                content.style.removeProperty('display');
+            }
             if (loading) loading.classList.remove('is-hidden');
         }, 300);
     }
@@ -1970,23 +1998,23 @@
 
             const fd = new FormData();
             const variationId = btn.dataset.variation_id;
+            const wcAtcUrl = wcbGetWcAjaxAddToCartUrl();
 
             if (variationId) {
-                fd.append('action', 'woocommerce_ajax_add_to_cart');
-                fd.append('product_id', btn.dataset.product_id);
-                fd.append('variation_id', variationId);
-                fd.append('quantity', qty);
-                Object.entries(selectedAttributes).forEach(([key, val]) => {
-                    fd.append(`attribute_${key}`, val);
-                });
+                fd.append('product_id', String(variationId));
+                fd.append('quantity', String(qty));
             } else {
-                fd.append('action', 'woocommerce_ajax_add_to_cart');
                 fd.append('product_id', btn.dataset.product_id);
                 fd.append('product_sku', btn.dataset.product_sku || '');
-                fd.append('quantity', qty);
+                fd.append('quantity', String(qty));
             }
 
-            fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+            const postUrl = wcAtcUrl || ajaxUrl;
+            if (!wcAtcUrl) {
+                fd.append('action', 'woocommerce_add_to_cart');
+            }
+
+            fetch(postUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
                     btn.classList.remove('loading');
@@ -2009,10 +2037,61 @@
         });
     }
 
+    function wcbQvFocusInitial() {
+        requestAnimationFrame(function () {
+            try {
+                if (closeBtn) {
+                    closeBtn.focus();
+                }
+            } catch (e) { /* ignore */ }
+        });
+    }
+
+    function wcbGetWcAjaxAddToCartUrl() {
+        if (window.WcbVariationBuybox && typeof window.WcbVariationBuybox.getWcAjaxAddToCartUrl === 'function') {
+            return window.WcbVariationBuybox.getWcAjaxAddToCartUrl();
+        }
+        if (typeof wc_add_to_cart_params !== 'undefined' && wc_add_to_cart_params.wc_ajax_url) {
+            return wc_add_to_cart_params.wc_ajax_url.toString().replace('%%endpoint%%', 'add_to_cart');
+        }
+        if (typeof wc_add_to_cart_variation_params !== 'undefined' && wc_add_to_cart_variation_params.wc_ajax_url) {
+            return wc_add_to_cart_variation_params.wc_ajax_url.toString().replace('%%endpoint%%', 'add_to_cart');
+        }
+        return '';
+    }
+
+    function initQvNativeVariableBuybox(p) {
+        var root = content.querySelector('[data-wcb-qv-native-variations="1"]');
+        if (!root || !window.WcbVariationBuybox || typeof window.WcbVariationBuybox.setupQuickViewVariableBuybox !== 'function') {
+            return;
+        }
+        var form = root.querySelector('form.variations_form');
+        if (!form) {
+            return;
+        }
+        window.WcbVariationBuybox.setupQuickViewVariableBuybox({
+            root: root,
+            form: form,
+            defaultImageUrl: p.image_url || '',
+            onVariationImage: function (url) {
+                updateMainImage(url);
+            },
+            onResetImage: function (url) {
+                updateMainImage(url);
+            }
+        });
+    }
+
     /* ── Populate modal with product data ──────────────────── */
     function populateModal(p) {
         currentProduct = p;
         selectedAttributes = {};
+
+        if (modal) {
+            modal.scrollTop = 0;
+        }
+
+        var useNativeVarBox = p.type === 'variable' && p.buybox_html && String(p.buybox_html).trim() !== '';
 
         // Gallery HTML — thumbnails horizontal
         const galleryHtml = p.gallery.length > 1
@@ -2035,6 +2114,54 @@
         const specsHtml = p.specs.length
             ? `<div class="wcb-qv-specs">${p.specs.map(s => `<span class="wcb-qv-spec">${s.emoji} ${s.value}</span>`).join('')}</div>` : '';
 
+        if (useNativeVarBox) {
+            content.innerHTML = `
+        <a href="#wcb-qv-buy-area" class="wcb-qv-skip-buy">Ir para comprar</a>
+        <div class="wcb-qv-top">
+        <div class="wcb-qv-left">
+            ${badge}
+            <div class="wcb-qv-main-img-wrap">
+                <img id="wcb-qv-main-img" src="${p.image_url}" alt="${p.name}" class="wcb-qv-main-img">
+            </div>
+            ${galleryHtml}
+        </div>
+        <div class="wcb-qv-right">
+            ${p.category ? `<span class="wcb-qv-cat">${p.category}</span>` : ''}
+            <h2 class="wcb-qv-title">${p.name}</h2>
+            ${specsHtml}
+            ${p.buybox_html}
+            <a href="${p.permalink}" class="wcb-qv-full-link">
+                Ver produto completo
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+        </div>`;
+
+            const thumbsNv = content.querySelectorAll('.wcb-qv-thumb');
+            const mainImgNv = content.querySelector('#wcb-qv-main-img');
+            thumbsNv.forEach(function (thumb) {
+                thumb.addEventListener('click', function () {
+                    thumbsNv.forEach(function (t) { t.classList.remove('active'); });
+                    thumb.classList.add('active');
+                    if (mainImgNv) {
+                        mainImgNv.style.opacity = '0';
+                        mainImgNv.style.transform = 'scale(0.96)';
+                        setTimeout(function () {
+                            mainImgNv.src = thumb.dataset.full;
+                            mainImgNv.style.opacity = '1';
+                            mainImgNv.style.transform = 'scale(1)';
+                        }, 160);
+                    }
+                });
+            });
+            if (typeof window.wcbInitBuyboxShortDesc === 'function') {
+                window.wcbInitBuyboxShortDesc(content);
+            }
+            initQvNativeVariableBuybox(p);
+            wcbQvFocusInitial();
+            return;
+        }
+
         // Rating
         const ratingHtml = p.rating_count > 0
             ? `<div class="wcb-qv-rating">
@@ -2042,10 +2169,6 @@
                 <span>${p.avg_rating}</span>
                 <span class="wcb-qv-rating-count">(${p.rating_count})</span>
                </div>` : '';
-
-        // Short desc
-        const descHtml = p.short_desc
-            ? `<p class="wcb-qv-desc">${p.short_desc}</p>` : '';
 
         // Variations HTML
         const variationsHtml = (p.type === 'variable') ? buildVariationsHtml(p) : '';
@@ -2085,6 +2208,8 @@
         </div>` : '';
 
         content.innerHTML = `
+        <a href="#wcb-qv-actions" class="wcb-qv-skip-buy">Ir para comprar</a>
+        <div class="wcb-qv-top">
         <div class="wcb-qv-left">
             ${badge}
             <div class="wcb-qv-main-img-wrap">
@@ -2096,7 +2221,6 @@
             ${p.category ? `<span class="wcb-qv-cat">${p.category}</span>` : ''}
             <h2 class="wcb-qv-title">${p.name}</h2>
             ${ratingHtml}
-            ${descHtml}
             <div class="wcb-qv-price-block">
                 ${p.regular_price && p.is_on_sale ? `<span class="wcb-qv-price-old">${p.regular_price}</span>` : ''}
                 <span class="wcb-qv-price-current">${p.current_price}</span>
@@ -2111,13 +2235,14 @@
             <div id="wcb-qv-stock-row" class="wcb-qv-stock-row">${inStockLabel}</div>
             ${stockNotice}
             <hr class="wcb-qv-divider">
-            <div class="wcb-qv-actions">
+            <div class="wcb-qv-actions" id="wcb-qv-actions">
                 <div class="wcb-qv-cart-row">${qtyHtml}${addBtn}</div>
             </div>
             <a href="${p.permalink}" class="wcb-qv-full-link">
                 Ver produto completo
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
+        </div>
         </div>`;
 
         // Gallery thumb switching
@@ -2147,6 +2272,7 @@
         // Bind qty stepper and add to cart
         if (showQty) bindQtyStepper();
         bindAddToCart();
+        wcbQvFocusInitial();
     }
 
     /* ── Click on Quick View button (delegated) ───────────── */
@@ -2163,7 +2289,11 @@
 
         // Show modal with loading state
         if (loading) loading.classList.remove('is-hidden');
-        if (content) { content.innerHTML = ''; content.classList.remove('is-visible'); }
+        if (content) {
+            content.innerHTML = '';
+            content.classList.remove('is-visible');
+            content.style.removeProperty('display');
+        }
         openModal();
 
         // Fetch product data
@@ -2172,7 +2302,10 @@
             .then(data => {
                 if (!data.success) throw new Error('product error');
                 if (loading) loading.classList.add('is-hidden');
-                if (content) content.classList.add('is-visible');
+                if (content) {
+                    content.style.removeProperty('display');
+                    content.classList.add('is-visible');
+                }
                 populateModal(data.data);
             })
             .catch(() => {

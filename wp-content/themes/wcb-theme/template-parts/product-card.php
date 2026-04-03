@@ -41,6 +41,10 @@ if ( ! $product instanceof WC_Product ) {
 	return;
 }
 
+$wcb_fav_btn_label = ! empty( $wishlist_page )
+	? __( 'Remover dos favoritos', 'wcb-theme' )
+	: __( 'Favoritar', 'wcb-theme' );
+
 /* ── Prices ────────────────────────────────────────────── */
 $regular_price = (float) $product->get_regular_price();
 $sale_price    = $product->get_sale_price() ? (float) $product->get_sale_price() : 0;
@@ -74,6 +78,10 @@ if ($stock_pct > 60) {
     $stock_level = 'low';
 } else {
     $stock_level = 'critical';
+}
+
+if ( is_array( $wcb_pc_track ) && ! empty( $wcb_pc_track['hide_stock_bar'] ) ) {
+	$show_stock_bar = false;
 }
 
 /* ── Category ──────────────────────────────────────────── */
@@ -153,7 +161,9 @@ if ($product->is_type('variable')) {
         </div>
 
         <!-- Favorite (top-right) -->
-        <button class="wcb-product-card__fav" title="Favoritar" data-product-id="<?php echo $product->get_id(); ?>">
+        <button type="button" class="wcb-product-card__fav" title="<?php echo esc_attr( $wcb_fav_btn_label ); ?>"
+            aria-label="<?php echo esc_attr( $wcb_fav_btn_label ); ?>"
+            data-product-id="<?php echo esc_attr( (string) $product->get_id() ); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />

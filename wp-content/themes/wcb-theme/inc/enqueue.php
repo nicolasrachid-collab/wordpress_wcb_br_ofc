@@ -77,11 +77,29 @@ function wcb_enqueue_assets() {
         WCB_VERSION
     );
 
+    $wcb_wc_qv_scripts = class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_admin();
+    if ( $wcb_wc_qv_scripts ) {
+        wp_enqueue_script( 'wc-add-to-cart' );
+        wp_enqueue_script( 'wc-add-to-cart-variation' );
+        wp_enqueue_script(
+            'wcb-variation-buybox',
+            WCB_URI . '/js/wcb-variation-buybox.js',
+            array( 'jquery', 'wc-add-to-cart-variation' ),
+            WCB_VERSION,
+            true
+        );
+    }
+
+    $wcb_main_deps = array( 'jquery' );
+    if ( $wcb_wc_qv_scripts ) {
+        $wcb_main_deps[] = 'wcb-variation-buybox';
+    }
+
     // Theme JS
     wp_enqueue_script(
         'wcb-main',
         WCB_URI . '/js/main.js',
-        array(),
+        $wcb_main_deps,
         WCB_VERSION,
         true
     );
@@ -224,6 +242,26 @@ function wcb_enqueue_assets() {
         true
     );
 }
+
+/**
+ * Buybox variável (PDP + Quick View): swatches, preço por variação, subtotal no QV.
+ */
+function wcb_enqueue_variation_buybox_script() {
+    if ( is_admin() || ! class_exists( 'WooCommerce' ) ) {
+        return;
+    }
+    wp_enqueue_script( 'wc-add-to-cart' );
+    wp_enqueue_script( 'wc-add-to-cart-variation' );
+    wp_enqueue_script(
+        'wcb-variation-buybox',
+        WCB_URI . '/js/wcb-variation-buybox.js',
+        array( 'jquery', 'wc-add-to-cart-variation' ),
+        WCB_VERSION,
+        true
+    );
+}
+add_action( 'wp_enqueue_scripts', 'wcb_enqueue_variation_buybox_script', 20 );
+
 add_action( 'wp_enqueue_scripts', 'wcb_enqueue_assets' );
 
 /* ============================================================

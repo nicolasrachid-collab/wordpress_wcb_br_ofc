@@ -16,17 +16,104 @@
  * refactor dedicado (CSS + markup) para evitar dobro de espaçamento e regressões visuais.
  */
 
-$testimonials = [
-    ['name'=>'Camila Torres',    'role'=>'Influenciadora · São Paulo, SP',  'tag'=>'Cloud & Vape',    'img'=>'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Melhor custo-benefício que já encontrei. O clube de assinatura vale cada centavo. Sabores incríveis e sempre cheios. Nunca tive problema com nenhum pedido!'],
-    ['name'=>'Guilherme Santos', 'role'=>'Cliente Premium · Curitiba, PR', 'tag'=>'Yoop 8000 Puffs', 'img'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Atendimento impecável, produtos originais e preço competitivo. Já tentei outros sites mas sempre volto à White Cloud. O cupom de desconto é um diferencial incrível para fidelizar clientes.'],
-    ['name'=>'Lucas Ferreira',   'role'=>'Vaper entusiasta · Porto Alegre', 'tag'=>'Vaporesso 3800',  'img'=>'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Comprei meu primeiro pod aqui e fiquei encantado. Suporte super ativo no WhatsApp, entrega em 2 dias, produto novo com nota fiscal. Já indiquei para vários amigos!'],
-    ['name'=>'Mariana Oliveira', 'role'=>'Designer · Belo Horizonte, MG',  'tag'=>'Lost Mary 3500',  'img'=>'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Estou no clube há 6 meses e só melhora. A seleção de sabores é incrível e o atendimento é muito pessoal. Sinto que sou uma cliente valorizada aqui.'],
-    ['name'=>'Pedro Alves',      'role'=>'Engenheiro · Brasília, DF',       'tag'=>'Elfbar 600',      'img'=>'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Preço justo, entrega rápida e embalagem muito cuidadosa. Recebi em perfeito estado. Site fácil de navegar e checkout simples. Recomendo sem dúvidas!'],
-    ['name'=>'Isabela Ramos',    'role'=>'Professora · Recife, PE',         'tag'=>'Uwell Caliburn',  'img'=>'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Fiz meu primeiro pedido com receio mas foi uma experiência ótima. O produto chegou antes do prazo, original e com nota fiscal. Já voltei mais 3 vezes!'],
-    ['name'=>'Rafael Costa',     'role'=>'Músico · São Paulo, SP',          'tag'=>'Vivo X Salt',     'img'=>'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Descobri o Club WCB e não saio mais. Todo mês recebo sabores surpreendentes com desconto especial. Atendimento via WhatsApp resolve qualquer dúvida em minutos.'],
-    ['name'=>'Fernanda Lima',    'role'=>'Médica · Rio de Janeiro, RJ',     'tag'=>'Smok Nord 4',     'img'=>'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'A qualidade dos produtos é incomparável. Tudo original, com nota e rápido. A embalagem discreta também foi um detalhe que adorei. Vou continuar comprando aqui!'],
-    ['name'=>'Thiago Nascimento','role'=>'Advogado · Salvador, BA',         'tag'=>'Geek Bar Pulse',  'img'=>'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=100&h=100', 'text'=>'Sabia que ia ser boa mas superou expectativas. Chegou mega rápido, original com nota, exatamente o produto anunciado. Preço melhor que qualquer outro site que pesquisei.'],
-];
+$wcb_testi_product_titles = array();
+if ( class_exists( 'WooCommerce' ) ) {
+	$wcb_testi_pq = new WP_Query(
+		array(
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'posts_per_page'         => 30,
+			'orderby'                => 'rand',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_term_meta_cache' => false,
+			'fields'                 => 'ids',
+		)
+	);
+	if ( ! empty( $wcb_testi_pq->posts ) ) {
+		foreach ( $wcb_testi_pq->posts as $wcb_testi_pid ) {
+			$wcb_testi_prod = wc_get_product( (int) $wcb_testi_pid );
+			if ( $wcb_testi_prod && $wcb_testi_prod->is_visible() ) {
+				$wcb_testi_product_titles[] = $wcb_testi_prod->get_name();
+			}
+		}
+	}
+	wp_reset_postdata();
+}
+
+$wcb_testi_fallback_tags = array(
+	'Cloud & Vape',
+	'Yoop 8000 Puffs',
+	'Vaporesso 3800',
+	'Lost Mary 3500',
+	'Elfbar 600',
+	'Uwell Caliburn',
+	'Vivo X Salt',
+	'Smok Nord 4',
+	'Geek Bar Pulse',
+);
+
+$testimonials = array(
+	array(
+		'name' => 'Camila Torres',
+		'role' => 'São Paulo, SP',
+		'text' => 'Melhor custo-benefício que já encontrei. O clube de assinatura vale cada centavo. Sabores incríveis e sempre cheios. Nunca tive problema com nenhum pedido!',
+	),
+	array(
+		'name' => 'Guilherme Santos',
+		'role' => 'Curitiba, PR',
+		'text' => 'Atendimento impecável, produtos originais e preço competitivo. Já tentei outros sites mas sempre volto à White Cloud. O cupom de desconto é um diferencial incrível para fidelizar clientes.',
+	),
+	array(
+		'name' => 'Lucas Ferreira',
+		'role' => 'Porto Alegre, RS',
+		'text' => 'Comprei meu primeiro pod aqui e fiquei encantado. Suporte super ativo no WhatsApp, entrega em 2 dias, produto novo com nota fiscal. Já indiquei para vários amigos!',
+	),
+	array(
+		'name' => 'Mariana Oliveira',
+		'role' => 'Belo Horizonte, MG',
+		'text' => 'Estou no clube há 6 meses e só melhora. A seleção de sabores é incrível e o atendimento é muito pessoal. Sinto que sou uma cliente valorizada aqui.',
+	),
+	array(
+		'name' => 'Pedro Alves',
+		'role' => 'Brasília, DF',
+		'text' => 'Preço justo, entrega rápida e embalagem muito cuidadosa. Recebi em perfeito estado. Site fácil de navegar e checkout simples. Recomendo sem dúvidas!',
+	),
+	array(
+		'name' => 'Isabela Ramos',
+		'role' => 'Recife, PE',
+		'text' => 'Fiz meu primeiro pedido com receio mas foi uma experiência ótima. O produto chegou antes do prazo, original e com nota fiscal. Já voltei mais 3 vezes!',
+	),
+	array(
+		'name' => 'Rafael Costa',
+		'role' => 'São Paulo, SP',
+		'text' => 'Descobri o Club WCB e não saio mais. Todo mês recebo sabores surpreendentes com desconto especial. Atendimento via WhatsApp resolve qualquer dúvida em minutos.',
+	),
+	array(
+		'name' => 'Fernanda Lima',
+		'role' => 'Rio de Janeiro, RJ',
+		'text' => 'A qualidade dos produtos é incomparável. Tudo original, com nota e rápido. A embalagem discreta também foi um detalhe que adorei. Vou continuar comprando aqui!',
+	),
+	array(
+		'name' => 'Thiago Nascimento',
+		'role' => 'Salvador, BA',
+		'text' => 'Sabia que ia ser boa mas superou expectativas. Chegou mega rápido, original com nota, exatamente o produto anunciado. Preço melhor que qualquer outro site que pesquisei.',
+	),
+);
+
+$n_titles = count( $wcb_testi_product_titles );
+foreach ( $testimonials as $wcb_testi_i => &$wcb_testi_row ) {
+	if ( $n_titles > 0 ) {
+		$wcb_testi_row['tag'] = $wcb_testi_product_titles[ $wcb_testi_i % $n_titles ];
+	} else {
+		$wcb_testi_row['tag'] = isset( $wcb_testi_fallback_tags[ $wcb_testi_i ] )
+			? $wcb_testi_fallback_tags[ $wcb_testi_i ]
+			: __( 'Produto em destaque', 'wcb-theme' );
+	}
+	$wcb_testi_row['img'] = 'https://api.dicebear.com/7.x/notionists/png?seed=' . rawurlencode( $wcb_testi_row['name'] ) . '&size=128';
+}
+unset( $wcb_testi_row );
+
 $col1 = array_slice($testimonials, 0, 3);
 $col2 = array_slice($testimonials, 3, 3);
 $col3 = array_slice($testimonials, 6, 3);
@@ -40,10 +127,13 @@ $col3 = array_slice($testimonials, 6, 3);
             <div class="wcb-testi__rating-stars" aria-label="5 estrelas">★ ★ ★ ★ ★</div>
             <div class="wcb-testi__badge">
                 <span class="wcb-testi__badge-dot"></span>
-                +50.000 CLIENTES SATISFEITOS
+                EM BREVE · CLOUD PRIME
             </div>
-            <h2 id="wcb-testi-heading" class="wcb-testi__title">O que nossos clientes dizem</h2>
-            <p class="wcb-testi__sub">A White Cloud já conquistou a confiança de mais de<br><strong>50 mil clientes</strong> em todo o Brasil.</p>
+            <h2 id="wcb-testi-heading" class="wcb-testi__title">Depoimentos que vão virar benefícios</h2>
+            <div class="wcb-testi__sub-wrap">
+                <p class="wcb-testi__sub">Em breve chega o <strong>Cloud Prime</strong>: avaliações bem feitas por quem compra na White Cloud passam a virar vantagens exclusivas no programa.</p>
+                <p class="wcb-testi__sub wcb-testi__sub--tagline">Quanto mais útil for o seu feedback, mais você ganha.</p>
+            </div>
         </div>
 
         <div class="wcb-testi__stage" role="region" aria-label="Depoimentos de clientes">

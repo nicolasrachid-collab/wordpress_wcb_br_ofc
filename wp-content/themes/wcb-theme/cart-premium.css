@@ -12,13 +12,13 @@
 }
 
 /* Trilha — sem folga extra no topo */
-body.woocommerce-cart .wcb-container > .wcb-breadcrumb--cart-page {
+body.woocommerce-cart #main-content .wcb-container > .wcb-breadcrumb--cart-page {
     margin: 0 0 2px;
     padding-top: 0;
 }
 
-body.woocommerce-cart .wcb-container > .wcb-breadcrumb--cart-page + article .entry-title,
-body.woocommerce-cart .wcb-container > .wcb-breadcrumb--cart-page + article .wp-block-post-title {
+body.woocommerce-cart #main-content .wcb-container > .wcb-breadcrumb--cart-page + article .entry-title,
+body.woocommerce-cart #main-content .wcb-container > .wcb-breadcrumb--cart-page + article .wp-block-post-title {
     padding-top: 0;
 }
 
@@ -27,13 +27,11 @@ body.woocommerce-cart .wcb-container > .wcb-breadcrumb--cart-page + article .wp-
     user-select: none;
 }
 
-/* The theme applies grid-template-columns: 1fr 400px on .wcb-container
-   for WooCommerce pages, confining the cart to just one column.
-   Override this so the cart block can use its own internal grid. */
-.woocommerce-cart .wcb-main .wcb-container,
-.woocommerce-cart .wcb-container,
-.woocommerce-cart .site-main > .wcb-container,
-body.woocommerce-cart .wcb-container {
+/* Reset só dentro do <main> — nunca no #wcb-site-header (senão .wcb-header__inner perde display:flex).
+   Exclui .wcb-cart-layout: carrinho clássico mantém grid 1fr + sidebar no style.css */
+.woocommerce-cart .wcb-main .wcb-container:not(.wcb-cart-layout),
+body.woocommerce-cart #main-content .wcb-container:not(.wcb-cart-layout),
+.woocommerce-cart .site-main > .wcb-container:not(.wcb-cart-layout) {
     display: block !important;
     width: 100% !important;
     max-width: var(--wcb-container, 1440px) !important;
@@ -43,8 +41,8 @@ body.woocommerce-cart .wcb-container {
 }
 
 /* Also ensure the article/post content fills width */
-.woocommerce-cart .wcb-container > article,
-.woocommerce-cart .wcb-container > .entry-content,
+body.woocommerce-cart #main-content .wcb-container > article,
+body.woocommerce-cart #main-content .wcb-container > .entry-content,
 body.woocommerce-cart article.page {
     width: 100% !important;
     max-width: 100% !important;

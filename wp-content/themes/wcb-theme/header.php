@@ -136,9 +136,8 @@
                         <span>Favoritos</span>
                     </a>
 
-                    <!-- Carrinho: lateral Xoo (se ativo) ou link para página do carrinho -->
-                    <?php if ( function_exists( 'wcb_is_side_cart_active' ) && wcb_is_side_cart_active() ) : ?>
-                    <button type="button" class="wcb-header__action xoo-wsc-cart-trigger" id="wcb-mini-cart-trigger" title="Carrinho" aria-label="Abrir carrinho">
+                    <!-- Carrinho: sempre página do carrinho (não abre drawer lateral no header) -->
+                    <a href="<?php echo esc_url( wc_get_cart_url() ); ?>" class="wcb-header__action" id="wcb-mini-cart-trigger" title="<?php echo esc_attr__( 'Carrinho', 'wcb-theme' ); ?>" aria-label="<?php echo esc_attr__( 'Ver carrinho', 'wcb-theme' ); ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -148,22 +147,8 @@
                         <span class="wcb-header__cart-count">
                             <?php echo wcb_cart_count(); ?>
                         </span>
-                        <span>Carrinho</span>
-                    </button>
-                    <?php else : ?>
-                    <a href="<?php echo esc_url( wc_get_cart_url() ); ?>" class="wcb-header__action" id="wcb-mini-cart-trigger" title="Carrinho" aria-label="Ver carrinho">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <path d="M16 10a4 4 0 0 1-8 0"></path>
-                        </svg>
-                        <span class="wcb-header__cart-count">
-                            <?php echo wcb_cart_count(); ?>
-                        </span>
-                        <span>Carrinho</span>
+                        <span><?php esc_html_e( 'Carrinho', 'wcb-theme' ); ?></span>
                     </a>
-                    <?php endif; ?>
                 <?php else: ?>
                     <!-- Account (no WC) -->
                     <a href="<?php echo esc_url(wp_login_url()); ?>" class="wcb-header__action" title="Login">

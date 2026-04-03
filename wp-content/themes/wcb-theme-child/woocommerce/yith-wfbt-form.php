@@ -53,11 +53,11 @@ foreach ( $addon_slots as $slot ) {
 
 $pix_total = $total_display > 0 ? round( $total_display * 0.95, wc_get_price_decimals() ) : 0.0;
 
-$price_str    = wp_strip_all_tags( wc_price( $total_display ) );
+$price_str = wp_strip_all_tags( wc_price( $total_display ) );
+
 $lead_primary = sprintf(
-	/* translators: 1: number of items (cards), 2: formatted price */
-	__( 'Leve %1$d itens por %2$s', 'wcb-child' ),
-	$card_count,
+	/* translators: %s: formatted combo total (fallback sem linha PIX) */
+	__( 'Seu combo por %s', 'wcb-child' ),
 	$price_str
 );
 
@@ -66,6 +66,14 @@ $lead_pix_line = $pix_total > 0
 		/* translators: %s: formatted PIX price */
 		__( '%s no PIX', 'wcb-child' ),
 		wp_strip_all_tags( wc_price( $pix_total ) )
+	)
+	: '';
+
+$lead_card_line = $total_display > 0
+	? sprintf(
+		/* translators: %s: formatted combo total (cartão / parcelas) */
+		__( '%s em até 12x no cartão', 'wcb-child' ),
+		$price_str
 	)
 	: '';
 
@@ -119,19 +127,24 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 	</header>
 
 	<div class="wcb-fbt__lead" data-wcb-fbt-live-region aria-live="polite" aria-atomic="true">
-		<p class="wcb-fbt__lead-primary">
-			<span data-wcb-fbt-lead-primary><?php echo esc_html( $lead_primary ); ?></span>
-		</p>
 		<?php if ( $pix_total > 0 ) : ?>
-			<p class="wcb-fbt__lead-pix">
-				<span data-wcb-fbt-lead-pix><?php echo esc_html( $lead_pix_line ); ?></span>
+			<p class="wcb-fbt__lead-primary">
+				<span data-wcb-fbt-lead-primary><?php echo esc_html( $lead_pix_line ); ?></span>
+			</p>
+			<p class="wcb-fbt__lead-card">
+				<span data-wcb-fbt-lead-card><?php echo esc_html( $lead_card_line ); ?></span>
+			</p>
+		<?php else : ?>
+			<p class="wcb-fbt__lead-primary wcb-fbt__lead-primary--solo">
+				<span data-wcb-fbt-lead-primary><?php echo esc_html( $lead_primary ); ?></span>
 			</p>
 		<?php endif; ?>
 	</div>
 
-	<form class="yith-wfbt-form wcb-fbt__form" method="post" action="<?php echo esc_url( $url ); ?>" data-wcb-fbt-form>
-		<input type="hidden" name="yith-wfbt-main-product" value="<?php echo esc_attr( (string) $main_id ); ?>" />
-		<input type="hidden" name="offeringID[]" value="<?php echo esc_attr( (string) $main_id ); ?>" />
+	<form class="yith-wfbt-form wcb-fbt__form" method="post" action="<?php echo esc_url( $url ); ?>" data-wcb-fbt-form data-wcb-fbt-main-id="<?php echo esc_attr( (string) $main_id ); ?>">
+		<?php wp_nonce_field( 'wcb_fbt_combo', 'wcb_fbt_nonce', false, true ); ?>
+
+		<div class="wcb-fbt__feedback is-empty" data-wcb-fbt-feedback role="status" aria-live="polite" aria-atomic="true"></div>
 
 		<p class="wcb-fbt__list-label"><?php esc_html_e( 'O que inclui', 'wcb-child' ); ?></p>
 		<div class="wcb-fbt__rows">
@@ -186,10 +199,13 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 					$cp_image         = $cp->get_image( $size );
 					$cp_title         = $cp->get_title();
 					$cb_id            = 'wcb-fbt-offer-' . (string) $index;
+					$cp_max_qty       = wcb_fbt_max_purchase_qty( $cp );
 					$row_attrs_simple = sprintf(
-						' data-wcb-fbt-row data-wcb-price="%s" data-wcb-index="%s"',
+						' data-wcb-fbt-row data-wcb-fbt-addon="1" data-wcb-fbt-line-id="%s" data-wcb-price="%s" data-wcb-index="%s" data-wcb-fbt-max-qty="%s"',
+						esc_attr( (string) $cp_id ),
 						esc_attr( (string) $cp_price ),
-						esc_attr( (string) $index )
+						esc_attr( (string) $index ),
+						esc_attr( (string) $cp_max_qty )
 					);
 					?>
 					<div class="wcb-fbt__row wcb-fbt__row--addon"
@@ -203,8 +219,6 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 								<input type="checkbox"
 									class="wcb-fbt__cb"
 									id="<?php echo esc_attr( $cb_id ); ?>"
-									name="offeringID[]"
-									value="<?php echo esc_attr( (string) $cp_id ); ?>"
 									checked />
 								<label class="wcb-fbt__check" for="<?php echo esc_attr( $cb_id ); ?>">
 									<span class="wcb-fbt__check-ui" aria-hidden="true"></span>
@@ -223,6 +237,11 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 							<div class="wcb-fbt__price">
 								<?php echo $cp->get_price_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</div>
+							<div class="wcb-fbt__qty-wrap" data-wcb-fbt-qty-wrap>
+								<button type="button" class="wcb-fbt__qty-btn" data-wcb-fbt-qty-dec aria-label="<?php esc_attr_e( 'Diminuir quantidade', 'wcb-child' ); ?>">−</button>
+								<input type="number" class="wcb-fbt__qty-input" name="" value="1" min="1" max="<?php echo esc_attr( (string) $cp_max_qty ); ?>" step="1" inputmode="numeric" data-wcb-fbt-qty-input aria-label="<?php esc_attr_e( 'Quantidade no combo', 'wcb-child' ); ?>" />
+								<button type="button" class="wcb-fbt__qty-btn" data-wcb-fbt-qty-inc aria-label="<?php esc_attr_e( 'Aumentar quantidade', 'wcb-child' ); ?>">+</button>
+							</div>
 						</div>
 					</div>
 					<?php
@@ -233,6 +252,7 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 						continue;
 					}
 					$def_price    = (float) wc_get_price_to_display( $def_var );
+					$def_max_qty  = wcb_fbt_max_purchase_qty( $def_var );
 					$parent_link  = $parent->get_permalink();
 					$parent_title = $parent->get_name();
 					$var_image    = $def_var->get_image( $size );
@@ -240,9 +260,11 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 					$json_payload = wcb_fbt_variations_json_payload( $slot['variations'] );
 					$json_attr    = esc_attr( wp_json_encode( $json_payload ) );
 					$row_attrs_v  = sprintf(
-						' data-wcb-fbt-row data-wcb-fbt-variable-row data-wcb-price="%s" data-wcb-index="%s" data-wcb-variations="%s"',
+						' data-wcb-fbt-row data-wcb-fbt-addon="1" data-wcb-fbt-variable-row data-wcb-fbt-line-id="%s" data-wcb-price="%s" data-wcb-index="%s" data-wcb-fbt-max-qty="%s" data-wcb-variations="%s"',
+						esc_attr( (string) $def_var->get_id() ),
 						esc_attr( (string) $def_price ),
 						esc_attr( (string) $index ),
+						esc_attr( (string) $def_max_qty ),
 						$json_attr
 					);
 					$use_select   = count( $slot['variations'] ) > 10;
@@ -264,10 +286,6 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 									<span class="wcb-fbt__check-ui" aria-hidden="true"></span>
 									<span class="screen-reader-text"><?php esc_html_e( 'Incluir este item no combo', 'wcb-child' ); ?></span>
 								</label>
-								<input type="hidden"
-									class="wcb-fbt__offering-hidden"
-									name="offeringID[]"
-									value="<?php echo esc_attr( (string) $def_var->get_id() ); ?>" />
 							</div>
 						</div>
 						<a href="<?php echo esc_url( $parent_link ); ?>" class="wcb-fbt__thumb">
@@ -308,6 +326,11 @@ $wcb_fbt_render_variation_attrs = static function ( WC_Product $current_product 
 							</div>
 							<div class="wcb-fbt__price" data-wcb-fbt-price-wrap>
 								<?php echo wp_kses_post( $def_var->get_price_html() ); ?>
+							</div>
+							<div class="wcb-fbt__qty-wrap" data-wcb-fbt-qty-wrap>
+								<button type="button" class="wcb-fbt__qty-btn" data-wcb-fbt-qty-dec aria-label="<?php esc_attr_e( 'Diminuir quantidade', 'wcb-child' ); ?>">−</button>
+								<input type="number" class="wcb-fbt__qty-input" name="" value="1" min="1" max="<?php echo esc_attr( (string) $def_max_qty ); ?>" step="1" inputmode="numeric" data-wcb-fbt-qty-input aria-label="<?php esc_attr_e( 'Quantidade no combo', 'wcb-child' ); ?>" />
+								<button type="button" class="wcb-fbt__qty-btn" data-wcb-fbt-qty-inc aria-label="<?php esc_attr_e( 'Aumentar quantidade', 'wcb-child' ); ?>">+</button>
 							</div>
 						</div>
 					</div>

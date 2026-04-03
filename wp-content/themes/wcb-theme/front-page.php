@@ -601,8 +601,9 @@ $wcb_carousel_homepage_used_ids = array();
             }
 
             $so_track       = array(
-                'wcb_track' => 'super-ofertas',
-                'role'      => 'carousel',
+                'wcb_track'       => 'super-ofertas',
+                'role'            => 'carousel',
+                'hide_stock_bar'  => true,
             );
             $all_sale_pairs = array();
             if ( ! empty( $carousel_ids ) && function_exists( 'wcb_carousel_pairs_from_query' ) ) {
@@ -1293,19 +1294,21 @@ get_template_part('template-parts/section-depoimentos');
                 $bg_color   = get_theme_mod( "{$prefix}_bg_color",   $def['bg'] );
                 $icon_color = get_theme_mod( "{$prefix}_icon_color", $def['ic'] );
 
-                // Contagem de produtos
+                // Contagem alinhada ao que a loja mostra (visibilidade + subcategorias + URL do card)
                 $count_html = '';
-                $count_term = $cat_term ?? ( $cat_slug ? null : null );
-                if ( ! $count_term && class_exists('WooCommerce') ) {
-                    // Tenta extrair do link manual
-                    parse_str( parse_url( is_string($url) ? $url : '', PHP_URL_QUERY ) ?? '', $qs );
-                    $slug_from_url = $qs['categoria'] ?? '';
-                    if ( $slug_from_url ) {
-                        $count_term = get_term_by( 'slug', $slug_from_url, 'product_cat' );
-                    }
+                $url_for_count = is_string( $url ) ? $url : '';
+                if ( $url_for_count !== '' && strpos( $url_for_count, 'http' ) !== 0 ) {
+                    $url_for_count = home_url( $url_for_count );
                 }
-                if ( $count_term && ! is_wp_error($count_term) ) {
-                    $count_html = $count_term->count . ' produto' . ( $count_term->count !== 1 ? 's' : '' );
+                $count_term = function_exists( 'wcb_get_product_cat_from_url' )
+                    ? wcb_get_product_cat_from_url( $url_for_count )
+                    : null;
+                if ( ! $count_term && $cat_term && ! is_wp_error( $cat_term ) ) {
+                    $count_term = $cat_term;
+                }
+                if ( $count_term && ! is_wp_error( $count_term ) && function_exists( 'wcb_get_product_cat_catalog_count' ) ) {
+                    $dept_visible_count = wcb_get_product_cat_catalog_count( $count_term );
+                    $count_html         = $dept_visible_count . ' produto' . ( $dept_visible_count !== 1 ? 's' : '' );
                 }
             ?>
                 <?php

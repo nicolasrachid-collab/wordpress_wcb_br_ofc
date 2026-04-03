@@ -28,7 +28,7 @@ if ( ! defined( 'WCB_DEV' ) ) {
 	define( 'WCB_DEV', false );
 }
 
-define( 'WCB_VERSION', '1.4.46' );
+define( 'WCB_VERSION', '1.4.63' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
 /** Transient do carrossel "Promoções" no header (v3: igual à query da página categoria promocoes — só em oferta). */
@@ -226,7 +226,9 @@ require_once WCB_DIR . '/inc/enqueue.php';
 require_once WCB_DIR . '/inc/translations.php';
 require_once WCB_DIR . '/inc/cart-checkout.php';
 require_once WCB_DIR . '/inc/woocommerce/cart-mini-ajax.php';
+require_once WCB_DIR . '/inc/wcb-buybox-partials.php';
 require_once WCB_DIR . '/inc/woocommerce.php';
+require_once WCB_DIR . '/inc/wcb-quick-view-buybox.php';
 require_once WCB_DIR . '/inc/cart-page-blocks-extras.php';
 require_once WCB_DIR . '/inc/pdp-reviews.php';
 require_once WCB_DIR . '/inc/wcb-attribute-swatches.php';
@@ -336,7 +338,9 @@ function wcb_flush_home_transients() {
     $wpdb->query(
         "DELETE FROM {$wpdb->options}
          WHERE option_name LIKE '_transient_wcb_ls_v1_%'
-            OR option_name LIKE '_transient_timeout_wcb_ls_v1_%'"
+            OR option_name LIKE '_transient_timeout_wcb_ls_v1_%'
+            OR option_name LIKE '_transient_wcb_ls_v2_%'
+            OR option_name LIKE '_transient_timeout_wcb_ls_v2_%'"
     );
 }
 

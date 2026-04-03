@@ -7,7 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WCB_CHILD_VERSION', '1.0.5' );
+define( 'WCB_CHILD_VERSION', '1.2.6' );
+
+$wcb_fbt_ajax_combo = get_stylesheet_directory() . '/inc/wcb-fbt-ajax-combo.php';
+if ( is_readable( $wcb_fbt_ajax_combo ) ) {
+	require_once $wcb_fbt_ajax_combo;
+}
+
+$wcb_blog_growth = get_stylesheet_directory() . '/inc/wcb-blog-growth.php';
+if ( is_readable( $wcb_blog_growth ) ) {
+	require_once $wcb_blog_growth;
+}
 
 /**
  * Enfileirar estilos do tema pai e do child.
@@ -28,6 +38,23 @@ function wcb_child_enqueue_styles() {
 	);
 }
 add_action( 'wp_enqueue_scripts', 'wcb_child_enqueue_styles', 5 );
+
+/**
+ * CSS do single post (blog) — só em posts.
+ */
+function wcb_child_enqueue_blog_single_assets() {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'wcb-blog-single',
+		get_stylesheet_directory_uri() . '/assets/css/wcb-blog-single.css',
+		array( 'wcb-child-style' ),
+		WCB_CHILD_VERSION
+	);
+}
+add_action( 'wp_enqueue_scripts', 'wcb_child_enqueue_blog_single_assets', 25 );
 
 /**
  * CSS/JS do layout “compre junto” (override do template YITH no child).
@@ -61,13 +88,22 @@ function wcb_child_enqueue_yith_fbt_assets() {
 		'wcb-yith-fbt',
 		'wcbFbt',
 		array(
-			'currency'       => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'BRL',
-			'pixPercent'     => 0.95,
-			'i18nLeadOne'    => __( 'Leve 1 item por %s', 'wcb-child' ),
-			'i18nLeadMany'   => __( 'Leve %d itens por %s', 'wcb-child' ),
-			'i18nLeadPix'    => __( '%s no PIX', 'wcb-child' ),
-			'i18nCtaSingle'  => __( 'Adicionar ao carrinho', 'wcb-child' ),
-			'i18nCtaCombo'   => __( 'Adicionar combo ao carrinho', 'wcb-child' ),
+			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+			'nonce'           => wp_create_nonce( 'wcb_fbt_combo' ),
+			'currency'        => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'BRL',
+			'pixPercent'      => 0.95,
+			'i18nLeadCombo' => __( 'Seu combo por %s', 'wcb-child' ),
+			'i18nLeadPix'   => __( '%s no PIX', 'wcb-child' ),
+			'i18nLeadCard'  => __( '%s em até 12x no cartão', 'wcb-child' ),
+			'i18nCtaSingle'   => __( 'Adicionar ao carrinho', 'wcb-child' ),
+			'i18nCtaCombo'    => __( 'Adicionar combo ao carrinho', 'wcb-child' ),
+			'i18nSubmitting'      => __( 'Adicionando…', 'wcb-child' ),
+			'i18nFeedbackLoading' => __( 'Processando o seu combo…', 'wcb-child' ),
+			'i18nComboSuccess'    => __( 'Combo adicionado ao carrinho com sucesso.', 'wcb-child' ),
+			'i18nSubmitError'     => __( 'Não foi possível adicionar o combo. Tente novamente.', 'wcb-child' ),
+			'i18nQtyDec'      => __( 'Diminuir quantidade', 'wcb-child' ),
+			'i18nQtyInc'      => __( 'Aumentar quantidade', 'wcb-child' ),
+			'i18nQtyLabel'    => __( 'Quantidade no combo', 'wcb-child' ),
 		)
 	);
 }

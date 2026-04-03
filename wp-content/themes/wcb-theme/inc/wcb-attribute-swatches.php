@@ -717,7 +717,8 @@ function wcb_print_variation_swatch_meta_json()
         return;
     }
 
-    echo '<script type="application/json" id="wcb-variation-swatch-meta">';
+    $element_id = apply_filters('wcb_variation_swatch_meta_element_id', 'wcb-variation-swatch-meta');
+    echo '<script type="application/json" id="' . esc_attr($element_id) . '">';
     echo wp_json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     echo '</script>';
 }

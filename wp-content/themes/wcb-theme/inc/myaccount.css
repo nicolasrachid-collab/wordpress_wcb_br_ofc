@@ -1561,7 +1561,7 @@ mark.status-refunded,   mark.refunded   { background: #ede9fe; color: #5b21b6; }
   text-decoration: none !important;
 }
 
-/* Shell: card visual = product-card oficial; só posiciona o botão remover */
+/* Shell: card visual = product-card oficial (remover = só o coração no card) */
 .wcb-wl-grid > .wcb-wl-card-shell {
   background: transparent !important;
   border: none !important;
@@ -1586,11 +1586,6 @@ mark.status-refunded,   mark.refunded   { background: #ede9fe; color: #5b21b6; }
   height: 100%;
   min-width: 0 !important;
   box-sizing: border-box !important;
-}
-.wcb-wl-grid .wcb-wl-card-shell .wcb-wl-card__remove {
-  top: clamp(0.4rem, 1.5vw, 0.55rem);
-  right: clamp(2.2rem, 8vw, 2.85rem);
-  z-index: 15;
 }
 
 /* ── Card (layout legado — lista antiga) ─────────────────────────── */
