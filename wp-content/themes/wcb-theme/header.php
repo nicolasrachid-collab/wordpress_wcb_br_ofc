@@ -222,6 +222,134 @@
             }
             ?>
         </div>
+
+        <!-- Promo hover: dentro de #wcb-nav para position:absolute top:100% ancorar na barra -->
+        <?php if ( class_exists('WooCommerce') ) :
+            $wcb_promo_dd_transient = defined( 'WCB_PROMO_DD_TRANSIENT' ) ? WCB_PROMO_DD_TRANSIENT : 'wcb_promo_dropdown_cards_promocoes_v3';
+            $promo_cards_html       = get_transient( $wcb_promo_dd_transient );
+            if ( false === $promo_cards_html ) {
+                $promo_cards_html = '';
+                /** @var string Slug da categoria WooCommerce (filtro: wcb_promo_dropdown_category_slug). */
+                $wcb_promo_dd_cat_slug = apply_filters( 'wcb_promo_dropdown_category_slug', 'promocoes' );
+                $wcb_promo_dd_term     = get_term_by( 'slug', $wcb_promo_dd_cat_slug, 'product_cat' );
+                if ( $wcb_promo_dd_term && ! is_wp_error( $wcb_promo_dd_term ) ) {
+                    $promo_q = new WP_Query(
+                        function_exists( 'wcb_promo_dropdown_wp_query_args' )
+                            ? wcb_promo_dropdown_wp_query_args( (int) $wcb_promo_dd_term->term_id, (string) $wcb_promo_dd_term->slug )
+                            : array(
+                                'post_type'              => 'product',
+                                'post_status'            => 'publish',
+                                'posts_per_page'         => 12,
+                                'orderby'                => 'rand',
+                                'no_found_rows'          => true,
+                                'update_post_meta_cache' => false,
+                                'update_post_term_cache' => true,
+                                'meta_query'             => array(
+                                    array(
+                                        'key'   => '_stock_status',
+                                        'value' => 'instock',
+                                    ),
+                                ),
+                                'tax_query'              => function_exists( 'wcb_promo_dropdown_tax_query' )
+                                    ? wcb_promo_dropdown_tax_query( (int) $wcb_promo_dd_term->term_id )
+                                    : array(
+                                        array(
+                                            'taxonomy'         => 'product_cat',
+                                            'field'            => 'term_id',
+                                            'terms'            => (int) $wcb_promo_dd_term->term_id,
+                                            'include_children' => true,
+                                        ),
+                                    ),
+                            )
+                    );
+                    if ( $promo_q->have_posts() ) :
+                        while ( $promo_q->have_posts() ) : $promo_q->the_post();
+                            global $product;
+                            if (!$product) continue;
+                            $reg  = (float) $product->get_regular_price();
+                            $cur  = (float) $product->get_price();
+                            $pix  = $cur > 0 ? $cur * 0.95 : 0;
+                            $save = ($reg > 0 && $cur > 0 && $reg > $cur) ? round((($reg - $cur) / $reg) * 100) : 0;
+                            $img  = has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'wcb-product-thumb') : '';
+
+                            $promo_cards_html .= '<div class="wcb-promo-dd__card">';
+                            if ($save > 0) {
+                                $promo_cards_html .= '<span class="wcb-promo-dd__discount">-' . $save . '%</span>';
+                            }
+                            $promo_cards_html .= '<a href="' . esc_url(get_permalink()) . '" class="wcb-promo-dd__img-wrap">';
+                            if ($img) {
+                                $promo_cards_html .= '<img src="' . esc_url($img) . '" alt="' . esc_attr(get_the_title()) . '" loading="lazy" width="176" height="158">';
+                            } else {
+                                $promo_cards_html .= '<div class="wcb-promo-dd__no-img"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>';
+                            }
+                            $promo_cards_html .= '</a>';
+                            $promo_cards_html .= '<a href="' . esc_url(get_permalink()) . '" class="wcb-promo-dd__name">' . esc_html(get_the_title()) . '</a>';
+                            $promo_cards_html .= '<div class="wcb-promo-dd__prices">';
+                            if ($reg > 0 && $reg > $cur) {
+                                $promo_cards_html .= '<span class="wcb-promo-dd__price-old">R$ ' . number_format($reg, 2, ',', '.') . '</span>';
+                            }
+                            if ($cur > 0) {
+                                $promo_cards_html .= '<span class="wcb-promo-dd__price-cur">R$ ' . number_format($cur, 2, ',', '.') . '</span>';
+                            }
+                            $promo_cards_html .= '</div>';
+                            if ($pix > 0) {
+                                $promo_cards_html .= '<span class="wcb-promo-dd__pix">R$ ' . number_format($pix, 2, ',', '.') . ' no PIX</span>';
+                            }
+                            $promo_cards_html .= '</div>';
+                        endwhile;
+                        wp_reset_postdata();
+                    endif;
+                }
+                set_transient( $wcb_promo_dd_transient, $promo_cards_html, 6 * HOUR_IN_SECONDS );
+            }
+        ?>
+        <?php if ( ! empty($promo_cards_html) ) :
+            /** Mesmo destino que o item "Promoções" do menu (arquivo da categoria WooCommerce). */
+            $wcb_promo_see_all_slug = apply_filters('wcb_promo_dropdown_category_slug', 'promocoes');
+            $wcb_promo_see_all_term = get_term_by('slug', $wcb_promo_see_all_slug, 'product_cat');
+            $wcb_promo_see_all_url  = home_url('/categoria-produto/promocoes/');
+            if ($wcb_promo_see_all_term && ! is_wp_error($wcb_promo_see_all_term)) {
+                $wcb_promo_see_all_link = get_term_link($wcb_promo_see_all_term);
+                if (! is_wp_error($wcb_promo_see_all_link)) {
+                    $wcb_promo_see_all_url = $wcb_promo_see_all_link;
+                }
+            }
+        ?>
+        <div class="wcb-promo-dd" id="wcb-promo-dd" aria-hidden="true">
+            <div class="wcb-container">
+                <div class="wcb-promo-dd__inner">
+                    <div class="wcb-promo-dd__header">
+                        <div class="wcb-promo-dd__header-left">
+                            <h3 class="wcb-promo-dd__title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+                                Promoções Imperdíveis
+                            </h3>
+                            <span class="wcb-promo-dd__subtitle">Produtos com até 30% OFF + 5% extra no PIX</span>
+                        </div>
+                        <a href="<?php echo esc_url($wcb_promo_see_all_url); ?>" class="wcb-promo-dd__see-all">
+                            Ver todas ofertas
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                    <div class="wcb-promo-dd__carousel">
+                        <button class="wcb-promo-dd__arrow wcb-promo-dd__arrow--prev" aria-label="Anterior">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        </button>
+                        <div class="wcb-promo-dd__track-wrap">
+                            <div class="wcb-promo-dd__track" id="wcb-promo-dd-track">
+                                <?php echo $promo_cards_html; ?>
+                            </div>
+                        </div>
+                        <button class="wcb-promo-dd__arrow wcb-promo-dd__arrow--next" aria-label="Próximo">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+        <?php endif; ?>
+
     </nav>
 
     </div><!-- /.wcb-site-header -->
@@ -242,105 +370,6 @@
         }, { passive: true });
     })();
     </script>
-
-    <!-- ==================== PROMO HOVER DROPDOWN ==================== -->
-    <?php if ( class_exists('WooCommerce') ) :
-        // Busca produtos em promoção (cache de 6h) — reutiliza transient de IDs
-        $promo_cards_html = get_transient('wcb_promo_dropdown_cards');
-        if ( false === $promo_cards_html ) {
-            $on_sale = get_transient('wcb_on_sale_ids');
-            if (false === $on_sale) {
-                $on_sale = wc_get_product_ids_on_sale();
-                set_transient('wcb_on_sale_ids', $on_sale, HOUR_IN_SECONDS);
-            }
-            if ( ! empty($on_sale) ) {
-                $promo_q = new WP_Query(array(
-                    'post_type'      => 'product',
-                    'posts_per_page' => 12,
-                    'post__in'       => $on_sale,
-                    'orderby'        => 'rand',
-                    'meta_query'     => array(
-                        array('key' => '_stock_status', 'value' => 'instock'),
-                    ),
-                ));
-                if ( $promo_q->have_posts() ) :
-                    while ( $promo_q->have_posts() ) : $promo_q->the_post();
-                        global $product;
-                        if (!$product) continue;
-                        $reg  = (float) $product->get_regular_price();
-                        $cur  = (float) $product->get_price();
-                        $pix  = $cur > 0 ? $cur * 0.95 : 0;
-                        $save = ($reg > 0 && $cur > 0 && $reg > $cur) ? round((($reg - $cur) / $reg) * 100) : 0;
-                        $img  = has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'wcb-product-thumb') : '';
-
-                        $promo_cards_html .= '<div class="wcb-promo-dd__card">';
-                        if ($save > 0) {
-                            $promo_cards_html .= '<span class="wcb-promo-dd__discount">-' . $save . '%</span>';
-                        }
-                        $promo_cards_html .= '<a href="' . esc_url(get_permalink()) . '" class="wcb-promo-dd__img-wrap">';
-                        if ($img) {
-                            $promo_cards_html .= '<img src="' . esc_url($img) . '" alt="' . esc_attr(get_the_title()) . '" loading="lazy" width="160" height="160">';
-                        } else {
-                            $promo_cards_html .= '<div class="wcb-promo-dd__no-img"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>';
-                        }
-                        $promo_cards_html .= '</a>';
-                        $promo_cards_html .= '<a href="' . esc_url(get_permalink()) . '" class="wcb-promo-dd__name">' . esc_html(get_the_title()) . '</a>';
-                        $promo_cards_html .= '<div class="wcb-promo-dd__prices">';
-                        if ($reg > 0 && $reg > $cur) {
-                            $promo_cards_html .= '<span class="wcb-promo-dd__price-old">R$ ' . number_format($reg, 2, ',', '.') . '</span>';
-                        }
-                        if ($cur > 0) {
-                            $promo_cards_html .= '<span class="wcb-promo-dd__price-cur">R$ ' . number_format($cur, 2, ',', '.') . '</span>';
-                        }
-                        $promo_cards_html .= '</div>';
-                        if ($pix > 0) {
-                            $promo_cards_html .= '<span class="wcb-promo-dd__pix">R$ ' . number_format($pix, 2, ',', '.') . ' no PIX</span>';
-                        }
-                        $promo_cards_html .= '</div>';
-                    endwhile;
-                    wp_reset_postdata();
-                endif;
-            }
-            set_transient('wcb_promo_dropdown_cards', $promo_cards_html, 6 * HOUR_IN_SECONDS);
-        }
-    ?>
-    <?php if ( ! empty($promo_cards_html) ) : ?>
-    <div class="wcb-promo-dd" id="wcb-promo-dd" aria-hidden="true">
-        <div class="wcb-container">
-            <div class="wcb-promo-dd__inner">
-                <!-- Cabeçalho -->
-                <div class="wcb-promo-dd__header">
-                    <div class="wcb-promo-dd__header-left">
-                        <h3 class="wcb-promo-dd__title">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
-                            Promoções Imperdíveis
-                        </h3>
-                        <span class="wcb-promo-dd__subtitle">Produtos com até 30% OFF + 5% extra no PIX</span>
-                    </div>
-                    <a href="<?php echo esc_url(home_url('/produto/promocao/')); ?>" class="wcb-promo-dd__see-all">
-                        Ver todas ofertas
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </a>
-                </div>
-                <!-- Carousel -->
-                <div class="wcb-promo-dd__carousel">
-                    <button class="wcb-promo-dd__arrow wcb-promo-dd__arrow--prev" aria-label="Anterior">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                    </button>
-                    <div class="wcb-promo-dd__track-wrap">
-                        <div class="wcb-promo-dd__track" id="wcb-promo-dd-track">
-                            <?php echo $promo_cards_html; ?>
-                        </div>
-                    </div>
-                    <button class="wcb-promo-dd__arrow wcb-promo-dd__arrow--next" aria-label="Próximo">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
-    <?php endif; ?>
 
     <!-- ==================== MEGA MENU SCRIPT ==================== -->
     <script>

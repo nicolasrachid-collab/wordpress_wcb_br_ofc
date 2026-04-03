@@ -10,9 +10,36 @@
  * @package WCB_Theme
  */
 
-global $product;
-if (!$product)
-    return;
+/*
+ * Fonte do WC_Product (evita misturar produto da PDP com cards em loops secundários):
+ * 1) wc_get_product( get_the_ID() ) quando o post atual é product — alinha título, link e avaliações ao mesmo ID.
+ * 2) $product injetado por get_template_part( ..., array( 'product' => … ) ) — não pode vir depois de global $product
+ *    no topo (isso anulava o inject e mantinha o global da PDP).
+ * 3) global $product como último recurso.
+ */
+$wcb_pc_track = isset( $GLOBALS['wcb_product_card_track'] ) && is_array( $GLOBALS['wcb_product_card_track'] )
+	? $GLOBALS['wcb_product_card_track']
+	: null;
+
+$wcb_injected_product = ( isset( $product ) && $product instanceof WC_Product ) ? $product : null;
+
+$product    = null;
+$wcb_post_id = (int) get_the_ID();
+if ( $wcb_post_id > 0 && get_post_type( $wcb_post_id ) === 'product' ) {
+	$p_by_loop = wc_get_product( $wcb_post_id );
+	if ( $p_by_loop instanceof WC_Product ) {
+		$product = $p_by_loop;
+	}
+}
+if ( ! $product instanceof WC_Product && $wcb_injected_product instanceof WC_Product ) {
+	$product = $wcb_injected_product;
+}
+if ( ! $product instanceof WC_Product ) {
+	global $product;
+}
+if ( ! $product instanceof WC_Product ) {
+	return;
+}
 
 /* ── Prices ────────────────────────────────────────────── */
 $regular_price = (float) $product->get_regular_price();
@@ -56,9 +83,10 @@ if ($terms && !is_wp_error($terms)) {
     $cat_name = $terms[0]->name;
 }
 
-/* ── Rating ────────────────────────────────────────────── */
-$rating_count = $product->get_rating_count();
-$avg_rating   = round((float) $product->get_average_rating(), 1);
+/* ── Rating: comentários aprovados com estrelas (alinhado à aba Avaliações) ── */
+$wcb_rating_stats = wcb_get_product_rating_display_stats( $product->get_id() );
+$review_count     = (int) $wcb_rating_stats['count'];
+$avg_rating       = (float) $wcb_rating_stats['average'];
 
 /* ── Teor / Nicotina ───────────────────────────────────── */
 $teor_values = [];
@@ -99,7 +127,12 @@ if ($product->is_type('variable')) {
 }
 ?>
 
-<div class="wcb-product-card<?php echo !$in_stock ? ' wcb-product-card--out-of-stock' : ''; ?>" data-product-id="<?php echo $product->get_id(); ?>">
+<div class="wcb-product-card<?php echo !$in_stock ? ' wcb-product-card--out-of-stock' : ''; ?>" data-product-id="<?php echo esc_attr( (string) $product->get_id() ); ?>"
+	<?php
+	if ( $wcb_pc_track && ! empty( $wcb_pc_track['wcb_track'] ) && ! empty( $wcb_pc_track['role'] ) ) {
+		echo ' data-wcb-track="' . esc_attr( (string) $wcb_pc_track['wcb_track'] ) . '" data-role="' . esc_attr( (string) $wcb_pc_track['role'] ) . '"';
+	}
+	?>>
 
     <!-- ══ IMAGE AREA ══════════════════════════════════════ -->
     <div class="wcb-product-card__img-wrap">
@@ -197,22 +230,23 @@ if ($product->is_type('variable')) {
             <?php the_title(); ?>
         </a>
 
-        <!-- Rating -->
-        <div class="wcb-product-card__rating">
-            <?php if ($rating_count > 0): ?>
-                <div class="wcb-product-card__stars" style="--rating: <?php echo $avg_rating; ?>">
-                    <span class="wcb-product-card__stars-fill">★★★★★</span>
-                    <span class="wcb-product-card__stars-empty">★★★★★</span>
-                </div>
-                <span class="wcb-product-card__rating-val"><?php echo number_format($avg_rating, 1); ?></span>
-                <span class="wcb-product-card__rating-count">(<?php echo $rating_count; ?>)</span>
-            <?php else: ?>
-                <div class="wcb-product-card__stars" style="--rating: 4.8">
-                    <span class="wcb-product-card__stars-fill">★★★★★</span>
-                    <span class="wcb-product-card__stars-empty">★★★★★</span>
-                </div>
-                <span class="wcb-product-card__rating-val">4.8</span>
-                <span class="wcb-product-card__rating-count">(<?php echo max($total_sales, rand(12, 128)); ?>)</span>
+        <!-- Rating: sem avaliações = só estrelas neutras; com avaliações = estrelas + nota + (N) -->
+        <div class="wcb-product-card__rating<?php echo $review_count < 1 ? ' wcb-product-card__rating--zero' : ''; ?>"
+            data-wcb-rating-for="<?php echo esc_attr( (string) (int) $product->get_id() ); ?>"
+            <?php
+            if ( $review_count < 1 ) {
+                echo ' aria-label="' . esc_attr__( 'Sem avaliações ainda', 'wcb-theme' ) . '"';
+            }
+            ?>>
+            <div class="wcb-product-card__stars" style="--rating: <?php echo esc_attr( (string) max( 0, min( 5, $avg_rating ) ) ); ?>">
+                <?php if ( $review_count > 0 ) : ?>
+                <span class="wcb-product-card__stars-fill" aria-hidden="true">★★★★★</span>
+                <?php endif; ?>
+                <span class="wcb-product-card__stars-empty" aria-hidden="true">★★★★★</span>
+            </div>
+            <?php if ( $review_count > 0 ) : ?>
+            <span class="wcb-product-card__rating-val"><?php echo esc_html( number_format( (float) $avg_rating, 1 ) ); ?></span>
+            <span class="wcb-product-card__rating-count">(<?php echo esc_html( (string) (int) $review_count ); ?>)</span>
             <?php endif; ?>
         </div>
 
@@ -236,7 +270,7 @@ if ($product->is_type('variable')) {
             <?php endif; ?>
 
             <!-- Parcelamento -->
-            <?php if ($current_price >= 30): ?>
+            <?php if ($current_price > 0): ?>
                 <span class="wcb-product-card__installments">ou 12x no cartão</span>
             <?php endif; ?>
 

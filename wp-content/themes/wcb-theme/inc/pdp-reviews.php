@@ -12,6 +12,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Preenche $wp_query->comments para have_comments() / wp_list_comments() na PDP customizada.
+ * O núcleo só faz esta query dentro de comments_template(); o WooCommerce redireciona esse
+ * template para single-product-reviews.php — removemos o filtro só para carregar um ficheiro vazio.
+ */
+function wcb_pdp_prime_comments_for_product() {
+	global $post;
+
+	if ( ! $post instanceof WP_Post || 'product' !== $post->post_type ) {
+		return;
+	}
+
+	$removed = false;
+	if ( class_exists( 'WC_Template_Loader', false ) ) {
+		$removed = remove_filter( 'comments_template', array( WC_Template_Loader::class, 'comments_template_loader' ) );
+	}
+
+	comments_template( '/wcb-pdp-prime-comments.php', false );
+
+	if ( class_exists( 'WC_Template_Loader', false ) && $removed ) {
+		add_filter( 'comments_template', array( WC_Template_Loader::class, 'comments_template_loader' ), 10 );
+	}
+}
+
+/**
  * Rodapé da avaliação: botão Útil + contagem.
  *
  * @param WP_Comment $comment Comentário.

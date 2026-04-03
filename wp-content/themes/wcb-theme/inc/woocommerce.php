@@ -45,6 +45,103 @@ function wcb_get_free_ship_threshold()
 }
 
 /**
+ * Escopo do countdown da barra de oferta na PDP (sessionStorage no navegador).
+ *
+ * - Categoria “Super Ofertas” (flash): slugs filtráveis via `wcb_pdp_offer_flash_category_slugs`
+ *   (por defeito `super-ofertas` e `ofertas-relampago`, equivalentes). Timer global partilhado na sessão.
+ * - ACF (opcional): campo `wcb_pdp_offer_timer_scope` no produto — `auto` | `global` | `product`.
+ *   Em `auto`, aplica global só se o produto estiver numa categoria flash.
+ *
+ * @param int                  $product_id   ID do produto.
+ * @param array|WP_Error|false $product_cats Resultado de get_the_terms( ..., 'product_cat' ).
+ * @return string 'global'|'product'
+ */
+function wcb_pdp_get_offer_bar_timer_scope($product_id, $product_cats)
+{
+    $product_id = (int) $product_id;
+    $flash_slugs = apply_filters(
+        'wcb_pdp_offer_flash_category_slugs',
+        array('super-ofertas', 'ofertas-relampago')
+    );
+    $flash_slugs = array_filter(array_map(function ($s) {
+        return strtolower(sanitize_title((string) $s));
+    }, (array) $flash_slugs));
+
+    $in_flash = false;
+    if (is_array($product_cats) && !is_wp_error($product_cats) && $flash_slugs !== array()) {
+        $term_slugs = array_map('strtolower', wp_list_pluck($product_cats, 'slug'));
+        foreach ($flash_slugs as $fs) {
+            if ($fs !== '' && in_array($fs, $term_slugs, true)) {
+                $in_flash = true;
+                break;
+            }
+        }
+    }
+
+    $acf_scope = 'auto';
+    if (function_exists('get_field')) {
+        $v = get_field('wcb_pdp_offer_timer_scope', $product_id);
+        if (is_string($v)) {
+            $v = strtolower(trim($v));
+            if (in_array($v, array('auto', 'global', 'product'), true)) {
+                $acf_scope = $v;
+            }
+        }
+    } elseif ($product_id > 0) {
+        $raw = get_post_meta($product_id, 'wcb_pdp_offer_timer_scope', true);
+        if (is_string($raw) && $raw !== '') {
+            $v = strtolower(trim($raw));
+            if (in_array($v, array('global', 'product'), true)) {
+                $acf_scope = $v;
+            }
+        }
+    }
+
+    if ($acf_scope === 'auto') {
+        return $in_flash ? 'global' : 'product';
+    }
+
+    return $acf_scope === 'global' ? 'global' : 'product';
+}
+
+/**
+ * Garante uma categoria “flash” se ainda não existir nenhuma das equivalentes.
+ * Slugs equivalentes: super-ofertas, ofertas-relampago (ver `wcb_pdp_offer_flash_category_slugs`).
+ * Só cria `super-ofertas` quando nenhum dos dois termos existe (evita duplicar).
+ */
+function wcb_ensure_flash_offer_product_category()
+{
+    if (!function_exists('taxonomy_exists') || !taxonomy_exists('product_cat')) {
+        return;
+    }
+
+    $canonical = 'super-ofertas';
+    $legacy = 'ofertas-relampago';
+
+    if (term_exists($canonical, 'product_cat') || term_exists($legacy, 'product_cat')) {
+        return;
+    }
+
+    $insert = wp_insert_term(
+        __('Super Ofertas', 'wcb-theme'),
+        'product_cat',
+        array(
+            'slug' => $canonical,
+            'description' => __(
+                'Ofertas em destaque (equivalente à secção Super Ofertas). Countdown global da barra de oferta na PDP. Slug legado aceite: ofertas-relampago.',
+                'wcb-theme'
+            ),
+        )
+    );
+
+    if (is_wp_error($insert)) {
+        return;
+    }
+}
+
+add_action('init', 'wcb_ensure_flash_offer_product_category', 20);
+
+/**
  * Carrinho lateral Xoo Side Cart: só quando o plugin está ativo.
  * Para desativar pelo tema (plugin ainda ativo): add_filter( 'wcb_side_cart_active', '__return_false' );
  */
@@ -69,6 +166,30 @@ function wcb_is_side_cart_active()
 function wcb_pdp_cta_arrow_svg()
 {
     return '<svg class="wcb-pdp-cta-arrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+}
+
+/**
+ * Remove o YITH FBT do hook `woocommerce_after_single_product_summary`
+ * (o template `single-product.php` renderiza o bloco na coluna da buybox).
+ */
+function wcb_pdp_detach_yith_fbt_from_after_summary()
+{
+    if (!class_exists('YITH_WFBT_Frontend')) {
+        return;
+    }
+    remove_action('woocommerce_after_single_product_summary', array(YITH_WFBT_Frontend(), 'add_bought_together_form'), 1);
+}
+
+/**
+ * HTML do Frequently Bought Together (YITH) para o produto atual, ou string vazia.
+ */
+function wcb_pdp_get_yith_fbt_html()
+{
+    if (!class_exists('YITH_WFBT_Frontend')) {
+        return '';
+    }
+    $html = YITH_WFBT_Frontend()->add_bought_together_form(false, true);
+    return is_string($html) ? $html : '';
 }
 
 add_filter(
@@ -2054,7 +2175,7 @@ function wcb_gift_progress_bar()
                 subtotal: <?php echo round($subtotal, 2); ?>,
                 gift_progress: <?php echo round($gift_progress, 1); ?>,
                 gift_unlocked: <?php echo $gift_unlocked ? 'true' : 'false'; ?>,
-                gift_text: '<?php echo addslashes($gift_text); ?>',
+                gift_text: <?php echo wp_json_encode($gift_text); ?>,
                 ship_progress: <?php echo round($ship_progress, 1); ?>,
                 ship_remaining: <?php echo round($ship_remaining, 2); ?>,
                 ship_unlocked: <?php echo $ship_unlocked ? 'true' : 'false'; ?>,
@@ -2621,11 +2742,11 @@ function wcb_gift_progress_bar()
                 var icon = WCB_SVG_TRUCK;
                 if (d.ship_unlocked) {
                     icon = WCB_SVG_SHIP_OK;
-                    text = '<strong class="wcb-incentive-accent"><?php echo esc_js(__('Frete grátis', 'wcb-theme')); ?></strong> <?php echo esc_js(__('desbloqueado!', 'wcb-theme')); ?>';
+                    text = '<strong class="wcb-incentive-accent">' + <?php echo wp_json_encode(__('Frete grátis', 'wcb-theme')); ?> + '</strong> ' + <?php echo wp_json_encode(__('desbloqueado!', 'wcb-theme')); ?>;
                 } else if (d.subtotal <= 0) {
-                    text = '<?php echo esc_js(__('Compre', 'wcb-theme')); ?> <strong class="wcb-incentive-accent">R$ ' + Number(shipThreshold).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> <?php echo esc_js(__('para', 'wcb-theme')); ?> <strong class="wcb-incentive-accent"><?php echo esc_js(__('frete grátis', 'wcb-theme')); ?></strong>';
+                    text = <?php echo wp_json_encode(__('Compre', 'wcb-theme')); ?> + ' <strong class="wcb-incentive-accent">R$ ' + Number(shipThreshold).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> ' + <?php echo wp_json_encode(__('para', 'wcb-theme')); ?> + ' <strong class="wcb-incentive-accent">' + <?php echo wp_json_encode(__('frete grátis', 'wcb-theme')); ?> + '</strong>';
                 } else {
-                    text = '<?php echo esc_js(__('Faltam', 'wcb-theme')); ?> <strong class="wcb-incentive-accent">R$ ' + Number(d.ship_remaining).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> <?php echo esc_js(__('para', 'wcb-theme')); ?> <strong class="wcb-incentive-accent"><?php echo esc_js(__('frete grátis', 'wcb-theme')); ?></strong>';
+                    text = <?php echo wp_json_encode(__('Faltam', 'wcb-theme')); ?> + ' <strong class="wcb-incentive-accent">R$ ' + Number(d.ship_remaining).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> ' + <?php echo wp_json_encode(__('para', 'wcb-theme')); ?> + ' <strong class="wcb-incentive-accent">' + <?php echo wp_json_encode(__('frete grátis', 'wcb-theme')); ?> + '</strong>';
                 }
                 return '<div class="' + cls + '" id="wcb-ship-bar">' +
                     '<span class="wcb-incentive-suite__kicker">' + WCB_KICKER_SHIP + '</span>' +
@@ -3057,10 +3178,10 @@ function wcb_gift_progress_bar()
                     gift_progress: sub > 0 ? Math.min(100, (sub / giftThreshold) * 100) : 0,
                     gift_unlocked: sub >= giftThreshold,
                     gift_text: sub <= 0
-                        ? '<?php echo esc_js(__('Adicione produtos para ganhar um <strong class="wcb-incentive-accent">brinde grátis</strong>!', 'wcb-theme')); ?>'
+                        ? <?php echo wp_json_encode(__('Adicione produtos para ganhar um <strong class="wcb-incentive-accent">brinde grátis</strong>!', 'wcb-theme')); ?>
                         : (sub >= giftThreshold
-                            ? '<?php echo esc_js(__('<strong class="wcb-incentive-accent">Parabéns!</strong> Você ganhou um <strong class="wcb-incentive-accent">brinde</strong>!', 'wcb-theme')); ?>'
-                            : '<?php echo esc_js(__('Faltam', 'wcb-theme')); ?> <strong class="wcb-incentive-accent">R$ ' + gRem.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> <?php echo esc_js(__('para', 'wcb-theme')); ?> <strong class="wcb-incentive-accent"><?php echo esc_js(__('ganhar um brinde!', 'wcb-theme')); ?></strong>'),
+                            ? <?php echo wp_json_encode(__('<strong class="wcb-incentive-accent">Parabéns!</strong> Você ganhou um <strong class="wcb-incentive-accent">brinde</strong>!', 'wcb-theme')); ?>
+                            : <?php echo wp_json_encode(__('Faltam', 'wcb-theme')); ?> + ' <strong class="wcb-incentive-accent">R$ ' + gRem.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</strong> ' + <?php echo wp_json_encode(__('para', 'wcb-theme')); ?> + ' <strong class="wcb-incentive-accent">' + <?php echo wp_json_encode(__('ganhar um brinde!', 'wcb-theme')); ?> + '</strong>'),
                     ship_progress: sub > 0 ? Math.min(100, (sub / shipThreshold) * 100) : 0,
                     ship_remaining: sRem,
                     ship_unlocked: sub >= shipThreshold
@@ -3243,8 +3364,9 @@ function wcb_live_search_handler()
             }
         }
 
-        $rating = round((float) $product->get_average_rating(), 1);
-        $rating_count = (int) $product->get_rating_count();
+        $wcb_rs       = wcb_get_product_rating_display_stats( $post_id );
+        $rating       = (float) $wcb_rs['average'];
+        $rating_count = (int) $wcb_rs['count'];
         $total_sales = (int) get_post_meta($post_id, 'total_sales', true);
         $is_bestseller = $total_sales > 20;
         $is_trending = $total_sales > 5 && $total_sales <= 20;
@@ -3363,9 +3485,10 @@ function wcb_quick_view_handler()
     $terms = get_the_terms($product_id, 'product_cat');
     $cat_name = (!empty($terms) && !is_wp_error($terms)) ? $terms[0]->name : '';
 
-    // ── Rating ────────────────────────────────────────────────
-    $rating_count = $product->get_rating_count();
-    $avg_rating = round((float) $product->get_average_rating(), 1);
+    // ── Rating (comentários aprovados + meta rating, igual cards / PDP) ───
+    $wcb_qv_rs    = wcb_get_product_rating_display_stats( $product_id );
+    $rating_count = (int) $wcb_qv_rs['count'];
+    $avg_rating   = (float) $wcb_qv_rs['average'];
 
     // ── Stock ─────────────────────────────────────────────────
     $stock_qty = $product->get_stock_quantity();
@@ -3463,7 +3586,7 @@ function wcb_quick_view_handler()
                 'regular_price' => $var_regular > 0 ? 'R$ ' . number_format($var_regular, 2, ',', '.') : '',
                 'current_price' => $var_price > 0 ? 'R$ ' . number_format($var_price, 2, ',', '.') : '',
                 'pix_price' => $var_pix > 0 ? 'R$ ' . number_format($var_pix, 2, ',', '.') : '',
-                'installments' => $var_price >= 30 ? 'ou 12x no cartão' : '',
+                'installments' => $var_price > 0 ? 'ou 12x no cartão' : '',
                 'is_on_sale' => $var_on_sale,
                 'saving' => $var_saving,
                 'image_url' => $var_image,
@@ -3484,7 +3607,7 @@ function wcb_quick_view_handler()
         'regular_price' => $regular_price > 0 ? 'R$ ' . number_format($regular_price, 2, ',', '.') : '',
         'current_price' => $current_price > 0 ? 'R$ ' . number_format($current_price, 2, ',', '.') : 'Consulte',
         'pix_price' => $pix_price > 0 ? 'R$ ' . number_format($pix_price, 2, ',', '.') : '',
-        'installments' => $current_price >= 30 ? 'ou 12x no cartão' : '',
+        'installments' => $current_price > 0 ? 'ou 12x no cartão' : '',
         'rating_count' => $rating_count,
         'avg_rating' => $avg_rating,
         'low_stock' => $low_stock,
@@ -3657,7 +3780,13 @@ function wcb_wishlist_endpoint_content()
                             <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
-                    <?php get_template_part('template-parts/product', 'card'); ?>
+                    <?php
+                    get_template_part(
+                        'template-parts/product-card',
+                        null,
+                        array( 'product' => $wc_product )
+                    );
+                    ?>
                 </div>
                 <?php
                 wp_reset_postdata();
@@ -3855,3 +3984,108 @@ function wcb_render_cart_page_breadcrumb()
     </nav>
     <?php
 }
+
+/**
+ * ACF: grupo de campos do timer da barra de oferta na PDP (produto).
+ */
+function wcb_register_acf_pdp_offer_timer_fields()
+{
+    if (!function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    acf_add_local_field_group(array(
+        'key' => 'group_wcb_pdp_offer_timer',
+        'title' => 'WCB — Timer barra de oferta (PDP)',
+        'fields' => array(
+            array(
+                'key' => 'field_wcb_pdp_offer_timer_scope',
+                'label' => __('Timer da oferta (countdown)', 'wcb-theme'),
+                'name' => 'wcb_pdp_offer_timer_scope',
+                'type' => 'select',
+                'instructions' => __('Automático: global para produtos na categoria Super Ofertas (slugs super-ofertas ou ofertas-relampago; filtrável); nos restantes, por produto.', 'wcb-theme'),
+                'choices' => array(
+                    'auto' => __('Automático (Super Ofertas = global; resto = por produto)', 'wcb-theme'),
+                    'global' => __('Global — mesmo tempo que outros PDPs em modo global (sessão do separador)', 'wcb-theme'),
+                    'product' => __('Por produto — countdown só deste produto', 'wcb-theme'),
+                ),
+                'default_value' => 'auto',
+                'return_format' => 'value',
+                'ui' => 1,
+            ),
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'product',
+                ),
+            ),
+        ),
+        'position' => 'side',
+        'active' => true,
+    ));
+}
+
+add_action('acf/init', 'wcb_register_acf_pdp_offer_timer_fields');
+
+/**
+ * Sem ACF: campo nativo WooCommerce (mesma meta key que o ACF usaria no produto).
+ */
+function wcb_render_pdp_offer_timer_wc_field()
+{
+    global $post;
+
+    if (!is_object($post) || function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    $val = get_post_meta($post->ID, 'wcb_pdp_offer_timer_scope', true);
+    if (!is_string($val)) {
+        $val = '';
+    }
+
+    echo '<div class="options_group wcb-pdp-offer-timer-field">';
+    woocommerce_wp_select(
+        array(
+            'id' => 'wcb_pdp_offer_timer_scope',
+            'name' => 'wcb_pdp_offer_timer_scope',
+            'value' => $val,
+            'label' => __('Timer barra de oferta (PDP)', 'wcb-theme'),
+            'options' => array(
+                '' => __('Automático (Super Ofertas = global; resto = por produto)', 'wcb-theme'),
+                'global' => __('Global (sessão do separador)', 'wcb-theme'),
+                'product' => __('Por produto', 'wcb-theme'),
+            ),
+            'desc_tip' => true,
+            'description' => __('Categorias equivalentes: super-ofertas ou ofertas-relampago. Em Automático o countdown é global. Produtos → Categorias.', 'wcb-theme'),
+        )
+    );
+    echo '</div>';
+}
+
+add_action('woocommerce_product_options_general_product_data', 'wcb_render_pdp_offer_timer_wc_field', 16);
+
+/**
+ * @param WC_Product $product
+ */
+function wcb_save_pdp_offer_timer_wc_field($product)
+{
+    if (function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    if (!isset($_POST['wcb_pdp_offer_timer_scope'])) {
+        return;
+    }
+
+    $v = sanitize_text_field(wp_unslash($_POST['wcb_pdp_offer_timer_scope']));
+    if ($v === '') {
+        $product->delete_meta_data('wcb_pdp_offer_timer_scope');
+    } elseif (in_array($v, array('global', 'product'), true)) {
+        $product->update_meta_data('wcb_pdp_offer_timer_scope', $v);
+    }
+}
+
+add_action('woocommerce_admin_process_product_object', 'wcb_save_pdp_offer_timer_wc_field', 10, 1);

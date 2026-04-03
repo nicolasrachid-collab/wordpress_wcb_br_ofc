@@ -16,7 +16,13 @@ do_action('woocommerce_before_main_content');
 
 while (have_posts()):
     the_post();
-    global $product;
+
+    // ─── Sempre o produto do post atual (evita global desatualizado) ───
+    $product = wc_get_product( get_the_ID() );
+    if ( ! $product instanceof WC_Product ) {
+        break;
+    }
+    $GLOBALS['product'] = $product;
 
     // ─── Product Data (WooCommerce nativo) ────────────────────
     $product_id = $product->get_id();
@@ -32,10 +38,14 @@ while (have_posts()):
     $saving_pct = ($is_on_sale && $regular_price > 0 && $sale_price_val > 0)
         ? round((($regular_price - $sale_price_val) / $regular_price) * 100)
         : 0;
-    $avg_rating = $product->get_average_rating();
-    $review_count = $product->get_review_count();
+    $wcb_rating_stats = wcb_get_product_rating_display_stats( $product_id );
+    $avg_rating       = $wcb_rating_stats['average'];
+    $review_count     = (int) $wcb_rating_stats['count'];
     $product_cats = get_the_terms($product_id, 'product_cat');
     $sku = $product->get_sku();
+    $wcb_pdp_offer_timer_scope = function_exists('wcb_pdp_get_offer_bar_timer_scope')
+        ? wcb_pdp_get_offer_bar_timer_scope($product_id, $product_cats)
+        : 'product';
 
     // ─── Gallery images (WooCommerce nativo) ──────────────────
     $gallery_ids = $product->get_gallery_image_ids();
@@ -43,8 +53,7 @@ while (have_posts()):
     $all_image_ids = array_merge((array) $thumb_id, $gallery_ids);
     $all_image_ids = array_unique(array_filter($all_image_ids));
 
-    // ─── Parcelamento (copy fixa: sem valor por parcela na PDP) ─
-    $show_installments_line = ($current_price >= 100);
+    // ─── Cartão na PDP: sufixo fixo "em até 12x no cartão" (linha do ticket) ─
 
     // ─── ACF / Custom Fields (opcionais — fallback seguro) ────
     // Se ACF estiver ativo, puxamos "how_to_use". Caso contrário, fallback.
@@ -60,6 +69,9 @@ while (have_posts()):
              * Mostra notices (adicionado ao carrinho, erro de estoque, etc)
              */
             do_action('woocommerce_before_single_product');
+            if (function_exists('wcb_pdp_detach_yith_fbt_from_after_summary')) {
+                wcb_pdp_detach_yith_fbt_from_after_summary();
+            }
             ?>
 
             <!-- ════════════════════════════════════════════════════
@@ -144,7 +156,8 @@ while (have_posts()):
                     </div>
                 </div>
 
-                <!-- 2B. BUY BOX PREMIUM -->
+                <!-- 2B. Coluna direita: buybox + FBT (YITH) -->
+                <div class="wcb-pdp-hero__summary">
                 <div class="wcb-pdp-buybox" id="wcb-pdp-buybox">
 
                     <!-- Título → meta (SKU, avaliações, resumo, estoque) → preço → variação → qtd → CTA -->
@@ -155,7 +168,7 @@ while (have_posts()):
                             <p class="wcb-pdp-buybox__sku">SKU: <?php echo esc_html($sku); ?></p>
                         <?php endif; ?>
 
-                        <div class="wcb-pdp-buybox__rating">
+                        <div class="wcb-pdp-buybox__rating" data-wcb-rating-for="<?php echo esc_attr( (string) (int) $product_id ); ?>">
                             <div class="wcb-pdp-buybox__stars">
                                 <?php for ($i = 1; $i <= 5; $i++): ?>
                                     <svg class="wcb-pdp-buybox__star" width="16" height="16" viewBox="0 0 24 24"
@@ -176,9 +189,24 @@ while (have_posts()):
                             <?php endif; ?>
                         </div>
 
-                        <?php if ($product->get_short_description()): ?>
-                            <div class="wcb-pdp-buybox__desc">
-                                <?php echo wpautop(wp_kses_post($product->get_short_description())); ?>
+                        <?php if ($product->get_short_description()) : ?>
+                            <div
+                                class="wcb-pdp-buybox__desc"
+                                data-wcb-short-desc
+                                data-label-more="<?php echo esc_attr__( 'Ver mais', 'wcb-theme' ); ?>"
+                                data-label-less="<?php echo esc_attr__( 'Ver menos', 'wcb-theme' ); ?>"
+                            >
+                                <div class="wcb-pdp-buybox__desc-inner">
+                                    <?php echo wpautop(wp_kses_post($product->get_short_description())); ?>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="wcb-pdp-buybox__desc-toggle"
+                                    hidden
+                                    aria-expanded="false"
+                                >
+                                    <?php echo esc_html__( 'Ver mais', 'wcb-theme' ); ?>
+                                </button>
                             </div>
                         <?php endif; ?>
 
@@ -201,12 +229,15 @@ while (have_posts()):
                     </div>
 
                     <?php if ($is_on_sale && $saving_pct > 0): ?>
-                    <div class="wcb-pdp-offer-bar wcb-pdp-offer-bar--buybox" role="status" aria-live="polite">
+                    <div class="wcb-pdp-offer-bar wcb-pdp-offer-bar--buybox" role="status" aria-live="polite"
+                        data-product-id="<?php echo esc_attr((string) $product_id); ?>"
+                        data-offer-duration-sec="7200"
+                        data-offer-timer-scope="<?php echo esc_attr($wcb_pdp_offer_timer_scope); ?>">
                         <div class="wcb-pdp-offer-bar__inner">
                             <span class="wcb-pdp-offer-bar__icon" aria-hidden="true">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                 </svg>
                             </span>
                             <span class="wcb-pdp-offer-bar__text">Oferta por tempo limitado!</span>
@@ -249,15 +280,11 @@ while (have_posts()):
                                         <span class="wcb-pdp-buybox__price-current" id="wcb-pdp-price-current">
                                             R$ <?php echo number_format($current_price, 2, ',', '.'); ?>
                                         </span>
-                                        <span class="wcb-pdp-buybox__price-ticket__card-suffix"> no cartão</span>
+                                        <span class="wcb-pdp-buybox__price-ticket__card-suffix"> em até 12x no cartão</span>
                                         <span class="wcb-pdp-buybox__discount" id="wcb-pdp-discount"
                                             style="<?php echo (!$is_on_sale || $saving_pct <= 0) ? 'display:none' : ''; ?>">
                                             −<?php echo $saving_pct; ?>% OFF
                                         </span>
-                                    </p>
-                                    <p class="wcb-pdp-buybox__installments" id="wcb-pdp-installments"
-                                        style="<?php echo $show_installments_line ? '' : 'display:none'; ?>">
-                                        No máximo, até 12x no cartão
                                     </p>
                                 </div>
                             </div>
@@ -279,6 +306,17 @@ while (have_posts()):
                     </div>
 
                 </div><!-- /.wcb-pdp-buybox -->
+
+                    <?php
+                    $wcb_fbt_html = function_exists('wcb_pdp_get_yith_fbt_html') ? wcb_pdp_get_yith_fbt_html() : '';
+                    if ($wcb_fbt_html !== '' && trim(wp_strip_all_tags($wcb_fbt_html)) !== '') :
+                        ?>
+                    <div class="wcb-pdp-fbt-slot" data-wcb-pdp-fbt="1">
+                        <?php echo $wcb_fbt_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup gerado pelo YITH/WooCommerce ?>
+                    </div>
+                    <?php endif; ?>
+
+                </div><!-- /.wcb-pdp-hero__summary -->
             </section><!-- /.wcb-pdp-hero -->
 
             <!-- ════════════════════════════════════════════════════
@@ -337,6 +375,24 @@ while (have_posts()):
                 </div>
             </div>
 
+            <?php
+            /*
+             * Hook: woocommerce_after_single_product_summary
+             * — YITH FBT: renderizado na coluna da buybox (hero); removido do hook em wcb_pdp_detach_yith_fbt_from_after_summary().
+             * — Outros plugins que usem o mesmo hook
+             *
+             * O WooCommerce regista aqui tabs, upsells e related (wc-template-hooks.php).
+             * Esta PDP já tem abas próprias (.wcb-pdp-tabs) e "Você também pode gostar";
+             * remover só estes três evita conteúdo duplicado.
+             */
+            remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_product_data_tabs', 10 );
+            remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 15 );
+            remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+            ?>
+            <div class="wcb-pdp-after-summary">
+                <?php do_action( 'woocommerce_after_single_product_summary' ); ?>
+            </div>
+
             <!-- ════════════════════════════════════════════════════
                  3. ABAS (Descrição, Especificações, Como Usar, Avaliações)
                  ════════════════════════════════════════════════════ -->
@@ -388,22 +444,23 @@ while (have_posts()):
                     </div>
 
                     <!-- Avaliações (WooCommerce nativo: comments_template) -->
-                    <div class="wcb-pdp-tab-panel" id="wcb-pdp-tab-reviews">
+                    <div class="wcb-pdp-tab-panel" id="wcb-pdp-tab-reviews"<?php echo $review_count < 1 ? ' data-wcb-pdp-review-form-start-hidden="1"' : ''; ?>>
                         <div class="wcb-pdp-tab-panel__content">
 
                             <!-- Dashboard de Avaliações -->
                             <?php
-                            $avg = (float) $product->get_average_rating();
-                            $count = (int) $product->get_review_count();
+                            $avg   = (float) $wcb_rating_stats['average'];
+                            $count = (int) $wcb_rating_stats['count'];
                             ?>
-                            <div class="wcb-pdp-reviews-hero">
+                            <div class="wcb-pdp-reviews-hero<?php echo $count < 1 ? ' wcb-pdp-reviews-hero--empty' : ''; ?>">
+                                <?php if ($count > 0) : ?>
                                 <div class="wcb-pdp-reviews-hero__score">
                                     <div class="wcb-pdp-reviews-hero__num">
-                                        <?php echo $count > 0 ? number_format($avg, 1) : '—'; ?>
+                                        <?php echo number_format($avg, 1); ?>
                                     </div>
-                                    <div class="wcb-pdp-reviews-hero__stars">
-                                        <?php for ($s = 1; $s <= 5; $s++): ?>
-                                            <svg width="20" height="20" viewBox="0 0 24 24"
+                                    <div class="wcb-pdp-reviews-hero__stars" role="img" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: rating 1-5 */ __('Nota média %s de 5', 'wcb-theme'), number_format($avg, 1))); ?>">
+                                        <?php for ($s = 1; $s <= 5; $s++) : ?>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
                                                 fill="<?php echo $s <= round($avg) ? '#F59E0B' : 'none'; ?>" stroke="#F59E0B"
                                                 stroke-width="1.5">
                                                 <polygon
@@ -412,9 +469,27 @@ while (have_posts()):
                                         <?php endfor; ?>
                                     </div>
                                     <p class="wcb-pdp-reviews-hero__total">
-                                        <?php echo $count > 0 ? "$count avaliações" : 'Sem avaliações'; ?>
+                                        <?php echo esc_html(sprintf(/* translators: %d: number of reviews */ _n('%d avaliação', '%d avaliações', $count, 'wcb-theme'), $count)); ?>
                                     </p>
                                 </div>
+
+                                <?php else : ?>
+                                <div class="wcb-pdp-reviews-hero__empty">
+                                    <p class="wcb-pdp-reviews-hero__empty-kicker"><?php esc_html_e('Avaliações', 'wcb-theme'); ?></p>
+                                    <h3 class="wcb-pdp-reviews-hero__empty-title"><?php esc_html_e('Seja o primeiro a opinar', 'wcb-theme'); ?></h3>
+                                    <p class="wcb-pdp-reviews-hero__empty-text">
+                                        <?php esc_html_e('Comprou este produto? Sua experiência ajuda outros clientes a escolher com confiança.', 'wcb-theme'); ?>
+                                    </p>
+                                    <div class="wcb-pdp-reviews-hero__stars wcb-pdp-reviews-hero__stars--placeholder" aria-hidden="true">
+                                        <?php for ($s = 0; $s < 5; $s++) : ?>
+                                            <svg width="22" height="22" viewBox="0 0 24 24">
+                                                <polygon fill="#F59E0B" stroke="#F59E0B" stroke-width="1.2"
+                                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                            </svg>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
 
                                 <?php if ($count > 0):
                                     $star_counts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
@@ -422,7 +497,8 @@ while (have_posts()):
                                         'post_id' => $product_id,
                                         'status' => 'approve',
                                         'type' => 'review',
-                                        'number' => 0
+                                        'parent' => 0,
+                                        'number' => 0,
                                     ]);
                                     foreach ($comments_q as $c) {
                                         $r = (int) get_comment_meta($c->comment_ID, 'rating', true);
@@ -446,15 +522,22 @@ while (have_posts()):
                                 <?php endif; ?>
 
                                 <div class="wcb-pdp-reviews-hero__cta">
-                                    <p><?php echo $count > 0 ? 'Curtiu o produto? Deixe sua avaliação! 🌟' : 'Seja o primeiro a avaliar! 🌟'; ?>
-                                    </p>
-                                    <button class="wcb-pdp-reviews-hero__btn" id="wcb-pdp-toggle-review">Escrever
-                                        avaliação</button>
+                                    <?php if ($count > 0) : ?>
+                                    <p class="wcb-pdp-reviews-hero__cta-lead"><?php esc_html_e('Curtiu o produto? Conte o que achou.', 'wcb-theme'); ?></p>
+                                    <?php endif; ?>
+                                    <button type="button" class="wcb-pdp-reviews-hero__btn" id="wcb-pdp-toggle-review"
+                                        aria-controls="wcb-pdp-review-form"
+                                        aria-expanded="<?php echo $count > 0 ? 'true' : 'false'; ?>">
+                                        <?php esc_html_e('Escrever avaliação', 'wcb-theme'); ?>
+                                    </button>
                                 </div>
                             </div>
 
                             <!-- Lista de Reviews (WooCommerce nativo + toolbar ordenar/filtrar) -->
-                            <?php if (have_comments()): ?>
+                            <?php
+                            wcb_pdp_prime_comments_for_product();
+                            if (have_comments()):
+                                ?>
                                 <div class="wcb-pdp-reviews-list">
                                     <div class="wcb-pdp-reviews-list__head">
                                         <h3><?php esc_html_e('O que nossos clientes dizem', 'wcb-theme'); ?></h3>
@@ -484,31 +567,100 @@ while (have_posts()):
                                             </div>
                                         </div>
                                     </div>
-                                    <?php wp_list_comments(apply_filters('woocommerce_product_review_list_args', [
-                                        'callback' => 'woocommerce_comments',
-                                    ])); ?>
-                                </div>
-                            <?php else: ?>
-                                <div class="wcb-pdp-reviews-empty">
-                                    <div>⭐</div>
-                                    <h3>Ainda não há avaliações</h3>
-                                    <p>Comprou esse produto? Conte sua experiência!</p>
+                                    <ol class="commentlist">
+                                        <?php
+                                        wp_list_comments(apply_filters('woocommerce_product_review_list_args', [
+                                            'callback' => 'woocommerce_comments',
+                                        ]));
+                                        ?>
+                                    </ol>
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Formulário de Review (WooCommerce nativo) -->
+                            <!-- Formulário de Review (WooCommerce: estrelas + texto, como single-product-reviews.php) -->
                             <?php if (comments_open()): ?>
-                                <div class="wcb-pdp-review-form" id="wcb-pdp-review-form">
-                                    <?php comment_form(apply_filters('woocommerce_product_review_comment_form_args', [
-                                        'title_reply' => '<span class="wcb-pdp-review-form__title">✍️ Deixe sua avaliação</span>',
-                                        'title_reply_to' => __('Leave a Reply to %s', 'woocommerce'),
-                                        'title_reply_before' => '<div class="wcb-pdp-review-form__header" id="reply-title">',
-                                        'title_reply_after' => '</div>',
-                                        'comment_notes_after' => '',
-                                        'label_submit' => 'Publicar Avaliação',
-                                        'submit_button' => '<button type="submit" class="wcb-pdp-review-form__submit">%4$s</button>',
-                                        'submit_field' => '<div class="wcb-pdp-review-form__actions">%1$s %2$s</div>',
-                                    ])); ?>
+                                <?php
+                                $wcb_can_leave_review = get_option('woocommerce_review_rating_verification_required') === 'no'
+                                    || wc_customer_bought_product('', get_current_user_id(), $product_id);
+                                ?>
+                                <div class="wcb-pdp-review-form" id="wcb-pdp-review-form"<?php echo $count < 1 ? ' hidden' : ''; ?>>
+                                    <?php if ($wcb_can_leave_review) : ?>
+                                        <?php
+                                        $commenter = wp_get_current_commenter();
+                                        $name_email_required = (bool) get_option('require_name_email', 1);
+                                        $wcb_pdp_comment_form = [
+                                            'title_reply' => '<span class="wcb-pdp-review-form__title">✍️ Deixe sua avaliação</span>',
+                                            'title_reply_to' => __('Leave a Reply to %s', 'woocommerce'),
+                                            'title_reply_before' => '<div class="wcb-pdp-review-form__header" id="reply-title">',
+                                            'title_reply_after' => '</div>',
+                                            'comment_notes_after' => '',
+                                            'label_submit' => __('Publicar Avaliação', 'wcb-theme'),
+                                            'submit_button' => '<button type="submit" class="wcb-pdp-review-form__submit">%4$s</button>',
+                                            'submit_field' => '<div class="wcb-pdp-review-form__actions">%1$s %2$s</div>',
+                                            'logged_in_as' => '',
+                                            'comment_field' => '',
+                                            'fields' => [],
+                                        ];
+                                        $wcb_guest_fields = [
+                                            'author' => [
+                                                'label' => __('Name', 'woocommerce'),
+                                                'type' => 'text',
+                                                'value' => $commenter['comment_author'],
+                                                'required' => $name_email_required,
+                                                'autocomplete' => 'name',
+                                            ],
+                                            'email' => [
+                                                'label' => __('Email', 'woocommerce'),
+                                                'type' => 'email',
+                                                'value' => $commenter['comment_author_email'],
+                                                'required' => $name_email_required,
+                                                'autocomplete' => 'email',
+                                            ],
+                                        ];
+                                        foreach ($wcb_guest_fields as $key => $field) {
+                                            $wcb_pdp_comment_form['fields'][$key] = '<p class="comment-form-' . esc_attr($key) . '">'
+                                                . '<label for="' . esc_attr($key) . '">' . esc_html($field['label'])
+                                                . ($field['required'] ? '&nbsp;<span class="required">*</span>' : '')
+                                                . '</label><input id="' . esc_attr($key) . '" name="' . esc_attr($key) . '" type="'
+                                                . esc_attr($field['type']) . '" autocomplete="' . esc_attr($field['autocomplete'])
+                                                . '" value="' . esc_attr($field['value']) . '" size="30" '
+                                                . ($field['required'] ? 'required' : '') . ' /></p>';
+                                        }
+                                        $account_page_url = wc_get_page_permalink('myaccount');
+                                        if ($account_page_url) {
+                                            $wcb_pdp_comment_form['must_log_in'] = '<p class="must-log-in">' . sprintf(
+                                                esc_html__('You must be %1$slogged in%2$s to post a review.', 'woocommerce'),
+                                                '<a href="' . esc_url($account_page_url) . '">',
+                                                '</a>'
+                                            ) . '</p>';
+                                        }
+                                        $wcb_rating_html = '';
+                                        if (wc_review_ratings_enabled()) {
+                                            $rating_req = wc_review_ratings_required();
+                                            $wcb_rating_html = '<div class="comment-form-rating"><label for="rating" id="comment-form-rating-label">'
+                                                . esc_html__('Your rating', 'woocommerce')
+                                                . ($rating_req ? '&nbsp;<span class="required">*</span>' : '')
+                                                . '</label><select name="rating" id="rating"'
+                                                . ($rating_req ? ' required' : '')
+                                                . '><option value="">' . esc_html__('Rate&hellip;', 'woocommerce') . '</option>'
+                                                . '<option value="5">' . esc_html__('Perfect', 'woocommerce') . '</option>'
+                                                . '<option value="4">' . esc_html__('Good', 'woocommerce') . '</option>'
+                                                . '<option value="3">' . esc_html__('Average', 'woocommerce') . '</option>'
+                                                . '<option value="2">' . esc_html__('Not that bad', 'woocommerce') . '</option>'
+                                                . '<option value="1">' . esc_html__('Very poor', 'woocommerce') . '</option>'
+                                                . '</select></div>';
+                                        }
+                                        $wcb_pdp_comment_form['comment_field'] = $wcb_rating_html
+                                            . '<p class="comment-form-comment"><label for="comment">'
+                                            . esc_html__('Your review', 'woocommerce') . '&nbsp;<span class="required">*</span>'
+                                            . '</label><textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required></textarea></p>';
+                                        comment_form(apply_filters('woocommerce_product_review_comment_form_args', $wcb_pdp_comment_form));
+                                        ?>
+                                    <?php else : ?>
+                                        <p class="woocommerce-verification-required wcb-pdp-review-form__verification">
+                                            <?php esc_html_e('Only logged in customers who have purchased this product may leave a review.', 'woocommerce'); ?>
+                                        </p>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
 
@@ -551,7 +703,17 @@ while (have_posts()):
                             if ($related_products->have_posts()):
                                 while ($related_products->have_posts()):
                                     $related_products->the_post();
-                                    get_template_part('template-parts/product-card');
+                                    if ( function_exists( 'wc_setup_product_data' ) ) {
+                                        wc_setup_product_data( get_post() );
+                                    }
+                                    $wcb_related = wc_get_product( get_the_ID() );
+                                    if ( $wcb_related instanceof WC_Product ) {
+                                        get_template_part(
+                                            'template-parts/product-card',
+                                            null,
+                                            array( 'product' => $wcb_related )
+                                        );
+                                    }
                                 endwhile;
                                 wp_reset_postdata();
                             endif;
@@ -583,7 +745,7 @@ while (have_posts()):
                     </div>
                 <?php endif; ?>
                 <div class="wcb-pdp-sticky__text">
-                    <span class="wcb-pdp-sticky__name"><?php echo esc_html(wp_trim_words($product_title, 6, '…')); ?></span>
+                    <span class="wcb-pdp-sticky__name"><?php echo esc_html(wp_trim_words($product_title, 14, '…')); ?></span>
                     <span class="wcb-pdp-sticky__price">
                         <?php if ($current_price > 0): ?>
                             <span class="wcb-pdp-sticky__pix-line"><strong>R$
@@ -593,7 +755,7 @@ while (have_posts()):
                                 <?php if ($is_on_sale): ?>
                                     <del>R$ <?php echo number_format($regular_price, 2, ',', '.'); ?></del>
                                 <?php endif; ?>
-                                Cartão R$ <?php echo number_format($current_price, 2, ',', '.'); ?>
+                                ou R$ <?php echo number_format($current_price, 2, ',', '.'); ?> em até 12x no cartão
                             </span>
                         <?php else: ?>
                             <span class="wcb-pdp-sticky__card-line">—</span>
@@ -940,7 +1102,6 @@ while (have_posts()):
                         var pixEl = document.getElementById('wcb-pdp-pix-value');
                         var economizeEl = document.getElementById('wcb-pdp-economize-pix');
                         var discEl = document.getElementById('wcb-pdp-discount');
-                        var installWrap = document.getElementById('wcb-pdp-installments');
 
                         var price = parseFloat(variation.display_price) || 0;
                         var regular = parseFloat(variation.display_regular_price) || 0;
@@ -981,10 +1142,6 @@ while (have_posts()):
                             }
                         }
 
-                        if (installWrap) {
-                            installWrap.style.display = price >= 100 ? '' : 'none';
-                        }
-
                         // Update PIX wrapper visibility
                         var pixWrap = document.getElementById('wcb-pdp-pix');
                         if (pixWrap) pixWrap.style.display = price > 0 ? '' : 'none';
@@ -1021,10 +1178,6 @@ while (have_posts()):
                             var baseReg = parseFloat(priceBlock.getAttribute('data-base-regular')) || 0;
                             var currentEl = document.getElementById('wcb-pdp-price-current');
                             if (currentEl) currentEl.textContent = 'R$ ' + base.toFixed(2).replace('.', ',');
-                            var installReset = document.getElementById('wcb-pdp-installments');
-                            if (installReset) {
-                                installReset.style.display = base >= 100 ? '' : 'none';
-                            }
                         }
 
                         // Hide subtotal on reset

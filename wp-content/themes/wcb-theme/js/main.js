@@ -587,6 +587,57 @@
         obs.observe(pdpBuybox);
     }
 
+    /* ============================================================
+       SINGLE PRODUCT — descrição breve no buybox (2 linhas → Ver mais / Ver menos)
+       Altura colapsada: CSS #wcb-pdp-buybox .wcb-pdp-buybox__desc-inner max-height
+       ============================================================ */
+    (function () {
+        function measureAndBind(wrap) {
+            const inner = wrap.querySelector('.wcb-pdp-buybox__desc-inner');
+            const btn = wrap.querySelector('.wcb-pdp-buybox__desc-toggle');
+            if (!inner || !btn) {
+                return;
+            }
+
+            const more = wrap.dataset.labelMore || 'Ver mais';
+            const less = wrap.dataset.labelLess || 'Ver menos';
+
+            wrap.classList.add('is-collapsible');
+            void inner.offsetHeight;
+            const needsToggle = inner.scrollHeight > inner.clientHeight + 2;
+
+            if (!needsToggle) {
+                wrap.classList.remove('is-collapsible', 'is-expanded');
+                btn.hidden = true;
+                btn.setAttribute('aria-expanded', 'false');
+                return;
+            }
+
+            btn.hidden = false;
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = more;
+            wrap.classList.remove('is-expanded');
+
+            btn.addEventListener('click', function () {
+                const expanded = wrap.classList.toggle('is-expanded');
+                btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                btn.textContent = expanded ? less : more;
+            });
+        }
+
+        function run() {
+            document.querySelectorAll('.wcb-pdp-buybox__desc[data-wcb-short-desc]').forEach(measureAndBind);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                requestAnimationFrame(run);
+            });
+        } else {
+            requestAnimationFrame(run);
+        }
+    })();
+
     // v1 fallback (Sticky no bottom)
     const stickyAtc = document.getElementById('wcb-sticky-atc');
     const buyArea = document.getElementById('wcb-buy-area');
@@ -642,19 +693,54 @@
     }
 
     /* ============================================================
-       PDP v2 — COUNTDOWN 2h (Barra de Oferta)
+       PDP v2 — COUNTDOWN 2h (Barra de Oferta, sessionStorage)
+       Escopo global (ex.: categoria Ofertas Relâmpago) vs por produto — data-offer-timer-scope.
        ============================================================ */
     const pdpCountdown = document.getElementById('wcb-pdp-countdown');
     if (pdpCountdown) {
-        let totalSec = 7200; // 2 horas
-        const tick = setInterval(() => {
-            if (totalSec <= 0) { clearInterval(tick); pdpCountdown.innerText = '00:00:00'; return; }
-            totalSec--;
+        const offerBar = pdpCountdown.closest('.wcb-pdp-offer-bar--buybox');
+        const productId = (offerBar && offerBar.dataset.productId) ? String(offerBar.dataset.productId) : '0';
+        const durationSec = Math.max(60, parseInt(offerBar && offerBar.dataset.offerDurationSec, 10) || 7200);
+        const timerScope = (offerBar && offerBar.dataset.offerTimerScope === 'global') ? 'global' : 'product';
+        const storageKey = timerScope === 'global'
+            ? 'wcbPdpOfferEnd_global'
+            : ('wcbPdpOfferEnd_' + productId);
+
+        function formatHms(totalSec) {
             const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
             const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
             const s = String(totalSec % 60).padStart(2, '0');
-            pdpCountdown.innerText = h + ':' + m + ':' + s;
-        }, 1000);
+            return h + ':' + m + ':' + s;
+        }
+
+        let endMs = null;
+        try {
+            const raw = sessionStorage.getItem(storageKey);
+            if (raw) {
+                const parsed = parseInt(raw, 10);
+                if (Number.isFinite(parsed) && parsed > Date.now()) {
+                    endMs = parsed;
+                }
+            }
+        } catch (e) { /* storage indisponível */ }
+
+        if (endMs === null) {
+            endMs = Date.now() + durationSec * 1000;
+            try {
+                sessionStorage.setItem(storageKey, String(endMs));
+            } catch (e) { /* modo privado etc. */ }
+        }
+
+        function tickPdpOffer() {
+            const totalSec = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+            pdpCountdown.innerText = formatHms(totalSec);
+            if (totalSec <= 0) {
+                clearInterval(pdpOfferTimer);
+            }
+        }
+
+        tickPdpOffer();
+        const pdpOfferTimer = setInterval(tickPdpOffer, 1000);
     }
 
     /* ============================================================
@@ -669,7 +755,6 @@
         const elDiscount = document.getElementById('wcb-pdp-discount');
         const elPixValue = document.getElementById('wcb-pdp-pix-value');
         const elPixWrap = document.getElementById('wcb-pdp-pix');
-        const elInstallments = document.getElementById('wcb-pdp-installments');
         const elEconomizePix = document.getElementById('wcb-pdp-economize-pix');
         const elStickyPrice = document.querySelector('.wcb-pdp-sticky__price');
 
@@ -721,11 +806,6 @@
                 if (elEconomizePix) elEconomizePix.style.display = 'none';
             }
 
-            // Parcelas — copy fixa no HTML ("No máximo, até 12x no cartão"); só mostrar/ocultar
-            if (elInstallments) {
-                elInstallments.style.display = price >= 100 ? '' : 'none';
-            }
-
             // Sticky bar — destaque no PIX
             if (elStickyPrice) {
                 if (price <= 0) {
@@ -736,7 +816,7 @@
                     if (regular > 0 && regular > price) {
                         cardLine += '<del>R$ ' + formatBRL(regular) + '</del> ';
                     }
-                    cardLine += 'Cartão R$ ' + formatBRL(price);
+                    cardLine += 'ou R$ ' + formatBRL(price) + ' em até 12x no cartão';
                     elStickyPrice.innerHTML =
                         '<span class="wcb-pdp-sticky__pix-line"><strong>R$ ' + formatBRL(pixVal) +
                         '</strong> <span class="wcb-pdp-sticky__pix-note">no PIX</span></span>' +
@@ -780,14 +860,30 @@
     }
 
     /* ============================================================
-       PDP v2 — TOGGLE REVIEW FORM
+       PDP v2 — TOGGLE REVIEW FORM (sem avaliações: form começa oculto)
        ============================================================ */
     const toggleReviewBtn = document.getElementById('wcb-pdp-toggle-review');
     const reviewFormWrap = document.getElementById('wcb-pdp-review-form');
+    const reviewsTabPanel = document.getElementById('wcb-pdp-tab-reviews');
+    const reviewFormStartsHidden =
+        reviewsTabPanel &&
+        reviewsTabPanel.getAttribute('data-wcb-pdp-review-form-start-hidden') === '1';
     if (toggleReviewBtn && reviewFormWrap) {
         toggleReviewBtn.addEventListener('click', () => {
+            if (reviewFormStartsHidden) {
+                if (reviewFormWrap.hasAttribute('hidden')) {
+                    reviewFormWrap.removeAttribute('hidden');
+                    toggleReviewBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    reviewFormWrap.setAttribute('hidden', '');
+                    toggleReviewBtn.setAttribute('aria-expanded', 'false');
+                    toggleReviewBtn.focus();
+                    return;
+                }
+            } else {
+                toggleReviewBtn.setAttribute('aria-expanded', 'true');
+            }
             reviewFormWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Focar no textarea
             setTimeout(() => {
                 const textarea = reviewFormWrap.querySelector('textarea');
                 if (textarea) textarea.focus();
@@ -2321,4 +2417,67 @@
             }
         }
     });
+})();
+
+/* ============================================================
+   SUPER OFERTAS — tracking (dataLayer / gtag + vista da secção)
+   ============================================================ */
+(function () {
+    'use strict';
+    var section = document.getElementById('wcb-super-ofertas');
+    if (!section) return;
+
+    function wcbSoPush(name, detail) {
+        detail = detail || {};
+        detail.wcb_section = 'super-ofertas';
+        try {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(Object.assign({ event: name }, detail));
+        } catch (e) { /* ignore */ }
+        try {
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', name, detail);
+            }
+        } catch (e2) { /* ignore */ }
+    }
+
+    var seen = false;
+    if ('IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting || seen) return;
+                seen = true;
+                wcbSoPush('wcb_super_ofertas_view', { interaction: 'section_visible' });
+                obs.disconnect();
+            });
+        }, { root: null, threshold: 0.12, rootMargin: '0px' });
+        obs.observe(section);
+    }
+
+    section.addEventListener(
+        'click',
+        function (e) {
+            var trackRoot = e.target.closest('[data-wcb-track="super-ofertas"]');
+            if (!trackRoot || !section.contains(trackRoot)) return;
+            var role = trackRoot.getAttribute('data-role') || '';
+            var pid = trackRoot.getAttribute('data-product-id') || '';
+            var cta = e.target.closest('.wcb-hero-cro__cta, .wcb-product-card__add-btn.ajax_add_to_cart, a.ajax_add_to_cart');
+            if (cta && section.contains(cta)) {
+                wcbSoPush('wcb_super_ofertas_click', {
+                    interaction: 'cta',
+                    role: role || 'unknown',
+                    product_id: pid,
+                });
+                return;
+            }
+            if (e.target.closest('a[href]')) {
+                wcbSoPush('wcb_super_ofertas_click', {
+                    interaction: 'link',
+                    role: role || 'unknown',
+                    product_id: pid,
+                });
+            }
+        },
+        false
+    );
 })();

@@ -206,7 +206,7 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
                     <div class="wcb-f3__logo">
                         <?php wcb_get_logo(); ?>
                     </div>
-                    <p class="wcb-f3__brand-desc"><?php esc_html_e( 'Sua loja premium de produtos para vape.', 'wcb-theme' ); ?></p>
+                    <p class="wcb-f3__brand-desc"><?php esc_html_e( 'A escolha de quem busca qualidade e experiência em vape.', 'wcb-theme' ); ?></p>
                     <div class="wcb-f3__social">
                         <a class="wcb-f3__wa-cta"
                             href="https://api.whatsapp.com/send/?phone=595994872020&text&type=phone_number&app_absent=0"

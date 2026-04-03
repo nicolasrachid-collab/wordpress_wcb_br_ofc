@@ -51,6 +51,9 @@ desktop.ini
 # PHP
 *.phar
 
+# Backups (WPvivid — ficheiros grandes; não versionar)
+wp-content/wpvividbackups/
+
 # Backups
 *.bak
 *.backup
@@ -73,3 +76,7 @@ xampp/
 products-output.txt
 wp-content/litespeed/
 wp-content/plugins/litespeed-cache/
+
+# Dumps de servidor / migração (podem conter wp-config e credenciais)
+server_*.json
+wpconfig_*.json
