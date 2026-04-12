@@ -76,14 +76,17 @@
 
 	/* Novidades: título 2 linhas + altura mínima coerente (anula min-height:0 genérico do strip) */
 	#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title,
-	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title {
+	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title,
+	#wcb-pdp-similar-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title {
 		min-height: calc(0.78rem * 1.28 * 2) !important;
 	}
 
 	#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
 	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
+	#wcb-pdp-similar-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
 	#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout,
-	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout {
+	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout,
+	#wcb-pdp-similar-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout {
 		margin-top: auto !important;
 	}
 

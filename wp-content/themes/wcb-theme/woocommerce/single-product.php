@@ -603,26 +603,32 @@ while (have_posts()):
                         </div>
                     </div>
                     <div class="wcb-section__content">
-                        <div class="wcb-products__grid">
-                            <?php
-                            if ($related_products->have_posts()):
-                                while ($related_products->have_posts()):
-                                    $related_products->the_post();
-                                    if ( function_exists( 'wc_setup_product_data' ) ) {
-                                        wc_setup_product_data( get_post() );
-                                    }
-                                    $wcb_related = wc_get_product( get_the_ID() );
-                                    if ( $wcb_related instanceof WC_Product ) {
-                                        get_template_part(
-                                            'template-parts/product-card',
-                                            null,
-                                            array( 'product' => $wcb_related )
-                                        );
-                                    }
-                                endwhile;
-                                wp_reset_postdata();
-                            endif;
-                            ?>
+                        <div class="wcb-paged-carousel" id="wcb-pdp-similar-carousel">
+                            <div class="wcb-paged-carousel__track">
+                                <div class="wcb-paged-carousel__slide">
+                                    <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--single-row">
+                                        <?php
+                                        if ( $related_products->have_posts() ) :
+                                            while ( $related_products->have_posts() ) :
+                                                $related_products->the_post();
+                                                if ( function_exists( 'wc_setup_product_data' ) ) {
+                                                    wc_setup_product_data( get_post() );
+                                                }
+                                                $wcb_related = wc_get_product( get_the_ID() );
+                                                if ( $wcb_related instanceof WC_Product ) {
+                                                    get_template_part(
+                                                        'template-parts/product-card',
+                                                        null,
+                                                        array( 'product' => $wcb_related )
+                                                    );
+                                                }
+                                            endwhile;
+                                            wp_reset_postdata();
+                                        endif;
+                                        ?>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>

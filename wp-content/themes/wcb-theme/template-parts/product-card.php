@@ -66,23 +66,7 @@ $low_stock   = $stock_qty !== null && $stock_qty > 0 && $stock_qty <= 5;
 $total_sales = (int) get_post_meta($product->get_id(), 'total_sales', true);
 $is_popular  = $total_sales >= 20;
 
-/* ── Stock bar (dynamic) ──────────────────────────────── */
-$show_stock_bar = ($stock_qty !== null && $stock_qty > 0 && $stock_qty <= 20 && $in_stock);
-$stock_max      = max($stock_qty + $total_sales, 50); // virtual max
-$stock_pct      = $stock_qty !== null && $stock_max > 0 ? round(($stock_qty / $stock_max) * 100) : 100;
-if ($stock_pct > 60) {
-    $stock_level = '';
-} elseif ($stock_pct > 30) {
-    $stock_level = 'warning';
-} elseif ($stock_pct > 10) {
-    $stock_level = 'low';
-} else {
-    $stock_level = 'critical';
-}
-
-if ( is_array( $wcb_pc_track ) && ! empty( $wcb_pc_track['hide_stock_bar'] ) ) {
-	$show_stock_bar = false;
-}
+/* ── Stock bar: desativada em todos os cards (sem .wcb-stock-bar / __label) ── */
 
 /* ── Category ──────────────────────────────────────────── */
 $cat_name = '';
@@ -294,23 +278,6 @@ if ($product->is_type('variable')) {
                     <span class="wcb-product-card__teor-pill"><?php echo esc_html($tv); ?></span>
                 <?php endforeach; ?>
             </div>
-        <?php endif; ?>
-
-        <?php if ($show_stock_bar): ?>
-        <!-- Dynamic stock bar -->
-        <div class="wcb-stock-bar">
-            <div class="wcb-stock-bar__fill<?php echo $stock_level ? ' wcb-stock-bar__fill--' . $stock_level : ''; ?>"
-                 style="width: <?php echo $stock_pct; ?>%"></div>
-        </div>
-        <span class="wcb-stock-bar__label<?php echo $stock_level ? ' wcb-stock-bar__label--' . $stock_level : ''; ?>">
-            <?php if ($stock_qty <= 3): ?>
-                🔥 Restam apenas <?php echo $stock_qty; ?> unidade<?php echo $stock_qty > 1 ? 's' : ''; ?>!
-            <?php elseif ($stock_qty <= 10): ?>
-                ⚡ Últimas <?php echo $stock_qty; ?> unidades
-            <?php else: ?>
-                📦 <?php echo $stock_qty; ?> em estoque
-            <?php endif; ?>
-        </span>
         <?php endif; ?>
 
         <?php if ($in_stock): ?>

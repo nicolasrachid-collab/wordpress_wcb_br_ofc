@@ -88,12 +88,6 @@
 		gap: var(--wcb-space-lg, 1.25rem);
 	}
 
-	/* Relacionados: grid global pode ficar com 3 colunas — aqui forçamos 2 na PDP */
-	.wcb-pdp .wcb-pdp-similar .wcb-products__grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.875rem;
-	}
-
 	.wcb-pdp-buybox__price-card {
 		padding: 14px 16px;
 		gap: 12px;
@@ -230,10 +224,10 @@
 	}
 
 	.wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity {
-		align-self: center;
-		width: 100%;
-		max-width: 220px;
-		justify-content: center;
+		align-self: flex-start;
+		width: fit-content;
+		max-width: none;
+		justify-content: flex-start;
 	}
 
 	.wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
@@ -249,7 +243,9 @@
 	}
 
 	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity {
-		align-self: center;
+		align-self: flex-start;
+		width: fit-content;
+		max-width: none;
 	}
 
 	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
@@ -274,11 +270,6 @@
 	:is(#wcb-pdp-buybox) .wcb-swatch-btn:not(.wcb-swatch-btn--dot) {
 		min-height: 40px;
 		padding: 0.3rem 0.65rem;
-	}
-
-	.wcb-pdp .wcb-pdp-similar .wcb-products__grid {
-		grid-template-columns: 1fr;
-		gap: 12px;
 	}
 }
 
