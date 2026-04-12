@@ -109,6 +109,42 @@ function wcb_customize_register( $wp_customize ) {
         'section'     => 'wcb_super_ofertas',
         'type'        => 'text',
     ) );
+
+    $wcb_so_banner_default_uri = get_template_directory_uri() . '/images/wcb-super-ofertas-banner-test.svg';
+    $wp_customize->add_setting( 'wcb_so_promo_banner_image', array(
+        'default'           => $wcb_so_banner_default_uri,
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'wcb_so_promo_banner_image', array(
+        'label'       => __( 'Banner Super Ofertas — imagem (desktop)', 'wcb-theme' ),
+        'description' => __( 'Faixa larga acima dos carrosséis (~1400×280px). O tema inclui um SVG de teste até enviares JPG/PNG/WebP.', 'wcb-theme' ),
+        'section'     => 'wcb_super_ofertas',
+    ) ) );
+
+    $wp_customize->add_setting( 'wcb_so_promo_banner_mobile_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'wcb_so_promo_banner_mobile_image', array(
+        'label'       => __( 'Banner Super Ofertas — imagem mobile (opcional)', 'wcb-theme' ),
+        'description' => __( 'Usada em telas ≤768px. Vazio = mesma imagem do desktop.', 'wcb-theme' ),
+        'section'     => 'wcb_super_ofertas',
+    ) ) );
+
+    $wp_customize->add_setting( 'wcb_so_promo_banner_link', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+        'transport'         => 'refresh',
+    ) );
+    $wp_customize->add_control( 'wcb_so_promo_banner_link', array(
+        'label'       => __( 'Banner Super Ofertas — URL ao clicar', 'wcb-theme' ),
+        'description' => __( 'Vazio = categoria/link de promoções já usado no bloco Super Ofertas.', 'wcb-theme' ),
+        'section'     => 'wcb_super_ofertas',
+        'type'        => 'url',
+    ) );
+
     // ── PROMO BANNER CARDS SECTION ────────────────────────────
     $wp_customize->add_section( 'wcb_promo_banners', array(
         'title'       => __( '🃏 Banners Promocionais', 'wcb-theme' ),

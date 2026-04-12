@@ -765,6 +765,7 @@ add_action('wp_head', function () {
             min-height: 0 !important;
             width: 100% !important;
             overflow-y: auto !important;
+            margin-bottom: 14px !important;
         }
 
         .wcb-qv-right > .wcb-qv-full-link {
@@ -1160,7 +1161,7 @@ add_action('wp_head', function () {
             font-size: 0.85rem !important;
             color: #334155 !important;
             text-decoration: none !important;
-            margin-top: 0.65rem !important;
+            margin-top: 1.1rem !important;
             font-weight: 600 !important;
             transition: all 0.15s ease !important;
             border: 1.5px solid #e2e8f0 !important;

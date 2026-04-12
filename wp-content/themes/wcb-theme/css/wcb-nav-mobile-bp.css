@@ -77,41 +77,6 @@
 		display: none;
 	}
 
-	/* Cloud Prime: mesma apresentação do desktop (chip completo), com ligeiro ajuste de padding */
-	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn--soon {
-		gap: 0.35rem;
-		padding: 0 0.65rem;
-		min-height: 2.4rem;
-		flex-shrink: 0;
-	}
-
-	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark {
-		width: 15px;
-		height: 15px;
-	}
-
-	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__title,
-	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__divider,
-	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__soon {
-		position: static !important;
-		width: auto !important;
-		height: auto !important;
-		padding: 0 !important;
-		margin: 0 !important;
-		overflow: visible !important;
-		clip: auto !important;
-		clip-path: none !important;
-		white-space: nowrap !important;
-		border: 0 !important;
-	}
-
-	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__divider {
-		width: 1px !important;
-		height: 1rem !important;
-		flex-shrink: 0;
-		align-self: center;
-	}
-
 	/*
 	 * Loja (archive-product): em ≤1023px o #wcb-site-header está em fluxo (relative).
 	 * Toolbar sticky + sidebar sticky (top:96px pensado para header sticky) empilhavam camadas no Chrome

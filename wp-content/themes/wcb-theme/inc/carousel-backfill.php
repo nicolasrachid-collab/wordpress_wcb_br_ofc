@@ -70,15 +70,19 @@ function wcb_carousel_normalize_cache( $cached ) {
  * @return array<int, array{id:int, html:string}>
  */
 function wcb_carousel_pairs_from_query( WP_Query $query, $wcb_track = null ) {
-	$restore = null;
-	if ( is_array( $wcb_track ) && isset( $wcb_track['wcb_track'], $wcb_track['role'] ) ) {
+	$restore          = null;
+	$use_product_track = is_array( $wcb_track ) && (
+		( isset( $wcb_track['wcb_track'], $wcb_track['role'] ) )
+		|| ! empty( $wcb_track['hide_stock_bar'] )
+	);
+	if ( $use_product_track ) {
 		$restore = array_key_exists( 'wcb_product_card_track', $GLOBALS ) ? $GLOBALS['wcb_product_card_track'] : false;
 		$GLOBALS['wcb_product_card_track'] = $wcb_track;
 	}
 
 	$out = array();
 	if ( ! $query->have_posts() ) {
-		if ( null !== $restore ) {
+		if ( $use_product_track ) {
 			if ( false === $restore ) {
 				unset( $GLOBALS['wcb_product_card_track'] );
 			} else {
@@ -105,7 +109,7 @@ function wcb_carousel_pairs_from_query( WP_Query $query, $wcb_track = null ) {
 	}
 	wp_reset_postdata();
 
-	if ( null !== $restore ) {
+	if ( $use_product_track ) {
 		if ( false === $restore ) {
 			unset( $GLOBALS['wcb_product_card_track'] );
 		} else {
@@ -331,8 +335,12 @@ function wcb_carousel_render_card_html( $product_id, $wcb_track = null ) {
 	if ( ! $post ) {
 		return '';
 	}
-	$restore = null;
-	if ( is_array( $wcb_track ) && isset( $wcb_track['wcb_track'], $wcb_track['role'] ) ) {
+	$restore           = null;
+	$use_product_track = is_array( $wcb_track ) && (
+		( isset( $wcb_track['wcb_track'], $wcb_track['role'] ) )
+		|| ! empty( $wcb_track['hide_stock_bar'] )
+	);
+	if ( $use_product_track ) {
 		$restore = array_key_exists( 'wcb_product_card_track', $GLOBALS ) ? $GLOBALS['wcb_product_card_track'] : false;
 		$GLOBALS['wcb_product_card_track'] = $wcb_track;
 	}
@@ -346,7 +354,7 @@ function wcb_carousel_render_card_html( $product_id, $wcb_track = null ) {
 	$html = ob_get_clean();
 	wp_reset_postdata();
 	unset( $GLOBALS['product'] );
-	if ( null !== $restore ) {
+	if ( $use_product_track ) {
 		if ( false === $restore ) {
 			unset( $GLOBALS['wcb_product_card_track'] );
 		} else {
@@ -388,6 +396,12 @@ function wcb_carousel_pad_chunk( array $chunk, $slot_size, array $carousel_all_b
 		if ( $section === 'ofertas' ) {
 			$wcb_pad_track = array(
 				'wcb_track'      => 'super-ofertas',
+				'role'           => 'carousel',
+				'hide_stock_bar' => true,
+			);
+		} elseif ( $section === 'novidades' ) {
+			$wcb_pad_track = array(
+				'wcb_track'      => 'novidades',
 				'role'           => 'carousel',
 				'hide_stock_bar' => true,
 			);

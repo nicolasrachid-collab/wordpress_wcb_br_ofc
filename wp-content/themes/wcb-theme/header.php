@@ -117,7 +117,8 @@
                     <a href="<?php echo esc_url(wc_get_account_endpoint_url('dashboard')); ?>"
                         class="wcb-header__action wcb-header__action--account"
                         id="wcb-header-account-link"
-                        title="<?php esc_attr_e('Minha Conta', 'wcb-theme'); ?>">
+                        title="<?php esc_attr_e('Minha Conta', 'wcb-theme'); ?>"
+                        aria-label="<?php esc_attr_e('Minha conta', 'wcb-theme'); ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -143,7 +144,9 @@
 
                     <!-- Favorites -->
                     <a href="<?php echo esc_url(home_url('/minha-conta/favoritos/')); ?>" class="wcb-header__action"
-                        title="Favoritos" id="wcb-header-fav-link">
+                        title="<?php esc_attr_e('Favoritos', 'wcb-theme'); ?>"
+                        aria-label="<?php esc_attr_e('Favoritos', 'wcb-theme'); ?>"
+                        id="wcb-header-fav-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path
@@ -187,7 +190,10 @@
                 <?php endif; ?>
 
                 <!-- Toggle legado da lupa (oculto; busca integrada no grid mobile — phase3). Sem classe .wcb-mobile-toggle para não colidir com o menu. -->
-                <button type="button" class="wcb-header__action wcb-header__search-toggle" id="wcb-search-toggle" aria-label="Buscar"
+                <button type="button" class="wcb-header__action wcb-header__search-toggle" id="wcb-search-toggle"
+                    aria-expanded="false"
+                    aria-controls="wcb-search"
+                    aria-label="<?php esc_attr_e('Buscar produtos', 'wcb-theme'); ?>"
                     hidden>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

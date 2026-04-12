@@ -791,35 +791,82 @@
     });
 
     /* ============================================================
-       MOBILE SEARCH TOGGLE
+       MOBILE SEARCH TOGGLE (≤390px: lupa nas ações + faixa fixa sob #wcb-site-header)
        ============================================================ */
     const searchToggle = document.getElementById('wcb-search-toggle');
     const searchBox = document.getElementById('wcb-search');
 
+    function wcbNarrowHeaderSearch() {
+        return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 390px)').matches;
+    }
+
+    function wcbSearchOverlayTopPx() {
+        const sh = document.getElementById('wcb-site-header');
+        if (!sh) return '72px';
+        const bottom = sh.getBoundingClientRect().bottom;
+        return (Number.isFinite(bottom) ? Math.max(0, Math.ceil(bottom)) : 72) + 'px';
+    }
+
+    function wcbSyncSearchOverlayTop() {
+        if (!searchBox || !searchBox.classList.contains('active') || !wcbNarrowHeaderSearch()) return;
+        document.documentElement.style.setProperty('--wcb-search-overlay-top', wcbSearchOverlayTopPx());
+    }
+
+    function handleSearchToggleVisibility() {
+        if (!searchToggle) return;
+        if (wcbNarrowHeaderSearch()) {
+            searchToggle.removeAttribute('hidden');
+            searchToggle.style.removeProperty('display');
+        } else {
+            searchToggle.setAttribute('hidden', '');
+            searchToggle.style.display = 'none';
+            if (searchBox) {
+                searchBox.classList.remove('active');
+            }
+            document.documentElement.style.removeProperty('--wcb-search-overlay-top');
+            searchToggle.setAttribute('aria-expanded', 'false');
+        }
+    }
+
     if (searchToggle && searchBox) {
         searchToggle.addEventListener('click', () => {
             searchBox.classList.toggle('active');
+            const open = searchBox.classList.contains('active');
+            searchToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             const input = searchBox.querySelector('input[type="search"]');
-            if (searchBox.classList.contains('active') && input) {
+            if (open && input) {
+                if (wcbNarrowHeaderSearch()) {
+                    document.documentElement.style.setProperty('--wcb-search-overlay-top', wcbSearchOverlayTopPx());
+                }
                 input.focus();
+            } else {
+                document.documentElement.style.removeProperty('--wcb-search-overlay-top');
             }
         });
     }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || !searchBox || !searchBox.classList.contains('active')) return;
+        searchBox.classList.remove('active');
+        document.documentElement.style.removeProperty('--wcb-search-overlay-top');
+        if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
+    });
 
     /* ============================================================
        RESPONSIVE: Show/hide mobile search toggle
        ============================================================ */
     function handleResize() {
-        if (searchToggle) {
-            searchToggle.style.display = 'none';
-            searchToggle.setAttribute('hidden', '');
-        }
+        handleSearchToggleVisibility();
+        wcbSyncSearchOverlayTop();
         if (window.innerWidth > 1023 && searchBox) {
             searchBox.classList.remove('active');
+            document.documentElement.style.removeProperty('--wcb-search-overlay-top');
+            if (searchToggle) searchToggle.setAttribute('aria-expanded', 'false');
         }
     }
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', wcbSyncSearchOverlayTop, { passive: true });
     handleResize();
 
     /* Altura até o fim do header sticky (toolbar da loja usa --wcb-sticky-site-header-h).

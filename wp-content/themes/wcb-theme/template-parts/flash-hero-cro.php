@@ -65,12 +65,6 @@ if ( $wcb_eager_lcp ) {
 			</div>
 			<?php endif; ?>
 
-			<button type="button" class="wcb-product-card__fav" title="<?php esc_attr_e( 'Favoritar', 'wcb-theme' ); ?>" data-product-id="<?php echo esc_attr( (string) $pid ); ?>">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-				</svg>
-			</button>
-
 			<a href="<?php echo esc_url( $product->get_permalink() ); ?>" class="wcb-product-card__img wcb-hero-cro__img-link" tabindex="-1">
 				<span class="wcb-hero-cro__img-surface">
 					<?php echo $product->get_image( 'woocommerce_single', $img_attrs ); ?>
@@ -109,24 +103,36 @@ if ( $wcb_eager_lcp ) {
 			</div>
 
 			<div class="wcb-hero-cro__commerce">
-				<div class="wcb-product-card__price-block">
+				<div class="wcb-product-card__price-block wcb-hero-cro__price-block">
 					<div class="wcb-product-card__price-main">
 						<?php if ( $is_on_sale && $hero_regular > 0 ) : ?>
-						<span class="wcb-product-card__price-old">R$ <?php echo esc_html( number_format( $hero_regular, 2, ',', '.' ) ); ?></span>
+						<div class="wcb-hero-cro__price-line wcb-hero-cro__price-line--old">
+							<span class="wcb-hero-cro__price-label"><?php esc_html_e( 'De', 'wcb-theme' ); ?></span>
+							<span class="wcb-product-card__price-old">R$ <?php echo esc_html( number_format( $hero_regular, 2, ',', '.' ) ); ?></span>
+						</div>
 						<?php endif; ?>
-						<span class="wcb-product-card__price-current">R$ <?php echo esc_html( number_format( $hero_current, 2, ',', '.' ) ); ?></span>
+						<div class="wcb-hero-cro__price-line wcb-hero-cro__price-line--current">
+							<span class="wcb-hero-cro__price-label"><?php echo ( $is_on_sale && $hero_regular > 0 ) ? esc_html__( 'Por', 'wcb-theme' ) : esc_html__( 'À vista', 'wcb-theme' ); ?></span>
+							<span class="wcb-product-card__price-current">R$ <?php echo esc_html( number_format( $hero_current, 2, ',', '.' ) ); ?></span>
+						</div>
 					</div>
 					<?php if ( $hero_pix > 0 ) : ?>
 					<div class="wcb-hero-cro__pix-pill" role="note">
-						<span class="wcb-hero-cro__pix-pill__main">
-							<strong class="wcb-hero-cro__pix-pill__value">R$ <?php echo esc_html( number_format( $hero_pix, 2, ',', '.' ) ); ?></strong>
-							<span class="wcb-hero-cro__pix-pill__suffix"><?php esc_html_e( 'no PIX', 'wcb-theme' ); ?></span>
-						</span>
-						<span class="wcb-hero-cro__pix-pill__off" aria-label="<?php esc_attr_e( 'Desconto de 5% no PIX', 'wcb-theme' ); ?>"><?php echo esc_html( '-5%' ); ?></span>
+						<span class="wcb-hero-cro__pix-pill__eyebrow"><?php esc_html_e( 'Menor preço', 'wcb-theme' ); ?></span>
+						<div class="wcb-hero-cro__pix-pill__row">
+							<span class="wcb-hero-cro__pix-pill__main">
+								<strong class="wcb-hero-cro__pix-pill__value">R$ <?php echo esc_html( number_format( $hero_pix, 2, ',', '.' ) ); ?></strong>
+								<span class="wcb-hero-cro__pix-pill__suffix"><?php esc_html_e( 'no PIX', 'wcb-theme' ); ?></span>
+							</span>
+							<span class="wcb-hero-cro__pix-pill__off" aria-label="<?php esc_attr_e( 'Desconto de 5% no PIX', 'wcb-theme' ); ?>"><?php echo esc_html( '-5%' ); ?></span>
+						</div>
 					</div>
 					<?php endif; ?>
 					<?php if ( $hero_current > 0 ) : ?>
-					<span class="wcb-product-card__installments"><?php esc_html_e( 'ou 12x no cartão', 'wcb-theme' ); ?></span>
+					<div class="wcb-hero-cro__installments" role="note">
+						<span class="wcb-hero-cro__installments__label"><?php esc_html_e( 'No cartão', 'wcb-theme' ); ?></span>
+						<span class="wcb-hero-cro__installments__value"><?php esc_html_e( 'em até 12x', 'wcb-theme' ); ?></span>
+					</div>
 					<?php endif; ?>
 				</div>
 			</div>

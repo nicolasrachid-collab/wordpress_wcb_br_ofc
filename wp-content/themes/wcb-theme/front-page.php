@@ -81,8 +81,8 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // ── Novidades: cache de 12h (ids + html) ─────────────────────────
-            $nov_cached = get_transient('wcb_home_novidades_v2');
+            // ── Novidades: cache de 12h (ids + html); v3 = sem barra de estoque nos cards ──
+            $nov_cached = get_transient('wcb_home_novidades_v3');
             $nov_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($nov_cached) : false;
             if (false === $nov_pack) {
                 $novidades = new WP_Query(array(
@@ -98,12 +98,19 @@ $wcb_carousel_homepage_used_ids = array();
                         ),
                     ),
                 ));
-                $all_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($novidades) : array();
+                $wcb_novidades_card_track = array(
+                    'wcb_track'      => 'novidades',
+                    'role'           => 'carousel',
+                    'hide_stock_bar' => true,
+                );
+                $all_pairs = function_exists('wcb_carousel_pairs_from_query')
+                    ? wcb_carousel_pairs_from_query($novidades, $wcb_novidades_card_track)
+                    : array();
                 $nov_pack  = array(
                     'ids'  => array_column($all_pairs, 'id'),
                     'html' => array_column($all_pairs, 'html'),
                 );
-                set_transient('wcb_home_novidades_v2', $nov_pack, 12 * HOUR_IN_SECONDS);
+                set_transient('wcb_home_novidades_v3', $nov_pack, 12 * HOUR_IN_SECONDS);
             }
             $all_pairs_n = array();
             foreach ($nov_pack['ids'] as $ni => $nid) {
@@ -563,10 +570,13 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // Super Ofertas: scoring + transient único (invalida com lista em promoção + dedupe homepage).
-            $so_exclude   = array_map( 'intval', $wcb_carousel_homepage_used_ids );
+            /*
+             * Super Ofertas: cache só por lista em promoção (sem excluir IDs já usados noutras secções).
+             * Se passarmos homepage_used como exclude, o pool pode ficar vazio e a secção some.
+             * Dedupe real continua em wcb_carousel_pad_all_chunks + $wcb_carousel_homepage_used_ids.
+             */
             $so_cache_key = ( ! empty( $on_sale_ids ) && function_exists( 'wcb_super_ofertas_cache_key' ) )
-                ? wcb_super_ofertas_cache_key( $on_sale_ids, $so_exclude )
+                ? wcb_super_ofertas_cache_key( $on_sale_ids, array() )
                 : '';
 
             $so_ctx = false;
@@ -576,7 +586,7 @@ $wcb_carousel_homepage_used_ids = array();
             }
 
             if ( false === $so_ctx && ! empty( $on_sale_ids ) && function_exists( 'wcb_super_ofertas_build_context' ) ) {
-                $so_ctx = wcb_super_ofertas_build_context( $on_sale_ids, $so_exclude );
+                $so_ctx = wcb_super_ofertas_build_context( $on_sale_ids, array() );
                 if ( $so_cache_key !== '' && is_array( $so_ctx ) ) {
                     set_transient( $so_cache_key, $so_ctx, 8 * HOUR_IN_SECONDS );
                 }
@@ -594,23 +604,32 @@ $wcb_carousel_homepage_used_ids = array();
                 );
             }
 
-            $hero_id      = (int) ( $so_ctx['hero_id'] ?? 0 );
-            $hero_id_2    = (int) ( $so_ctx['hero_id_2'] ?? 0 );
+            $ctx_hero_1 = (int) ( $so_ctx['hero_id'] ?? 0 );
+            $ctx_hero_2 = (int) ( $so_ctx['hero_id_2'] ?? 0 );
             $carousel_ids = isset( $so_ctx['carousel_ids'] ) && is_array( $so_ctx['carousel_ids'] )
                 ? array_values( array_filter( array_map( 'intval', $so_ctx['carousel_ids'] ) ) )
                 : array();
 
-            $hero_product = ( $hero_id > 0 ) ? wc_get_product( $hero_id ) : null;
-            if ( ! $hero_product || ! $hero_product->is_in_stock() ) {
-                $hero_product = null;
-                $hero_id      = 0;
+            $so_hero_prepend = array();
+            foreach ( array( $ctx_hero_1, $ctx_hero_2 ) as $hid ) {
+                if ( $hid < 1 || in_array( $hid, $so_hero_prepend, true ) ) {
+                    continue;
+                }
+                $hp = wc_get_product( $hid );
+                if ( $hp && $hp->is_in_stock() ) {
+                    $so_hero_prepend[] = $hid;
+                }
+            }
+            if ( ! empty( $so_hero_prepend ) ) {
+                $carousel_ids = array_values( array_unique( array_merge( $so_hero_prepend, $carousel_ids ) ) );
+                $cap            = defined( 'WCB_SO_MAX_CAROUSEL' ) ? (int) WCB_SO_MAX_CAROUSEL : 24;
+                if ( count( $carousel_ids ) > $cap ) {
+                    $carousel_ids = array_slice( $carousel_ids, 0, $cap );
+                }
             }
 
-            $hero_product_2 = ( $hero_id_2 > 0 ) ? wc_get_product( $hero_id_2 ) : null;
-            if ( ! $hero_product_2 || ! $hero_product_2->is_in_stock() ) {
-                $hero_product_2 = null;
-                $hero_id_2      = 0;
-            }
+            /** @var int Cards por slide nos carrosséis desta secção (só Super Ofertas). */
+            $wcb_so_carousel_cols = 5;
 
             $so_track       = array(
                 'wcb_track'       => 'super-ofertas',
@@ -637,8 +656,8 @@ $wcb_carousel_homepage_used_ids = array();
             $carousel_sale_pairs = $all_sale_pairs;
 
             if ( function_exists( 'wcb_carousel_get_dedupe_scope' ) && wcb_carousel_get_dedupe_scope() === 'homepage' ) {
-                foreach ( array( $hero_id, $hero_id_2 ) as $hid ) {
-                    if ( $hid > 0 && ! in_array( $hid, $wcb_carousel_homepage_used_ids, true ) ) {
+                foreach ( $so_hero_prepend as $hid ) {
+                    if ( ! in_array( $hid, $wcb_carousel_homepage_used_ids, true ) ) {
                         $wcb_carousel_homepage_used_ids[] = $hid;
                     }
                 }
@@ -660,65 +679,40 @@ $wcb_carousel_homepage_used_ids = array();
                 }
             }
 
-            $chunks_o1 = ! empty( $o_row1_pairs ) ? array_chunk( $o_row1_pairs, 3 ) : array();
+            $chunks_o1 = ! empty( $o_row1_pairs ) ? array_chunk( $o_row1_pairs, $wcb_so_carousel_cols ) : array();
             if ( ! empty( $chunks_o1 ) && function_exists( 'wcb_carousel_pad_all_chunks' ) ) {
-                $chunks_o1 = wcb_carousel_pad_all_chunks( $chunks_o1, 3, $dedupe_o, 'ofertas', $fb_mode_o, $fb_cat_o, $wcb_carousel_homepage_used_ids, $on_sale_ids );
+                $chunks_o1 = wcb_carousel_pad_all_chunks( $chunks_o1, $wcb_so_carousel_cols, $dedupe_o, 'ofertas', $fb_mode_o, $fb_cat_o, $wcb_carousel_homepage_used_ids, $on_sale_ids );
             }
             $chunks_o1 = array_map( 'wcb_carousel_pairs_to_html_list', $chunks_o1 );
 
-            $chunks_o2 = ! empty( $o_row2_pairs ) ? array_chunk( $o_row2_pairs, 3 ) : array();
+            $chunks_o2 = ! empty( $o_row2_pairs ) ? array_chunk( $o_row2_pairs, $wcb_so_carousel_cols ) : array();
             if ( ! empty( $chunks_o2 ) && function_exists( 'wcb_carousel_pad_all_chunks' ) ) {
-                $chunks_o2 = wcb_carousel_pad_all_chunks( $chunks_o2, 3, $dedupe_o, 'ofertas', $fb_mode_o, $fb_cat_o, $wcb_carousel_homepage_used_ids, $on_sale_ids );
+                $chunks_o2 = wcb_carousel_pad_all_chunks( $chunks_o2, $wcb_so_carousel_cols, $dedupe_o, 'ofertas', $fb_mode_o, $fb_cat_o, $wcb_carousel_homepage_used_ids, $on_sale_ids );
             }
             $chunks_o2 = array_map( 'wcb_carousel_pairs_to_html_list', $chunks_o2 );
-
-            // Estoque agregado real (só produtos em oferta com gestão de stock e quantidade > 0)
-            $wcb_ofertas_managed_stock_sum = 0;
-            $wcb_ofertas_managed_count     = 0;
-            if ( ! empty( $on_sale_ids ) ) {
-                foreach ( array_slice( array_map( 'intval', (array) $on_sale_ids ), 0, 50 ) as $sid ) {
-                    if ( $sid < 1 ) {
-                        continue;
-                    }
-                    $sp = wc_get_product( $sid );
-                    if ( ! $sp || ! $sp->is_in_stock() || ! $sp->managing_stock() ) {
-                        continue;
-                    }
-                    $sq = $sp->get_stock_quantity();
-                    if ( $sq !== null && (int) $sq > 0 ) {
-                        $wcb_ofertas_managed_stock_sum += (int) $sq;
-                        $wcb_ofertas_managed_count++;
-                    }
-                }
-            }
-
-            $wcb_so_urgency_type = isset( $so_ctx['urgency_type'] ) ? (string) $so_ctx['urgency_type'] : 'default';
-            $wcb_so_urgency_pct  = (int) ( $so_ctx['urgency_discount_pct'] ?? 0 );
             ?>
 
-            <!-- ══ HEADER — título + countdown + CTA (estilos em style.css) ══ -->
+            <!-- ══ HEADER — título + countdown (linha) + CTA (estilos em style.css) ══ -->
             <div class="wcb-section__header wcb-section__header--with-controls wcb-section__header--ofertas">
-                <div class="wcb-flash-ofertas-head">
-                    <span class="wcb-flash-ofertas-kicker"><?php esc_html_e( 'Oferta por tempo limitado', 'wcb-theme' ); ?></span>
+                <div class="wcb-flash-ofertas-intro">
                     <h2 class="wcb-section__title wcb-flash-ofertas-title">
                         <span class="wcb-section__icon" aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                         </span>
                         <?php esc_html_e( 'Super Ofertas', 'wcb-theme' ); ?>
                     </h2>
-                    <p class="wcb-flash-ofertas-sub"><?php esc_html_e( 'Descontos reais só enquanto durar o estoque. No PIX você paga menos.', 'wcb-theme' ); ?></p>
-                </div>
 
-                <div class="wcb-flash-countdown-inline">
-                    <span class="wcb-flash-countdown-inline__label"><?php esc_html_e( 'Acaba em', 'wcb-theme' ); ?></span>
-                    <div class="wcb-flash-countdown-inline__boxes" id="wcb-countdown" data-end="<?php echo esc_attr($sale_end); ?>">
-                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-days">00</span></div>
-                        <span class="wcb-flash-countdown-inline__sep">:</span>
-                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-hours">00</span></div>
-                        <span class="wcb-flash-countdown-inline__sep">:</span>
-                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-minutes">00</span></div>
-                        <span class="wcb-flash-countdown-inline__sep">:</span>
-                        <div class="wcb-flash-countdown-inline__box"><span id="countdown-seconds">00</span></div>
+                    <div class="wcb-flash-countdown-inline">
+                        <span class="wcb-flash-countdown-inline__label"><?php esc_html_e( 'Acaba em', 'wcb-theme' ); ?></span>
+                        <div class="wcb-flash-countdown-inline__boxes" id="wcb-countdown" data-end="<?php echo esc_attr($sale_end); ?>">
+                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-days">00</span></div>
+                            <span class="wcb-flash-countdown-inline__sep">:</span>
+                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-hours">00</span></div>
+                            <span class="wcb-flash-countdown-inline__sep">:</span>
+                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-minutes">00</span></div>
+                            <span class="wcb-flash-countdown-inline__sep">:</span>
+                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-seconds">00</span></div>
+                        </div>
                     </div>
                 </div>
 
@@ -734,61 +728,39 @@ $wcb_carousel_homepage_used_ids = array();
             </div>
 
             <div class="wcb-section__content">
-            <div class="wcb-flash-urgency-strip" role="status">
-                <span class="wcb-flash-urgency-strip__pulse" aria-hidden="true"></span>
-                <span class="wcb-flash-urgency-strip__text" data-wcb-so-urgency="<?php echo esc_attr( $wcb_so_urgency_type ); ?>">
-                    <?php
-                    if ( 'low_stock' === $wcb_so_urgency_type ) {
-                        esc_html_e( 'Últimas unidades disponíveis — garanta o seu antes de esgotar.', 'wcb-theme' );
-                    } elseif ( 'high_discount' === $wcb_so_urgency_type && $wcb_so_urgency_pct > 0 ) {
-                        printf(
-                            /* translators: %s: máximo desconto percentual no conjunto em promoção */
-                            esc_html__( 'Ofertas com até %s%% OFF enquanto durar o estoque.', 'wcb-theme' ),
-                            esc_html( (string) $wcb_so_urgency_pct )
-                        );
-                    } elseif ( 'high_sales' === $wcb_so_urgency_type ) {
-                        esc_html_e( 'Produtos mais procurados — seleção em destaque por tempo limitado.', 'wcb-theme' );
-                    } elseif ( $wcb_ofertas_managed_stock_sum > 0 ) {
-                        $shown = min( (int) $wcb_ofertas_managed_stock_sum, 99999 );
-                        printf(
-                            /* translators: 1: approximate stock units, 2: number of products with managed stock */
-                            esc_html__(
-                                'Estoque promocional contabilizado: cerca de %1$s unidades em %2$s produto(s) com gestão de stock — oferta enquanto durar.',
-                                'wcb-theme'
-                            ),
-                            number_format_i18n( $shown ),
-                            number_format_i18n( max( 1, (int) $wcb_ofertas_managed_count ) )
-                        );
-                    } else {
-                        esc_html_e(
-                            'Ofertas sujeitas ao estoque da loja. Garanta o seu antes de esgotar.',
-                            'wcb-theme'
-                        );
-                    }
-                    ?>
-                </span>
-                <div class="wcb-flash-urgency-strip__bar" aria-hidden="true">
-                    <div class="wcb-flash-urgency-strip__fill wcb-flash-urgency-strip__fill--pulse"></div>
-                </div>
+            <?php
+            $wcb_so_banner_placeholder = get_template_directory_uri() . '/images/wcb-super-ofertas-banner-test.svg';
+            $wcb_so_banner_raw         = get_theme_mod( 'wcb_so_promo_banner_image', '' );
+            $wcb_so_banner_img         = ( is_string( $wcb_so_banner_raw ) && $wcb_so_banner_raw !== '' )
+                ? $wcb_so_banner_raw
+                : $wcb_so_banner_placeholder;
+            $wcb_so_banner_img_m = get_theme_mod( 'wcb_so_promo_banner_mobile_image', '' );
+            $wcb_so_banner_link  = get_theme_mod( 'wcb_so_promo_banner_link', '' );
+            if ( '' === $wcb_so_banner_link ) {
+                $wcb_so_banner_link = $wcb_ofertas_archive_url;
+            }
+            $wcb_so_banner_alt = __( 'Ofertas em destaque', 'wcb-theme' );
+            ?>
+            <div class="wcb-flash-promo-banner wcb-flash-promo-banner--image" role="region" aria-label="<?php echo esc_attr( $wcb_so_banner_alt ); ?>">
+                <a href="<?php echo esc_url( $wcb_so_banner_link ); ?>" class="wcb-flash-promo-banner__link">
+                    <picture class="wcb-flash-promo-banner__picture">
+                        <?php if ( $wcb_so_banner_img_m ) : ?>
+                        <source media="(max-width: 768px)" srcset="<?php echo esc_url( $wcb_so_banner_img_m ); ?>" />
+                        <?php endif; ?>
+                        <img
+                            src="<?php echo esc_url( $wcb_so_banner_img ); ?>"
+                            alt="<?php echo esc_attr( $wcb_so_banner_alt ); ?>"
+                            class="wcb-flash-promo-banner__img"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                    </picture>
+                </a>
             </div>
 
-            <!-- ══ Layout tipo Mais Vendidos: 2 heroes + 2 carrosséis (3 cards/slide) ══ -->
-            <?php if ($hero_product): ?>
-            <div class="wcb-vendidos-layout wcb-flash-ofertas-layout">
-
-                <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row1">
-                    <?php
-                    get_template_part(
-                        'template-parts/flash-hero-cro',
-                        null,
-                        array(
-                            'product'    => $hero_product,
-                            'eager_lcp' => true,
-                            'hero_badge' => isset( $so_ctx['hero_badge'] ) ? (string) $so_ctx['hero_badge'] : '',
-                        )
-                    );
-                    ?>
-                </div>
+            <!-- ══ Super Ofertas: 2 carrosséis, 5 cards/slide, sem coluna herói ══ -->
+            <?php if ( ! empty( $chunks_o1 ) || ! empty( $chunks_o2 ) ) : ?>
+            <div class="wcb-vendidos-layout wcb-flash-ofertas-layout wcb-flash-ofertas-layout--no-heroes">
 
                 <div class="wcb-vendidos-layout__products wcb-vendidos-layout__products--row1">
                     <?php if (!empty($chunks_o1)): ?>
@@ -798,28 +770,13 @@ $wcb_carousel_homepage_used_ids = array();
                         <div class="wcb-paged-carousel__track">
                             <?php foreach ($chunks_o1 as $page_html): ?>
                             <div class="wcb-paged-carousel__slide">
-                                <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--vendidos-row">
+                                <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--vendidos-row wcb-paged-carousel__grid--super-ofertas-row">
                                     <?php foreach ($page_html as $card): echo $card; endforeach; ?>
                                 </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row2">
-                    <?php if ($hero_product_2): ?>
-                        <?php
-                        get_template_part(
-                            'template-parts/flash-hero-cro',
-                            null,
-                            array(
-                                'product'    => $hero_product_2,
-                                'hero_badge' => isset( $so_ctx['hero_badge_2'] ) ? (string) $so_ctx['hero_badge_2'] : '',
-                            )
-                        );
-                        ?>
                     <?php endif; ?>
                 </div>
 
@@ -831,7 +788,7 @@ $wcb_carousel_homepage_used_ids = array();
                         <div class="wcb-paged-carousel__track">
                             <?php foreach ($chunks_o2 as $page_html): ?>
                             <div class="wcb-paged-carousel__slide">
-                                <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--vendidos-row">
+                                <div class="wcb-paged-carousel__grid wcb-paged-carousel__grid--vendidos-row wcb-paged-carousel__grid--super-ofertas-row">
                                     <?php foreach ($page_html as $card): echo $card; endforeach; ?>
                                 </div>
                             </div>
@@ -1085,7 +1042,8 @@ $wcb_carousel_homepage_used_ids = array();
         var total   = carousel.querySelectorAll('.wcb-paged-carousel__slide').length;
 
         if (!track || total === 0) return null;
-        if (total < 2) return null; // No navigation needed for single slide
+
+        var navMulti = total > 1;
 
         // ── Inject viewport wrapper to contain overflow ──
         var viewport = document.createElement('div');
@@ -1099,7 +1057,7 @@ $wcb_carousel_homepage_used_ids = array();
         var DELAY     = wcbDelays[carouselId] || 3000;
         var progressStart = 0;
 
-        // ── Inject floating arrows ──
+        // ── Inject floating arrows (sempre visíveis no desktop; 1 slide = desativadas) ──
         var prevArrow = document.createElement('button');
         prevArrow.type = 'button';
         prevArrow.className = 'wcb-carousel-arrow wcb-carousel-arrow--prev';
@@ -1114,17 +1072,28 @@ $wcb_carousel_homepage_used_ids = array();
         nextArrow.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
         carousel.appendChild(nextArrow);
 
-        // ── Inject progress bar ──
+        if (!navMulti) {
+            prevArrow.disabled = true;
+            nextArrow.disabled = true;
+            prevArrow.setAttribute('aria-disabled', 'true');
+            nextArrow.setAttribute('aria-disabled', 'true');
+        }
+
+        // ── Inject progress bar (só quando há mais de um slide) ──
         var progressBar = document.createElement('div');
         progressBar.className = 'wcb-carousel-progress';
-        for (var i = 0; i < total; i++) {
-            var seg = document.createElement('div');
-            seg.className = 'wcb-carousel-progress__segment' + (i === 0 ? ' active' : '');
-            seg.setAttribute('data-index', i);
-            var fill = document.createElement('div');
-            fill.className = 'wcb-carousel-progress__fill';
-            seg.appendChild(fill);
-            progressBar.appendChild(seg);
+        if (navMulti) {
+            for (var i = 0; i < total; i++) {
+                var seg = document.createElement('div');
+                seg.className = 'wcb-carousel-progress__segment' + (i === 0 ? ' active' : '');
+                seg.setAttribute('data-index', i);
+                var fill = document.createElement('div');
+                fill.className = 'wcb-carousel-progress__fill';
+                seg.appendChild(fill);
+                progressBar.appendChild(seg);
+            }
+        } else {
+            progressBar.hidden = true;
         }
         carousel.appendChild(progressBar);
 
@@ -1150,6 +1119,7 @@ $wcb_carousel_homepage_used_ids = array();
 
         // ── Progress bar animation ──
         function animateProgress() {
+            if (!navMulti) return;
             var fill = fills[current];
             if (!fill) return;
 
@@ -1165,6 +1135,7 @@ $wcb_carousel_homepage_used_ids = array();
 
         // ── Autoplay with progress ──
         function startAuto() {
+            if (!navMulti) return;
             stopAuto();
             animateProgress();
             autoTimer = setTimeout(function autoNext() {
@@ -1176,6 +1147,7 @@ $wcb_carousel_homepage_used_ids = array();
 
         function stopAuto() {
             if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+            if (!navMulti) return;
             // Pause progress animation
             fills.forEach(function(f) {
                 var w = f.getBoundingClientRect().width;
@@ -1188,20 +1160,23 @@ $wcb_carousel_homepage_used_ids = array();
         function resetAuto() { startAuto(); }
 
         // ── Event listeners ──
-        prevArrow.addEventListener('click', function () { goTo(current - 1); resetAuto(); });
-        nextArrow.addEventListener('click', function () { goTo(current + 1); resetAuto(); });
+        if (navMulti) {
+            prevArrow.addEventListener('click', function () { goTo(current - 1); resetAuto(); });
+            nextArrow.addEventListener('click', function () { goTo(current + 1); resetAuto(); });
 
-        segments.forEach(function (seg, i) {
-            seg.addEventListener('click', function () { goTo(i); resetAuto(); });
-        });
+            segments.forEach(function (seg, i) {
+                seg.addEventListener('click', function () { goTo(i); resetAuto(); });
+            });
 
-        // Pause on hover
-        carousel.addEventListener('mouseenter', stopAuto);
-        carousel.addEventListener('mouseleave', startAuto);
+            carousel.addEventListener('mouseenter', stopAuto);
+            carousel.addEventListener('mouseleave', startAuto);
+        }
 
         // ── Initialize ──
         goTo(0);
-        startAuto();
+        if (navMulti) {
+            startAuto();
+        }
 
         return { goTo: goTo, resetAuto: resetAuto, getCurrent: function () { return current; } };
     }

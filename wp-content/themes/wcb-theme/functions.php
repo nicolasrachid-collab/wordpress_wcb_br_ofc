@@ -17,6 +17,7 @@
  *  inc/customizer.php       — Hero Banner & Super Ofertas customizer
  *  inc/newsletter.php       — Rodapé newsletter (AJAX, opção wcb_nl4_emails)
  *  inc/widgets-sidebar.php  — Widget area registration
+ *  inc/blog-single.php      — Post único: leitura, breadcrumb
  *
  * @package WCB_Theme
  * @version 1.2.0
@@ -238,6 +239,7 @@ require_once WCB_DIR . '/inc/carousel-backfill.php';
 require_once WCB_DIR . '/inc/super-ofertas-context.php';
 require_once WCB_DIR . '/inc/newsletter.php';
 require_once WCB_DIR . '/inc/widgets-sidebar.php';
+require_once WCB_DIR . '/inc/blog-single.php';
 require_once WCB_DIR . '/inc/cep-autofill.php';
 require_once WCB_DIR . '/inc/abandoned-cart.php';
 require_once WCB_DIR . '/inc/wcb-filter.php';

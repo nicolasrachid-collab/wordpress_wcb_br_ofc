@@ -53,12 +53,15 @@
    Barra de categorias / anti-colapso: css/wcb-nav-mobile-bp.css (≤1023px).
    ============================================================================= */
 
-@media (max-width: 1023px) {
+/* Entre 391–1023px a busca fica inline no grid; ≤390px o toggle #wcb-search-toggle entra (JS remove [hidden]). */
+@media (max-width: 1023px) and (min-width: 391px) {
 	#wcb-search-toggle {
 		display: none !important;
 	}
+}
 
-	/* Uma linha: [menu] [logo + busca flex] [ações até Cloud Prime] */
+@media (max-width: 1023px) {
+	/* Uma linha: [menu] [logo + busca flex] [ações] — Cloud Prime só no desktop (≥1024). */
 	#wcb-site-header .wcb-header .wcb-header__inner {
 		display: grid;
 		grid-template-columns: minmax(var(--wcb-touch-min), auto) minmax(0, 1fr) auto;
@@ -136,13 +139,16 @@
 		min-width: 0;
 	}
 
+	html #wcb-site-header .wcb-header .wcb-header__cloud-club-btn {
+		display: none !important;
+	}
+
 	/* Busca: mesmo tratamento visual que desktop (style.css — pílula, borda, padding, botão cinza). */
 
 	/* Área tocável ≥ 44px */
 	#wcb-site-header .wcb-mobile-toggle,
 	#wcb-site-header .wcb-header__action,
-	#wcb-site-header .wcb-header__login-btn,
-	#wcb-site-header .wcb-header__cloud-club-btn {
+	#wcb-site-header .wcb-header__login-btn {
 		min-width: var(--wcb-touch-min);
 		min-height: var(--wcb-touch-min);
 		box-sizing: border-box;
@@ -164,29 +170,78 @@
 		display: none !important;
 	}
 
+	/* Conta: só ícone no header mobile (saudação em span — oculto em style.css ≤1023px). */
 	#wcb-site-header .wcb-header__action--account {
-		flex-direction: row;
+		flex-direction: column;
 		align-items: center;
-		gap: 6px;
-		padding: 0.3rem 0.35rem;
-		max-width: min(200px, 42vw);
-		min-width: 0;
+		justify-content: center;
+		gap: 0;
+		padding: 0.35rem;
+		max-width: none;
+		min-width: var(--wcb-touch-min);
 	}
 
 	#wcb-site-header .wcb-header__action--account svg {
 		flex-shrink: 0;
 	}
 
-	#wcb-site-header .wcb-header__account-mobile-hint {
-		font-size: 0.62rem;
-		font-weight: 600;
-		line-height: 1.25;
-		text-align: left;
-		text-transform: none;
-		letter-spacing: 0.01em;
-		color: var(--wcb-gray-700, #374151);
-		hyphens: auto;
-		overflow-wrap: anywhere;
+	/* Badges (spans nas ações ficam display:none no tema — reforço). */
+	#wcb-site-header .wcb-header__action .wcb-header__cart-count,
+	#wcb-site-header .wcb-header__action .wcb-header__fav-count {
+		display: flex !important;
+	}
+}
+
+/* ≤390px: conta só ícone; busca por lupa + faixa fixa (--wcb-search-overlay-top definido no JS). */
+@media (max-width: 390px) {
+	#wcb-site-header .wcb-header .wcb-header__inner {
+		column-gap: 6px;
+		padding-left: max(8px, env(safe-area-inset-left, 0px));
+		padding-right: max(8px, env(safe-area-inset-right, 0px));
+	}
+
+	#wcb-site-header .wcb-header .wcb-header__brand-search .wcb-header__logo {
+		max-width: min(118px, 32vw);
+	}
+
+	#wcb-site-header .wcb-header__action--account {
+		padding: 0.3rem 0.25rem;
+	}
+
+	/* html … iguala especificidade ao checkout-header-guard.css (display:block em ≤1023px). */
+	html #wcb-site-header .wcb-header .wcb-header__brand-search .wcb-header__search:not(.active) {
+		display: none !important;
+	}
+
+	html #wcb-site-header .wcb-header #wcb-search.active {
+		display: block !important;
+		position: fixed !important;
+		left: 0 !important;
+		right: 0 !important;
+		top: var(--wcb-search-overlay-top, 72px) !important;
+		z-index: 100002 !important;
+		padding: 10px max(12px, env(safe-area-inset-left, 0px)) 12px max(12px, env(safe-area-inset-right, 0px)) !important;
+		margin: 0 !important;
+		background: var(--wcb-white, #fff) !important;
+		box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+		box-sizing: border-box !important;
+		animation: wcb-search-sheet-in 0.18s ease-out;
+	}
+
+	@keyframes wcb-search-sheet-in {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	html #wcb-site-header .wcb-header #wcb-search.active .wcb-header__search-form {
+		max-width: 100%;
 	}
 }
 
@@ -205,6 +260,15 @@
 
 	#wcb-site-header .wcb-header__search {
 		overflow: visible;
+	}
+
+	/* O input com flex:1 não pode encolher o botão submit para 0 (pílula no grid mobile). */
+	#wcb-site-header .wcb-header .wcb-header__search-form .wcb-header__search-btn {
+		flex-shrink: 0;
+	}
+
+	#wcb-site-header .wcb-header .wcb-header__search-form .wcb-header__search-input {
+		min-width: 0;
 	}
 
 	.wcb-header__search .wcb-search-dropdown {
