@@ -73,6 +73,10 @@ function wcb_fbt_combo_error_message_for_code( $code, $raw ) {
 			return __( 'O produto principal não está disponível para compra.', 'wcb-child' );
 		case 'invalid_data':
 			return __( 'Dados do combo inválidos. Atualize a página e tente novamente.', 'wcb-child' );
+		case 'invalid_payload':
+			return __( 'Dados do combo inválidos. Atualize a página e tente novamente.', 'wcb-child' );
+		case 'forbidden_item':
+			return __( 'Um ou mais itens não pertencem a este combo.', 'wcb-child' );
 		case 'cart_unavailable':
 			return __( 'Carrinho indisponível no momento.', 'wcb-child' );
 		case 'rollback_failed':
@@ -171,6 +175,54 @@ function wcb_fbt_ajax_add_combo() {
 			),
 			500
 		);
+	}
+
+	// Validar addons contra o grupo YITH real (antes de alterar o carrinho).
+	if ( ! empty( $items ) ) {
+		$allowed_addon_ids = wcb_fbt_get_allowed_addon_product_ids( $main_id );
+		if ( empty( $allowed_addon_ids ) ) {
+			wp_send_json_error(
+				array(
+					'code'    => 'forbidden_item',
+					'message' => wcb_fbt_combo_error_message_for_code( 'forbidden_item', '' ),
+				),
+				403
+			);
+		}
+		foreach ( $items as $row ) {
+			if ( ! is_array( $row ) ) {
+				wp_send_json_error(
+					array(
+						'code'    => 'invalid_payload',
+						'message' => wcb_fbt_combo_error_message_for_code( 'invalid_payload', '' ),
+					),
+					400
+				);
+			}
+			$pid = isset( $row['id'] ) ? absint( $row['id'] ) : 0;
+			$qty = isset( $row['qty'] ) ? absint( $row['qty'] ) : 0;
+			if ( $pid < 1 || $qty < 1 ) {
+				wp_send_json_error(
+					array(
+						'code'    => 'invalid_payload',
+						'message' => wcb_fbt_combo_error_message_for_code( 'invalid_payload', '' ),
+					),
+					400
+				);
+			}
+			if ( (int) $pid === (int) $main_id ) {
+				continue;
+			}
+			if ( ! in_array( $pid, $allowed_addon_ids, true ) ) {
+				wp_send_json_error(
+					array(
+						'code'    => 'forbidden_item',
+						'message' => wcb_fbt_combo_error_message_for_code( 'forbidden_item', '' ),
+					),
+					403
+				);
+			}
+		}
 	}
 
 	$max_main = wcb_fbt_max_purchase_qty( $main );

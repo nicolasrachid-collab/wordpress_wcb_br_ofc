@@ -10,14 +10,45 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Rate limit newsletter por IP (janela 15 min).
+ *
+ * @return bool True se excedeu o limite.
+ */
+function wcb_nl4_rate_limit_exceeded() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	if ( '' === $ip ) {
+		return false;
+	}
+	$key = 'wcb_nl4_rl_' . md5( $ip );
+	$n   = (int) get_transient( $key );
+	if ( $n >= 30 ) {
+		return true;
+	}
+	set_transient( $key, $n + 1, 15 * MINUTE_IN_SECONDS );
+	return false;
+}
+
+/**
  * AJAX: guardar e-mail (lista em opção; máx. 8000 entradas).
  */
 function wcb_nl4_subscribe_ajax() {
 	if ( ! check_ajax_referer( 'wcb_nl4', 'nonce', false ) ) {
 		wp_send_json_error(
 			array(
+				'code'    => 'invalid_request',
 				'message' => __( 'Sessão expirada. Atualize a página e tente de novo.', 'wcb-theme' ),
-			)
+			),
+			403
+		);
+	}
+
+	if ( wcb_nl4_rate_limit_exceeded() ) {
+		wp_send_json_error(
+			array(
+				'code'    => 'rate_limited',
+				'message' => __( 'Muitas tentativas. Aguarde alguns minutos e tente de novo.', 'wcb-theme' ),
+			),
+			429
 		);
 	}
 
@@ -27,8 +58,10 @@ function wcb_nl4_subscribe_ajax() {
 	if ( ! is_email( $email ) ) {
 		wp_send_json_error(
 			array(
+				'code'    => 'invalid_request',
 				'message' => __( 'Digite um e-mail válido.', 'wcb-theme' ),
-			)
+			),
+			400
 		);
 	}
 
@@ -66,6 +99,7 @@ function wcb_nl4_subscribe_ajax() {
 
 	wp_send_json_success(
 		array(
+			'code'    => 'ok',
 			'message' => __( 'Cadastro registrado.', 'wcb-theme' ),
 		)
 	);

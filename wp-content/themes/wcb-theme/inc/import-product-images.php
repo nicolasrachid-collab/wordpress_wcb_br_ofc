@@ -8,6 +8,9 @@ if (!defined('ABSPATH'))
     exit;
 
 add_action('init', function () {
+    if (!defined('WCB_DEV') || !WCB_DEV) {
+        return;
+    }
     if (!isset($_GET['wcb_import_images']) || !current_user_can('manage_options'))
         return;
     if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'wcb_import_images')) {

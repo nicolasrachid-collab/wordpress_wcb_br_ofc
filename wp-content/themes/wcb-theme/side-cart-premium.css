@@ -134,14 +134,16 @@ html.xoo-wsc-cart-active .xoo-wsc-opac,
     font-family: 'Inter', -apple-system, sans-serif !important;
 }
 
-.xoo-wsc-modal:not(.xoo-wsc-cart-active) .xoo-wsc-container,
-.xoo-wsc-modal:not(.xoo-wsc-cart-active) .xoo-wsc-slider {
-    right: calc(-1 * var(--wcb-drawer-w)) !important;
+/* Fechado: empurrar ≥1 viewport (CSS inline do plugin usa right:-$cartWidth; com width 95% isso deixa faixa branca).
+   `html body…` eleva especificidade sobre folhas agregadas / inline do plugin sem !important em right. */
+html body:not(.xoo-wsc-cart-active) .xoo-wsc-markup .xoo-wsc-container,
+html body:not(.xoo-wsc-slider-active) .xoo-wsc-slider {
+    right: calc(-100vw - 24px) !important;
     left: auto !important;
 }
 
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container,
-.xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-slider {
+html body.xoo-wsc-cart-active .xoo-wsc-markup .xoo-wsc-container,
+html body.xoo-wsc-slider-active .xoo-wsc-slider {
     right: 0 !important;
     left: auto !important;
 }
@@ -151,14 +153,14 @@ body.rtl .xoo-wsc-slider {
     box-shadow: 12px 0 56px rgba(15, 23, 42, 0.14), 4px 0 24px rgba(15, 23, 42, 0.08) !important;
 }
 
-body.rtl .xoo-wsc-modal:not(.xoo-wsc-cart-active) .xoo-wsc-container,
-body.rtl .xoo-wsc-modal:not(.xoo-wsc-cart-active) .xoo-wsc-slider {
-    left: calc(-1 * var(--wcb-drawer-w)) !important;
+html body.rtl:not(.xoo-wsc-cart-active) .xoo-wsc-markup .xoo-wsc-container,
+html body.rtl:not(.xoo-wsc-slider-active) .xoo-wsc-slider {
+    left: calc(-100vw - 24px) !important;
     right: auto !important;
 }
 
-body.rtl .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-container,
-body.rtl .xoo-wsc-modal.xoo-wsc-cart-active .xoo-wsc-slider {
+html body.rtl.xoo-wsc-cart-active .xoo-wsc-markup .xoo-wsc-container,
+html body.rtl.xoo-wsc-slider-active .xoo-wsc-slider {
     left: 0 !important;
     right: auto !important;
 }
@@ -2170,6 +2172,16 @@ body.rtl.xoo-wsc-cart-active .xoo-wsc-basket {
         animation: none !important;
     }
 }
+
+/* <1024px: barra fixa #wcb-mbar-cart abre o drawer — esconde o botão flutuante do plugin */
+@media (max-width: 1023px) {
+    .xoo-wsc-basket {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
 .xoo-wsc-items-count {
     background: #EF4444 !important;
     color: #ffffff !important;

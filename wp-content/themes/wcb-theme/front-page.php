@@ -18,6 +18,7 @@ $wcb_carousel_homepage_used_ids = array();
 <!-- ==================== TRUST BAR ==================== -->
 <section class="wcb-trust">
 <div class="wcb-container">
+<div class="wcb-trust__viewport" role="region" aria-label="<?php echo esc_attr__( 'Vantagens da loja', 'wcb-theme' ); ?>">
 <div class="wcb-trust__grid">
 
   <div class="wcb-trust__item">
@@ -68,6 +69,7 @@ $wcb_carousel_homepage_used_ids = array();
       </div>
   </div>
 
+</div>
 </div>
 </div>
 </section>
@@ -421,7 +423,7 @@ $wcb_carousel_homepage_used_ids = array();
             <?php if (!empty($all_cards_v)): ?>
             <div class="wcb-vendidos-layout">
 
-                <!-- 2 Banners estáticos empilhados (sem slide) — CSS em style.css (governança DS) -->
+                <!-- Banners: desktop coluna esquerda; 891–1024px linha dupla; ≤890px 1 por vez + slide — style.css + main.js -->
 
                 <?php
                     // Banner 1 data
@@ -441,21 +443,48 @@ $wcb_carousel_homepage_used_ids = array();
                     $b2_url   = get_theme_mod('ls_a_slide2_url', home_url('/loja/?on_sale=true'));
                 ?>
 
-                <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row1">
-                    <!-- Banner 1 — Blue -->
-                    <a href="<?php echo esc_url($b1_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--blue">
-                        <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b1_img); ?>" alt="" loading="lazy">
-                        <div class="wcb-vendidos-banner-card__gradient" aria-hidden="true"></div>
-                        <div class="wcb-vendidos-banner-card__content">
-                            <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b1_tag); ?></span>
-                            <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post(preg_replace('/<br\s*\/?>/i', ' ', $b1_title)); ?></h3>
-                            <p class="wcb-vendidos-banner-card__desc"><?php echo esc_html($b1_desc); ?></p>
-                            <span class="wcb-vendidos-banner-card__btn">
-                                <?php echo esc_html($b1_cta); ?>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                            </span>
+                <div class="wcb-vendidos-banners-group" data-wcb-vendidos-banners-slider>
+                    <div class="wcb-vendidos-banners-group__inner">
+                        <div class="wcb-vendidos-banners-group__track" role="group" aria-label="<?php echo esc_attr__('Banners em destaque', 'wcb-theme'); ?>">
+                            <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row1">
+                                <!-- Banner 1 — Blue -->
+                                <a href="<?php echo esc_url($b1_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--blue">
+                                    <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b1_img); ?>" alt="" loading="lazy">
+                                    <div class="wcb-vendidos-banner-card__gradient" aria-hidden="true"></div>
+                                    <div class="wcb-vendidos-banner-card__content">
+                                        <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b1_tag); ?></span>
+                                        <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post(preg_replace('/<br\s*\/?>/i', ' ', $b1_title)); ?></h3>
+                                        <p class="wcb-vendidos-banner-card__desc"><?php echo esc_html($b1_desc); ?></p>
+                                        <span class="wcb-vendidos-banner-card__btn">
+                                            <?php echo esc_html($b1_cta); ?>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                        </span>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row2">
+                                <!-- Banner 2 — Índigo -->
+                                <a href="<?php echo esc_url($b2_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--indigo">
+                                    <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b2_img); ?>" alt="" loading="lazy">
+                                    <div class="wcb-vendidos-banner-card__gradient" aria-hidden="true"></div>
+                                    <div class="wcb-vendidos-banner-card__content">
+                                        <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b2_tag); ?></span>
+                                        <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post(preg_replace('/<br\s*\/?>/i', ' ', $b2_title)); ?></h3>
+                                        <p class="wcb-vendidos-banner-card__desc"><?php echo esc_html($b2_desc); ?></p>
+                                        <span class="wcb-vendidos-banner-card__btn">
+                                            <?php echo esc_html($b2_cta); ?>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                        </span>
+                                    </div>
+                                </a>
+                            </div>
                         </div>
-                    </a>
+                        <div class="wcb-vendidos-banners-group__dots" role="tablist" aria-label="<?php echo esc_attr__('Navegação dos banners', 'wcb-theme'); ?>">
+                            <button type="button" class="wcb-vendidos-banners-group__dot is-active" data-index="0" role="tab" aria-selected="true" aria-label="<?php echo esc_attr__('Banner 1 de 2', 'wcb-theme'); ?>"></button>
+                            <button type="button" class="wcb-vendidos-banners-group__dot" data-index="1" role="tab" aria-selected="false" aria-label="<?php echo esc_attr__('Banner 2 de 2', 'wcb-theme'); ?>"></button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Row 1: Carrossel independente (3 cards/slide) -->
@@ -473,23 +502,6 @@ $wcb_carousel_homepage_used_ids = array();
                         </div>
                     </div>
                     <?php endif; ?>
-                </div>
-
-                <div class="wcb-vendidos-layout__banner wcb-vendidos-layout__banner--row2">
-                    <!-- Banner 2 — Índigo -->
-                    <a href="<?php echo esc_url($b2_url); ?>" class="wcb-vendidos-banner-card wcb-vendidos-banner-card--indigo">
-                        <img class="wcb-vendidos-banner-card__img" src="<?php echo esc_url($b2_img); ?>" alt="" loading="lazy">
-                        <div class="wcb-vendidos-banner-card__gradient" aria-hidden="true"></div>
-                        <div class="wcb-vendidos-banner-card__content">
-                            <span class="wcb-vendidos-banner-card__tag"><?php echo esc_html($b2_tag); ?></span>
-                            <h3 class="wcb-vendidos-banner-card__title"><?php echo wp_kses_post(preg_replace('/<br\s*\/?>/i', ' ', $b2_title)); ?></h3>
-                            <p class="wcb-vendidos-banner-card__desc"><?php echo esc_html($b2_desc); ?></p>
-                            <span class="wcb-vendidos-banner-card__btn">
-                                <?php echo esc_html($b2_cta); ?>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                            </span>
-                        </div>
-                    </a>
                 </div>
 
                 <!-- Row 2: Carrossel independente (3 cards/slide) -->
@@ -694,7 +706,7 @@ $wcb_carousel_homepage_used_ids = array();
                         </span>
                         <?php esc_html_e( 'Super Ofertas', 'wcb-theme' ); ?>
                     </h2>
-                    <p class="wcb-flash-ofertas-sub"><?php esc_html_e( 'Descontos reais enquanto durar o estoque — pague menos no PIX.', 'wcb-theme' ); ?></p>
+                    <p class="wcb-flash-ofertas-sub"><?php esc_html_e( 'Descontos reais só enquanto durar o estoque. No PIX você paga menos.', 'wcb-theme' ); ?></p>
                 </div>
 
                 <div class="wcb-flash-countdown-inline">

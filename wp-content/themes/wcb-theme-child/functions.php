@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WCB_CHILD_VERSION', '1.2.6' );
+define( 'WCB_CHILD_VERSION', '1.2.7' );
 
 $wcb_fbt_ajax_combo = get_stylesheet_directory() . '/inc/wcb-fbt-ajax-combo.php';
 if ( is_readable( $wcb_fbt_ajax_combo ) ) {

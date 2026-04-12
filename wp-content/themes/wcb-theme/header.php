@@ -62,7 +62,7 @@
 
             <?php if ( ! $wcb_skip_shop_nav ) : ?>
             <!-- Mobile Toggle -->
-            <button class="wcb-mobile-toggle" id="wcb-mobile-toggle" aria-label="Abrir menu">
+            <button type="button" class="wcb-mobile-toggle" id="wcb-mobile-toggle" aria-label="<?php echo esc_attr__( 'Abrir menu', 'wcb-theme' ); ?>" aria-expanded="false" aria-controls="wcb-mobile-menu" aria-haspopup="dialog">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -72,14 +72,16 @@
             </button>
             <?php endif; ?>
 
-            <!-- Logo -->
-            <div class="wcb-header__logo">
-                <?php wcb_get_logo(); ?>
-            </div>
+            <div class="wcb-header__brand-search">
+                <!-- Logo -->
+                <div class="wcb-header__logo">
+                    <?php wcb_get_logo(); ?>
+                </div>
 
-            <!-- Search Bar -->
-            <div class="wcb-header__search" id="wcb-search">
-                <?php get_search_form(); ?>
+                <!-- Search Bar -->
+                <div class="wcb-header__search" id="wcb-search">
+                    <?php get_search_form(); ?>
+                </div>
             </div>
 
             <!-- Header Actions -->
@@ -95,7 +97,7 @@
                                 <polyline points="10 17 15 12 10 7" />
                                 <line x1="15" y1="12" x2="3" y2="12" />
                             </svg>
-                            Entre ou Cadastre-se
+                            <span class="wcb-header__login-label">Entre ou Cadastre-se</span>
                         </a>
                     <?php endif; ?>
 
@@ -112,14 +114,31 @@
                     </span>
 
                     <!-- Account -->
-                    <a href="<?php echo esc_url(wc_get_account_endpoint_url('dashboard')); ?>" class="wcb-header__action"
-                        title="Minha Conta">
+                    <a href="<?php echo esc_url(wc_get_account_endpoint_url('dashboard')); ?>"
+                        class="wcb-header__action wcb-header__action--account"
+                        id="wcb-header-account-link"
+                        title="<?php esc_attr_e('Minha Conta', 'wcb-theme'); ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span>Conta</span>
+                        <span class="wcb-header__account-mobile-hint">
+                            <?php
+                            if (is_user_logged_in()) {
+                                $wcb_u = wp_get_current_user();
+                                $wcb_hi = $wcb_u->first_name ? $wcb_u->first_name : $wcb_u->display_name;
+                                printf(
+                                    /* translators: %s: first name or display name */
+                                    esc_html__('Olá, %s', 'wcb-theme'),
+                                    esc_html($wcb_hi)
+                                );
+                            } else {
+                                esc_html_e('Olá, faça seu login ou cadastre-se', 'wcb-theme');
+                            }
+                            ?>
+                        </span>
+                        <span class="wcb-header__action-desktop-label"><?php esc_html_e('Conta', 'wcb-theme'); ?></span>
                     </a>
 
                     <!-- Favorites -->
@@ -167,9 +186,9 @@
                     </a>
                 <?php endif; ?>
 
-                <!-- Mobile Search Toggle -->
-                <button class="wcb-header__action wcb-mobile-toggle" id="wcb-search-toggle" aria-label="Buscar"
-                    style="display:none;">
+                <!-- Toggle legado da lupa (oculto; busca integrada no grid mobile — phase3). Sem classe .wcb-mobile-toggle para não colidir com o menu. -->
+                <button type="button" class="wcb-header__action wcb-header__search-toggle" id="wcb-search-toggle" aria-label="Buscar"
+                    hidden>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -182,7 +201,7 @@
 
     <?php if ( ! $wcb_skip_shop_nav ) : ?>
     <!-- ==================== NAVIGATION BAR ==================== -->
-    <nav class="wcb-nav" id="wcb-nav" role="navigation" aria-label="Menu principal">
+    <nav class="wcb-nav" id="wcb-nav" role="navigation" aria-label="<?php echo esc_attr__( 'Menu principal', 'wcb-theme' ); ?>">
         <div class="wcb-container wcb-nav__inner">
             <?php
             if (has_nav_menu('primary')) {
@@ -352,7 +371,29 @@
         var header = document.getElementById('wcb-site-header');
         if (!header) return;
         var lastScroll = 0;
+        function narrow() {
+            return window.matchMedia && window.matchMedia('(max-width: 1023px)').matches;
+        }
+        function clearScrolledIfNarrow() {
+            if (narrow()) {
+                header.classList.remove('is-scrolled');
+            }
+        }
+        clearScrolledIfNarrow();
+        if (window.matchMedia) {
+            var mq = window.matchMedia('(max-width: 1023px)');
+            if (mq.addEventListener) {
+                mq.addEventListener('change', clearScrolledIfNarrow);
+            } else if (mq.addListener) {
+                mq.addListener(clearScrolledIfNarrow);
+            }
+        }
         window.addEventListener('scroll', function() {
+            /* ≤1023px: alinhar a wcb-nav-mobile-bp.css — sem is-scrolled (evita compositing Chrome). */
+            if (narrow()) {
+                header.classList.remove('is-scrolled');
+                return;
+            }
             var y = window.scrollY || window.pageYOffset;
             if (y > 60) {
                 header.classList.add('is-scrolled');
@@ -646,11 +687,11 @@
     <?php if ( ! $wcb_skip_shop_nav ) : ?>
     <!-- ==================== MOBILE MENU ==================== -->
 
-    <div class="wcb-mobile-overlay" id="wcb-mobile-overlay"></div>
-    <div class="wcb-mobile-menu" id="wcb-mobile-menu">
+    <div class="wcb-mobile-overlay" id="wcb-mobile-overlay" aria-hidden="true"></div>
+    <div class="wcb-mobile-menu" id="wcb-mobile-menu" role="dialog" aria-modal="true" aria-labelledby="wcb-mobile-menu-heading" aria-hidden="true">
         <div class="wcb-mobile-menu__header">
-            <span class="wcb-header__logo-text">White <span>Cloud</span></span>
-            <button class="wcb-mobile-menu__close" id="wcb-mobile-close" aria-label="Fechar menu">
+            <?php wcb_mm_drawer_header_cap_markup(); ?>
+            <button type="button" class="wcb-mobile-menu__close" id="wcb-mobile-close" aria-label="<?php echo esc_attr__( 'Fechar menu', 'wcb-theme' ); ?>">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -658,23 +699,12 @@
                 </svg>
             </button>
         </div>
-        <nav class="wcb-mobile-menu__nav">
+        <nav class="wcb-mobile-menu__nav" aria-label="<?php echo esc_attr__( 'Menu principal', 'wcb-theme' ); ?>">
             <?php
-            if (has_nav_menu('primary')) {
-                wp_nav_menu(array(
-                    'theme_location' => 'primary',
-                    'container' => false,
-                    'items_wrap' => '%3$s',
-                    'depth' => 1,
-                    'fallback_cb' => false,
-                ));
+            if ( has_nav_menu( 'primary' ) ) {
+                echo wcb_mobile_drilldown_menu_html( 'primary' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             } else {
-                echo '<a href="' . esc_url(home_url('/')) . '">Início</a>';
-                echo '<a href="' . esc_url(home_url('/loja/')) . '">Loja</a>';
-                if (class_exists('WooCommerce')) {
-                    echo '<a href="' . esc_url(wc_get_cart_url()) . '">Carrinho</a>';
-                    echo '<a href="' . esc_url(wc_get_account_endpoint_url('dashboard')) . '">Minha Conta</a>';
-                }
+                echo wcb_mobile_drilldown_fallback_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             }
             ?>
         </nav>

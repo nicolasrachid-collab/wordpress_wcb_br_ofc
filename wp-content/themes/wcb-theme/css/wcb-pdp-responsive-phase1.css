@@ -1,0 +1,324 @@
+/**
+ * WCB — PDP Fase 1: tablet e mobile (escopo .wcb-pdp apenas).
+ * Breakpoints: 1024, 820, 768, 430, 390, 375, 360.
+ * Desktop (min-width: 1025px): sem regras aqui.
+ */
+
+/* Nota: não usar overflow-x em .wcb-pdp — quebraria position:sticky da galeria no desktop. */
+
+.wcb-pdp .wcb-container {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.wcb-pdp-hero,
+.wcb-pdp-gallery,
+.wcb-pdp-hero__summary,
+.wcb-pdp-buybox,
+.wcb-pdp-fbt-slot {
+	min-width: 0;
+}
+
+/* Mídia e tabelas do conteúdo (descrição / plugins no after-summary) */
+.wcb-pdp-tab-panel__content img,
+.wcb-pdp-after-summary img,
+.wcb-pdp-after-summary video,
+.wcb-pdp-after-summary iframe {
+	max-width: 100%;
+	height: auto;
+}
+
+.wcb-pdp-tab-panel__content table {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	border-collapse: collapse;
+}
+
+.wcb-pdp-tab-panel__content pre {
+	overflow-x: auto;
+	max-width: 100%;
+}
+
+/* ── 1024 — tablet / hero já em 1 coluna no tema ── */
+@media (max-width: 1024px) {
+	.wcb-pdp {
+		padding-top: var(--wcb-space-md, 1rem);
+		padding-bottom: var(--wcb-space-md, 1rem);
+	}
+
+	.wcb-pdp .wcb-container {
+		padding-left: max(16px, env(safe-area-inset-left, 0px));
+		padding-right: max(16px, env(safe-area-inset-right, 0px));
+	}
+
+	/* Faixa de benefícios: 4 colunas quebram layout em tablet */
+	.wcb-pdp-benefits {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 12px;
+		padding: 18px 16px;
+		margin-bottom: var(--wcb-space-xl, 1.5rem);
+	}
+
+	.wcb-pdp-benefits__item {
+		padding: 14px 14px;
+	}
+
+	.wcb-pdp-benefits__item strong {
+		font-size: 0.8125rem;
+	}
+
+	.wcb-pdp-benefits__item span {
+		font-size: 0.75rem;
+	}
+
+	.wcb-pdp-tabs__panels {
+		padding: 20px 18px var(--wcb-space-xl, 1.5rem);
+	}
+
+	.wcb-pdp-tab-btn {
+		padding: 12px 16px;
+		font-size: 0.9375rem;
+	}
+
+	.wcb-pdp-reviews-hero {
+		padding: var(--wcb-space-lg, 1.25rem);
+		gap: var(--wcb-space-lg, 1.25rem);
+	}
+
+	/* Relacionados: grid global pode ficar com 3 colunas — aqui forçamos 2 na PDP */
+	.wcb-pdp .wcb-pdp-similar .wcb-products__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.875rem;
+	}
+
+	.wcb-pdp-buybox__price-card {
+		padding: 14px 16px;
+		gap: 12px;
+	}
+}
+
+/* ── 825 — iPad retrato / tablets estreitos (alinhado à loja / header) ── */
+@media (max-width: 825px) {
+	.wcb-pdp-buybox__title {
+		font-size: clamp(1.35rem, 3.2vw, 1.65rem);
+		line-height: 1.22;
+	}
+
+	.wcb-pdp .wcb-breadcrumb {
+		font-size: 0.8125rem;
+		line-height: 1.45;
+		row-gap: 4px;
+	}
+
+	.wcb-pdp-gallery__placeholder {
+		min-height: min(360px, 55vw);
+	}
+}
+
+/* ── 768 — tablet pequeno ── */
+@media (max-width: 768px) {
+	.wcb-pdp-reviews-list__head {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wcb-pdp-reviews-toolbar {
+		width: 100%;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+
+	.wcb-pdp-reviews-toolbar__field {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.wcb-pdp-reviews-toolbar__select {
+		width: 100%;
+		min-width: 0;
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+
+	.wcb-pdp .wcb-pdp-similar .wcb-section__header {
+		flex-wrap: wrap;
+		align-items: flex-start;
+	}
+
+	.wcb-pdp .wcb-pdp-similar .wcb-section__actions {
+		margin-left: 0;
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+
+/* ── 430 — telemóveis largos ── */
+@media (max-width: 430px) {
+	.wcb-pdp .wcb-container {
+		padding-left: max(12px, env(safe-area-inset-left, 0px));
+		padding-right: max(12px, env(safe-area-inset-right, 0px));
+	}
+
+	.wcb-pdp-buybox__title {
+		font-size: clamp(1.2rem, 5.2vw, 1.5rem);
+	}
+
+	.wcb-pdp-buybox__price-ticket__lead .wcb-pdp-buybox__pix-value,
+	.wcb-pdp-buybox__pix-value {
+		font-size: clamp(1.55rem, 7vw, 2rem);
+	}
+
+	.wcb-pdp-buybox__price-card {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wcb-pdp-benefits {
+		grid-template-columns: 1fr;
+		padding: 16px 14px;
+		gap: 10px;
+	}
+
+	.wcb-pdp-benefits__item {
+		padding: 12px 14px;
+	}
+
+	.wcb-pdp-tabs__nav {
+		-webkit-overflow-scrolling: touch;
+		scroll-snap-type: x proximity;
+	}
+
+	.wcb-pdp-tab-btn {
+		padding: 11px 14px;
+		font-size: 0.875rem;
+		scroll-snap-align: start;
+		flex-shrink: 0;
+	}
+
+	.wcb-pdp-tabs__panels {
+		padding: 16px 14px var(--wcb-space-lg, 1.25rem);
+	}
+
+	.wcb-pdp-tab-panel__content {
+		font-size: 0.9375rem;
+		line-height: 1.7;
+	}
+
+	.wcb-pdp-reviews-hero {
+		flex-direction: column;
+		align-items: stretch;
+		text-align: left;
+	}
+
+	.wcb-pdp-reviews-hero__score {
+		text-align: center;
+		align-self: center;
+	}
+
+	.wcb-pdp-review-form {
+		padding: var(--wcb-space-md, 1rem);
+	}
+
+	/* Form simples: quantidade + CTA em coluna — CTA forte e largura total */
+	.wcb-pdp-buybox__form form.cart:not(.variations_form) {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity {
+		align-self: center;
+		width: 100%;
+		max-width: 220px;
+		justify-content: center;
+	}
+
+	.wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
+	.wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"] {
+		width: 100% !important;
+		flex: 1 1 auto;
+		min-height: 48px;
+	}
+
+	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity {
+		align-self: center;
+	}
+
+	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
+	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"] {
+		width: 100% !important;
+		min-height: 48px;
+	}
+
+	.wcb-pdp-subtotal__row {
+		flex-wrap: wrap;
+		gap: 8px;
+		row-gap: 4px;
+		align-items: flex-start;
+	}
+
+	.wcb-pdp-subtotal__price {
+		font-size: clamp(1.05rem, 5vw, 1.25rem);
+		margin-left: auto;
+		text-align: right;
+	}
+
+	:is(#wcb-pdp-buybox) .wcb-swatch-btn:not(.wcb-swatch-btn--dot) {
+		min-height: 40px;
+		padding: 0.3rem 0.65rem;
+	}
+
+	.wcb-pdp .wcb-pdp-similar .wcb-products__grid {
+		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+}
+
+/* ── 390 — iPhone 12/13/14 ── */
+@media (max-width: 390px) {
+	.wcb-pdp-tab-btn {
+		padding: 10px 12px;
+		font-size: 0.8125rem;
+	}
+
+	.wcb-pdp-buybox__form .wcb-qty-btn,
+	.wcb-pdp-buybox__form .quantity .wcb-qty-btn {
+		min-width: 42px;
+		width: 42px;
+	}
+}
+
+/* ── 375 / 360 — telemóveis estreitos ── */
+@media (max-width: 375px) {
+	.wcb-pdp .wcb-container {
+		padding-left: max(10px, env(safe-area-inset-left, 0px));
+		padding-right: max(10px, env(safe-area-inset-right, 0px));
+	}
+
+	.wcb-pdp-buybox__form .single_add_to_cart_button,
+	.wcb-pdp-buybox__form button[name="add-to-cart"] {
+		padding-left: 16px !important;
+		padding-right: 16px !important;
+		font-size: 1rem !important;
+	}
+}
+
+@media (max-width: 360px) {
+	#wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__inner {
+		column-gap: 10px;
+		padding: 11px 10px;
+	}
+
+	.wcb-pdp-gallery__thumb {
+		width: 56px;
+		height: 56px;
+	}
+}

@@ -53,14 +53,16 @@ $wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
         </button>
         <?php endif; ?>
 
-        <!-- Logo -->
-        <div class="wcb-header__logo">
-            <?php wcb_get_logo(); ?>
-        </div>
+        <div class="wcb-header__brand-search">
+            <!-- Logo -->
+            <div class="wcb-header__logo">
+                <?php wcb_get_logo(); ?>
+            </div>
 
-        <!-- Search Bar -->
-        <div class="wcb-header__search" id="wcb-search">
-            <?php get_search_form(); ?>
+            <!-- Search Bar -->
+            <div class="wcb-header__search" id="wcb-search">
+                <?php get_search_form(); ?>
+            </div>
         </div>
 
         <!-- Header Actions -->
@@ -98,13 +100,31 @@ $wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
                     <span>Favoritos</span>
                 </a>
 
-                <a href="<?php echo esc_url( wc_get_account_endpoint_url( 'dashboard' ) ); ?>" class="wcb-header__action" title="Minha Conta">
+                <a href="<?php echo esc_url( wc_get_account_endpoint_url( 'dashboard' ) ); ?>"
+                    class="wcb-header__action wcb-header__action--account"
+                    id="wcb-header-account-link"
+                    title="<?php esc_attr_e( 'Minha Conta', 'wcb-theme' ); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <span>Conta</span>
+                    <span class="wcb-header__account-mobile-hint">
+                        <?php
+                        if ( is_user_logged_in() ) {
+                            $wcb_u = wp_get_current_user();
+                            $wcb_hi = $wcb_u->first_name ? $wcb_u->first_name : $wcb_u->display_name;
+                            printf(
+                                /* translators: %s: user first name or display name */
+                                esc_html__( 'Olá, %s', 'wcb-theme' ),
+                                esc_html( $wcb_hi )
+                            );
+                        } else {
+                            esc_html_e( 'Olá, faça seu login ou cadastre-se', 'wcb-theme' );
+                        }
+                        ?>
+                    </span>
+                    <span class="wcb-header__action-desktop-label"><?php esc_html_e( 'Conta', 'wcb-theme' ); ?></span>
                 </a>
 
                 <a href="<?php echo esc_url( wc_get_cart_url() ); ?>" class="wcb-header__action" title="Carrinho">
@@ -135,7 +155,7 @@ $wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
 
 <?php if ( ! $wcb_skip_shop_nav ) : ?>
 <!-- ==================== NAVIGATION BAR ==================== -->
-<nav class="wcb-nav" id="wcb-nav" role="navigation" aria-label="Menu principal">
+<nav class="wcb-nav" id="wcb-nav" role="navigation" aria-label="<?php echo esc_attr__( 'Menu principal', 'wcb-theme' ); ?>">
     <div class="wcb-container wcb-nav__inner">
         <?php
         if ( has_nav_menu( 'primary' ) ) {
@@ -300,10 +320,10 @@ $wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
 </script>
 
 <div class="wcb-mobile-overlay" id="wcb-mobile-overlay"></div>
-<div class="wcb-mobile-menu" id="wcb-mobile-menu">
+<div class="wcb-mobile-menu" id="wcb-mobile-menu" role="dialog" aria-modal="true" aria-labelledby="wcb-mobile-menu-heading">
     <div class="wcb-mobile-menu__header">
-        <span class="wcb-header__logo-text">White <span>Cloud</span></span>
-        <button class="wcb-mobile-menu__close" id="wcb-mobile-close" aria-label="Fechar menu">
+        <?php wcb_mm_drawer_header_cap_markup(); ?>
+        <button type="button" class="wcb-mobile-menu__close" id="wcb-mobile-close" aria-label="<?php echo esc_attr__( 'Fechar menu', 'wcb-theme' ); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -311,23 +331,12 @@ $wcb_skip_shop_nav = function_exists( 'is_checkout' ) && is_checkout();
             </svg>
         </button>
     </div>
-    <nav class="wcb-mobile-menu__nav">
+    <nav class="wcb-mobile-menu__nav" aria-label="<?php echo esc_attr__( 'Menu principal', 'wcb-theme' ); ?>">
         <?php
         if ( has_nav_menu( 'primary' ) ) {
-            wp_nav_menu( array(
-                'theme_location' => 'primary',
-                'container'      => false,
-                'items_wrap'     => '%3$s',
-                'depth'          => 1,
-                'fallback_cb'    => false,
-            ) );
+            echo wcb_mobile_drilldown_menu_html( 'primary' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         } else {
-            echo '<a href="' . esc_url( home_url( '/' ) ) . '">Início</a>';
-            echo '<a href="' . esc_url( home_url( '/loja/' ) ) . '">Loja</a>';
-            if ( class_exists( 'WooCommerce' ) ) {
-                echo '<a href="' . esc_url( wc_get_cart_url() ) . '">Carrinho</a>';
-                echo '<a href="' . esc_url( wc_get_account_endpoint_url( 'dashboard' ) ) . '">Minha Conta</a>';
-            }
+            echo wcb_mobile_drilldown_fallback_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         }
         ?>
     </nav>

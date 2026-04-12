@@ -473,10 +473,18 @@ add_action('wp_ajax_nopriv_wcb_filter_products', 'wcb_ajax_filter_products');
 function wcb_ajax_filter_products() {
     check_ajax_referer('wcb_filter_nonce', 'nonce');
 
+    if (function_exists('wcb_rate_limit_public_ajax')) {
+        wcb_rate_limit_public_ajax('wcb_filter_products', 90);
+    }
+
+    $per_page = (int) apply_filters('wcb_filter_products_per_page', 48);
+    $per_page = max(1, min(120, $per_page));
+
     $args = [
         'post_type'      => 'product',
         'post_status'    => 'publish',
-        'posts_per_page' => -1,
+        'posts_per_page' => $per_page,
+        'no_found_rows'  => false,
         'tax_query'      => ['relation' => 'AND'],
         'meta_query'     => [],
     ];
@@ -505,7 +513,7 @@ function wcb_ajax_filter_products() {
     if (!empty($_POST['wcb_stock'])) {
         $args['meta_query'][] = [
             'key'   => '_stock_status',
-            'value' => sanitize_text_field($_POST['wcb_stock']),
+            'value' => sanitize_text_field(wp_unslash($_POST['wcb_stock'])),
         ];
     }
 
@@ -517,14 +525,18 @@ function wcb_ajax_filter_products() {
             $args['tax_query'][] = [
                 'taxonomy' => 'pa_' . $attr->attribute_name,
                 'field'    => 'slug',
-                'terms'    => array_map('sanitize_text_field', (array) $_POST[$param]),
+                'terms'    => array_map(
+                    static function ($t) {
+                        return sanitize_text_field(wp_unslash($t));
+                    },
+                    (array) wp_unslash($_POST[$param])
+                ),
                 'operator' => 'IN',
             ];
         }
     }
 
     $query = new WP_Query($args);
-    $total = $query->found_posts;
 
     ob_start();
 
@@ -548,8 +560,13 @@ function wcb_ajax_filter_products() {
     $html = ob_get_clean();
     wp_reset_postdata();
 
+    $visible = (int) $query->post_count;
+    $total = (int) $query->found_posts;
+
     wp_send_json_success([
-        'html'  => $html,
-        'total' => $total,
+        'html'          => $html,
+        'total'         => $total,
+        'visible_count' => $visible,
+        'result_capped' => $total > $per_page,
     ]);
 }

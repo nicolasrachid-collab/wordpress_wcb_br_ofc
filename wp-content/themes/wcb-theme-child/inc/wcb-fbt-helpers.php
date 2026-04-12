@@ -159,3 +159,54 @@ function wcb_fbt_variations_json_payload( array $variations ) {
 	}
 	return $out;
 }
+
+/**
+ * IDs de produto simples ou de variação permitidos como addons do FBT (YITH) para o main_id da PDP.
+ * Usa a mesma meta `_yith_wfbt_ids` / YITH_WFBT_META que o shortcode YITH, no pai quando o main é variação.
+ *
+ * @param int $main_id ID exibido na PDP (simples, variável ou variação).
+ * @return int[] IDs únicos (variações expandidas quando o grupo inclui produto variável).
+ */
+function wcb_fbt_get_allowed_addon_product_ids( $main_id ) {
+	$main_id = absint( $main_id );
+	if ( $main_id < 1 ) {
+		return array();
+	}
+	$main = wc_get_product( $main_id );
+	if ( ! $main instanceof WC_Product ) {
+		return array();
+	}
+	$meta_holder = $main->is_type( 'variation' ) ? wc_get_product( $main->get_parent_id() ) : $main;
+	if ( ! $meta_holder instanceof WC_Product ) {
+		return array();
+	}
+	$meta_key = defined( 'YITH_WFBT_META' ) ? YITH_WFBT_META : '_yith_wfbt_ids';
+	$group    = $meta_holder->get_meta( $meta_key, true );
+	if ( empty( $group ) || ! is_array( $group ) ) {
+		return array();
+	}
+	$allowed = array();
+	foreach ( $group as $gid ) {
+		$gid = absint( $gid );
+		if ( $gid < 1 ) {
+			continue;
+		}
+		$add = wc_get_product( $gid );
+		if ( ! $add instanceof WC_Product || ! $add->is_purchasable() || ! $add->is_in_stock() ) {
+			continue;
+		}
+		if ( $add->is_type( 'variable' ) ) {
+			foreach ( $add->get_children() as $child_id ) {
+				$var = wc_get_product( $child_id );
+				if ( $var && $var->is_type( 'variation' ) && $var->is_purchasable() && $var->is_in_stock() ) {
+					$allowed[] = (int) $var->get_id();
+				}
+			}
+		} elseif ( $add->is_type( 'variation' ) ) {
+			$allowed[] = (int) $add->get_id();
+		} else {
+			$allowed[] = (int) $add->get_id();
+		}
+	}
+	return array_values( array_unique( array_map( 'absint', $allowed ) ) );
+}

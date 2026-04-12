@@ -353,20 +353,15 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
     });
 </script>
 
-<?php wp_footer(); ?>
-
-<?php if ( class_exists('Alg_WC_Wish_List_Toggle_Btn') ): ?>
-<script>
-(function() {
-    var WCB_TOAST_OPTS = { position:'bottomRight',layout:1,theme:'light',timeout:4000,backgroundColor:'#ffffff',progressBar:true,progressBarColor:'#2563eb',resetOnHover:true,drag:false,transitionIn:'fadeInUp',transitionOut:'fadeOut',class:'wcb-toast alg-wc-wl-izitoast',zindex:9999,onClose:function(s,t,c){if(typeof jQuery!=='undefined'){jQuery('body').trigger({type:'alg_wc_wl_notification_close',message:jQuery(t).find('p.slideIn')});}}};
-    function applyWcbToast(){if(typeof iziToast!=='undefined'){iziToast.settings(WCB_TOAST_OPTS);}}
-    document.addEventListener('DOMContentLoaded',applyWcbToast);
-    window.addEventListener('load',applyWcbToast);
-})();
-</script>
-<?php endif; ?>
-
-<!-- ==================== MOBILE STICKY BOTTOM BAR ==================== -->
+<?php
+$wcb_mbar_fav_count = 0;
+if ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() ) {
+    $wcb_mbar_fav_list = get_user_meta( get_current_user_id(), '_wcb_wishlist', true );
+    $wcb_mbar_fav_count = is_array( $wcb_mbar_fav_list ) ? count( $wcb_mbar_fav_list ) : 0;
+}
+$wcb_mbar_fav_url = esc_url( home_url( '/minha-conta/favoritos/' ) );
+?>
+<!-- ==================== MOBILE STICKY BOTTOM BAR (antes de wp_footer: scripts enxergam #wcb-mbar-menu) ==================== -->
 <nav class="wcb-mobile-bottom-bar" id="wcb-mobile-bottom-bar" aria-label="Navegação mobile">
     <a href="<?php echo esc_url(home_url('/')); ?>" class="wcb-mobile-bottom-bar__item" id="wcb-mbar-home">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -376,14 +371,23 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Busca</span>
     </button>
-    <a href="<?php echo esc_url(home_url('/loja/')); ?>" class="wcb-mobile-bottom-bar__item" id="wcb-mbar-cats">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        <span>Categorias</span>
+    <a href="<?php echo $wcb_mbar_fav_url; ?>" class="wcb-mobile-bottom-bar__item" id="wcb-mbar-fav" aria-label="Favoritos">
+        <span class="wcb-mobile-bottom-bar__icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span id="wcb-mbar-fav-count" class="wcb-mobile-bottom-bar__badge" <?php echo 0 === $wcb_mbar_fav_count ? 'style="display:none"' : ''; ?>><?php echo (int) $wcb_mbar_fav_count; ?></span>
+        </span>
+        <span>Favoritos</span>
     </a>
     <a href="#" id="wcb-mbar-cart" class="wcb-mobile-bottom-bar__item" aria-label="Carrinho">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        <span id="wcb-mbar-cart-count" class="wcb-mobile-bottom-bar__badge" style="display:none">0</span>
+        <span class="wcb-mobile-bottom-bar__icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <span id="wcb-mbar-cart-count" class="wcb-mobile-bottom-bar__badge" style="display:none">0</span>
+        </span>
         <span>Carrinho</span>
+    </a>
+    <a href="<?php echo esc_url( home_url( '/loja/' ) ); ?>" class="wcb-mobile-bottom-bar__item" id="wcb-mbar-menu" aria-label="<?php echo esc_attr__( 'Abrir menu', 'wcb-theme' ); ?>">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        <span><?php esc_html_e( 'Menu', 'wcb-theme' ); ?></span>
     </a>
 </nav>
 
@@ -413,6 +417,19 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
     });
 })();
 </script>
+
+<?php wp_footer(); ?>
+
+<?php if ( class_exists('Alg_WC_Wish_List_Toggle_Btn') ): ?>
+<script>
+(function() {
+    var WCB_TOAST_OPTS = { position:'bottomRight',layout:1,theme:'light',timeout:4000,backgroundColor:'#ffffff',progressBar:true,progressBarColor:'#2563eb',resetOnHover:true,drag:false,transitionIn:'fadeInUp',transitionOut:'fadeOut',class:'wcb-toast alg-wc-wl-izitoast',zindex:9999,onClose:function(s,t,c){if(typeof jQuery!=='undefined'){jQuery('body').trigger({type:'alg_wc_wl_notification_close',message:jQuery(t).find('p.slideIn')});}}};
+    function applyWcbToast(){if(typeof iziToast!=='undefined'){iziToast.settings(WCB_TOAST_OPTS);}}
+    document.addEventListener('DOMContentLoaded',applyWcbToast);
+    window.addEventListener('load',applyWcbToast);
+})();
+</script>
+<?php endif; ?>
 
 </body>
 </html>

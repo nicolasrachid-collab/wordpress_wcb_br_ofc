@@ -28,7 +28,7 @@ if ( ! defined( 'WCB_DEV' ) ) {
 	define( 'WCB_DEV', false );
 }
 
-define( 'WCB_VERSION', '1.4.63' );
+define( 'WCB_VERSION', '1.5.0' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
 /** Transient do carrossel "Promoções" no header (v3: igual à query da página categoria promocoes — só em oferta). */
@@ -222,6 +222,7 @@ function wcb_promo_banner_image_src( $mod_key, $legacy_basename, $fallback_url )
 require_once WCB_DIR . '/inc/wcb-pure-helpers.php';
 require_once WCB_DIR . '/inc/product-rating-display.php';
 require_once WCB_DIR . '/inc/nav-walker.php';
+require_once WCB_DIR . '/inc/mobile-menu-drilldown.php';
 require_once WCB_DIR . '/inc/enqueue.php';
 require_once WCB_DIR . '/inc/translations.php';
 require_once WCB_DIR . '/inc/cart-checkout.php';
@@ -242,6 +243,7 @@ require_once WCB_DIR . '/inc/abandoned-cart.php';
 require_once WCB_DIR . '/inc/wcb-filter.php';
 require_once WCB_DIR . '/inc/side-cart-performance.php';
 require_once WCB_DIR . '/inc/age-gate.php';
+require_once WCB_DIR . '/inc/security-headers.php';
 
 // Perfil AJAX do carrinho lateral (Xoo): define( 'WCB_PROFILE_CART_AJAX', true ); em wp-config.php
 if ( defined( 'WCB_PROFILE_CART_AJAX' ) && WCB_PROFILE_CART_AJAX ) {
@@ -367,16 +369,18 @@ add_action('init', function() {
     }
 }, 20);
 
-// Esconder completamente via CSS qualquer resíduo dos plugins de wishlist
+// Esconder resíduos dos plugins de wishlist (evite [class*="…"]: substrings como
+// "tinvwl" em "ftinvwl" ou outras classes quebram layout fora dos botões).
 add_action('wp_head', function() {
     echo '<style>
         .alg-wc-wl-btn, .alg-wc-wl-toggle-btn,
+        .alg-wc-wl-btn-wrapper, .alg-wc-wl-thumb-btn,
+        .alg-wc-wl-thumb-btn-shortcode-wrapper, .alg-wc-wl-icon-wrapper,
         .tinvwl_add_to_wishlist_button, .tinv-wishlist,
+        .tinv-wraper, .tinvwl-tooltip,
         .tinvwl-wishlist-null, .tinvwl-shortcode-add-to-cart,
-        .ti-widget-wishlist, .ti-wishlist-icon,
-        [class*="alg-wc-wl"], [class*="tinvwl"] {
+        .ti-widget-wishlist, .ti-wishlist-icon {
             display: none !important;
-            visibility: hidden !important;
         }
     </style>';
 }, 999);

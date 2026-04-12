@@ -1267,7 +1267,10 @@ function wcb_verify_public_ajax_request()
 {
     $nonce = isset($_REQUEST['nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['nonce'])) : '';
     if (!wp_verify_nonce($nonce, 'wcb_public_ajax')) {
-        wp_send_json_error(['message' => 'invalid_nonce'], 403);
+        wp_send_json_error([
+            'code' => 'invalid_request',
+            'message' => __('Pedido inválido ou sessão expirada.', 'wcb-theme'),
+        ], 403);
     }
 }
 
@@ -1286,7 +1289,10 @@ function wcb_rate_limit_public_ajax($bucket, $max = 120)
     $key = 'wcb_rl_' . sanitize_key($bucket) . '_' . md5($ip);
     $n = (int) get_transient($key);
     if ($n >= $max) {
-        wp_send_json_error(['message' => 'rate_limited'], 429);
+        wp_send_json_error([
+            'code' => 'rate_limited',
+            'message' => __('Muitas solicitações. Aguarde um momento e tente de novo.', 'wcb-theme'),
+        ], 429);
     }
     set_transient($key, $n + 1, 10 * MINUTE_IN_SECONDS);
 }
@@ -1407,6 +1413,13 @@ add_action('wp_footer', function () {
             if (!toggle || !sidebar) return;
 
             function openSidebar() {
+                if (typeof window.wcbNavCloseMobile === 'function') {
+                    window.wcbNavCloseMobile();
+                }
+                var searchBox = document.getElementById('wcb-search');
+                if (searchBox) {
+                    searchBox.classList.remove('active');
+                }
                 sidebar.classList.add('is-open');
                 overlay && overlay.classList.add('is-visible');
                 document.body.classList.add('wcb-sidebar-open');
@@ -1458,6 +1471,75 @@ function wcb_enqueue_qty_stepper_script()
     }
 }
 add_action('wp_enqueue_scripts', 'wcb_enqueue_qty_stepper_script', 99);
+
+/**
+ * Xoo Side Cart: painel branco parcial na viewport (~tablet) quando o CSS fechado do plugin
+ * (right:-cartWidth + width 95%) perde para agregação/minify ou ordem de folhas.
+ * Sincroniza posição via estilo inline só quando fechado; ao abrir remove para animação/CSS do tema.
+ */
+function wcb_xoo_side_cart_drawer_offscreen_inline_script()
+{
+    if (! wp_script_is('xoo-wsc-main-js', 'enqueued')) {
+        return;
+    }
+    if (! function_exists('wcb_is_side_cart_active') || ! wcb_is_side_cart_active()) {
+        return;
+    }
+    $js = <<<'JS'
+(function () {
+    function wcbXooPanelPosition(el, open, rtl) {
+        if (open) {
+            el.style.removeProperty('right');
+            el.style.removeProperty('left');
+            return;
+        }
+        if (rtl) {
+            el.style.setProperty('left', 'calc(-100vw - 24px)', 'important');
+            el.style.setProperty('right', 'auto', 'important');
+        } else {
+            el.style.setProperty('right', 'calc(-100vw - 24px)', 'important');
+            el.style.setProperty('left', 'auto', 'important');
+        }
+    }
+    function wcbXooSyncDrawerPosition() {
+        var body = document.body;
+        if (!body) {
+            return;
+        }
+        var rtl = body.classList.contains('rtl');
+        var cartOpen = body.classList.contains('xoo-wsc-cart-active');
+        var sliderOpen = body.classList.contains('xoo-wsc-slider-active');
+        document.querySelectorAll('.xoo-wsc-markup .xoo-wsc-container').forEach(function (el) {
+            wcbXooPanelPosition(el, cartOpen, rtl);
+        });
+        document.querySelectorAll('.xoo-wsc-slider').forEach(function (el) {
+            wcbXooPanelPosition(el, sliderOpen, rtl);
+        });
+    }
+    function wcbXooBindFragments() {
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+        jQuery(document.body)
+            .off('xoo_wsc_cart_toggled.wcbDrawerOffscreen wc_fragments_refreshed.wcbDrawerOffscreen')
+            .on('xoo_wsc_cart_toggled.wcbDrawerOffscreen wc_fragments_refreshed.wcbDrawerOffscreen', function () {
+                window.requestAnimationFrame(wcbXooSyncDrawerPosition);
+            });
+    }
+    function wcbXooInit() {
+        wcbXooSyncDrawerPosition();
+        wcbXooBindFragments();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wcbXooInit);
+    } else {
+        wcbXooInit();
+    }
+})();
+JS;
+    wp_add_inline_script('xoo-wsc-main-js', $js, 'after');
+}
+add_action('wp_enqueue_scripts', 'wcb_xoo_side_cart_drawer_offscreen_inline_script', 100);
 
 /* ============================================================
    🎁 GIFT PROGRESS BAR — payload (AJAX + primeira pintura no carrinho em blocos)
@@ -3719,12 +3801,33 @@ function wcb_quick_view_handler()
 
     $product_id = intval($_GET['product_id'] ?? 0);
     if (!$product_id) {
-        wp_send_json_error('invalid_product');
+        wp_send_json_error([
+            'code' => 'invalid_request',
+            'message' => __('Pedido inválido.', 'wcb-theme'),
+        ], 400);
     }
 
     $product = wc_get_product($product_id);
     if (!$product) {
-        wp_send_json_error('product_not_found');
+        wp_send_json_error([
+            'code' => 'invalid_request',
+            'message' => __('Produto indisponível.', 'wcb-theme'),
+        ], 404);
+    }
+
+    $post = get_post($product_id);
+    if (!$post || $post->post_type !== 'product' || $post->post_status !== 'publish') {
+        wp_send_json_error([
+            'code' => 'invalid_request',
+            'message' => __('Produto indisponível.', 'wcb-theme'),
+        ], 404);
+    }
+
+    if (!$product->is_visible()) {
+        wp_send_json_error([
+            'code' => 'invalid_request',
+            'message' => __('Produto indisponível.', 'wcb-theme'),
+        ], 404);
     }
 
     // ── Prices ────────────────────────────────────────────────

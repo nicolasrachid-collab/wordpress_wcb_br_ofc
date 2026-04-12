@@ -1,0 +1,168 @@
+/**
+ * WCB — Responsividade header/nav (carrega após wcb-navigation-phase3).
+ *
+ * ≤1023px: reforço layout (html/body/main/header/hero) — anti-colapso / compositing Chrome
+ *   (mesmo sintoma documentado em style.css para ≤783px: body/main altura 0, viewport branca).
+ *   Alinhado ao breakpoint do drawer / .wcb-mobile-toggle (max-width: 1023px).
+ * ≤1023px: #wcb-nav fora do fluxo (sem faixa morta 784–1023).
+ * ≥1024px: barra horizontal + mega em style.css.
+ *
+ * Refino ≤825px: mesmos ajustes de densidade que wcb-navigation-phase3 (ETAPA 1 / grid loja),
+ * cart/checkout e PDP (ex-820px), sem alterar o breakpoint global do drawer (1023px).
+ *
+ * @package WCB_Theme
+ */
+
+:root {
+	--wcb-nav-mobile-max-px: 1023;
+	--wcb-narrow-refine-max-px: 825;
+}
+
+@media (max-width: 1023px) {
+	/*
+	 * Reforço de cascata: plugins ou folhas posteriores não devem anular o anti-colapso
+	 * (ecrã branco ao scroll / compositing). Aplica-se à faixa tablet+hamburger, não só ≤783px.
+	 */
+	html {
+		height: auto !important;
+		min-height: 0 !important;
+		contain: none !important;
+		scroll-behavior: auto;
+	}
+
+	body {
+		display: block !important;
+		height: auto !important;
+		min-height: 100dvh !important;
+		min-height: 100vh !important; /* fallback */
+		contain: none !important;
+	}
+
+	#main-content.wcb-main,
+	main#main-content.wcb-main {
+		display: block !important;
+		opacity: 1 !important;
+		visibility: visible !important;
+		min-height: 45vh !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
+
+	.wcb-site-header {
+		position: relative !important;
+		top: auto !important;
+		transition: none;
+	}
+
+	body.admin-bar .wcb-site-header {
+		top: auto !important;
+	}
+
+	/* Hero: camada isolada + altura mínima estável (slides absolute/relative). */
+	.wcb-hero {
+		isolation: isolate;
+		contain: none;
+	}
+
+	.wcb-hero__track {
+		min-height: max(240px, 60vh);
+	}
+
+	.wcb-hero__slide {
+		min-height: max(240px, 60vh);
+	}
+
+	/* #wcb-nav inteira fora do layout — evita faixa morta quando o canal principal é o drawer. */
+	#wcb-site-header #wcb-nav.wcb-nav {
+		display: none;
+	}
+
+	/* Cloud Prime: mesma apresentação do desktop (chip completo), com ligeiro ajuste de padding */
+	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn--soon {
+		gap: 0.35rem;
+		padding: 0 0.65rem;
+		min-height: 2.4rem;
+		flex-shrink: 0;
+	}
+
+	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark {
+		width: 15px;
+		height: 15px;
+	}
+
+	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__title,
+	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__divider,
+	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__soon {
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		overflow: visible !important;
+		clip: auto !important;
+		clip-path: none !important;
+		white-space: nowrap !important;
+		border: 0 !important;
+	}
+
+	#wcb-site-header .wcb-header .wcb-header__cloud-club-btn__divider {
+		width: 1px !important;
+		height: 1rem !important;
+		flex-shrink: 0;
+		align-self: center;
+	}
+
+	/*
+	 * Loja (archive-product): em ≤1023px o #wcb-site-header está em fluxo (relative).
+	 * Toolbar sticky + sidebar sticky (top:96px pensado para header sticky) empilhavam camadas no Chrome
+	 * e podiam deixar a viewport branca ao scroll. Toolbar em fluxo elimina o sticky duplo.
+	 */
+	body.woocommerce .wcb-shop__toolbar {
+		position: relative !important;
+		top: auto !important;
+	}
+
+	/* Miolo da loja: reforço anti “sumiu ao scroll” (opacity/contain de plugins ou folhas tardias). */
+	body.woocommerce #main-content .wcb-shop__wrap,
+	body.woocommerce #main-content .wcb-shop__body,
+	body.woocommerce #main-content .wcb-shop__main {
+		opacity: 1 !important;
+		visibility: visible !important;
+		contain: none !important;
+	}
+}
+
+/*
+ * 783–1023px: “tablet” loja (drawer só em ≤782). Entre 769–782 o drawer mobile aplica-se — não forçar relative aqui.
+ */
+@media (max-width: 1023px) and (min-width: 783px) {
+	body.woocommerce .wcb-shop__sidebar {
+		position: relative !important;
+		top: auto !important;
+		max-height: none !important;
+		overflow-y: visible !important;
+	}
+}
+
+/*
+ * ≤825px: largura explícita no eixo raiz + header — evita métricas estranhas (ex. corpo 0×0 no
+ * inspector) e mantém o mesmo “modo estreito” que phase2/PDP acima.
+ */
+@media (max-width: 825px) {
+	html {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	body {
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+	}
+
+	#wcb-site-header .wcb-header .wcb-header__inner,
+	#wcb-site-header .wcb-announcement__inner {
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+}

@@ -160,3 +160,26 @@ body.woocommerce-checkout .wc-block-checkout .wc-block-components-totals-shippin
 	border-radius: var(--wcb-radius-md, 8px) !important;
 	font-weight: 600 !important;
 }
+
+/*
+ * Tablet estreito (784–1023): reforço de conversão sem alterar ≥1024 nem mobile ≤783.
+ * — CTA com altura/padding de toque; resumo com respiro; opções de pagamento menos “apertadas”.
+ */
+@media (min-width: 784px) and (max-width: 1023px) {
+	body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-place-order-button,
+	body.woocommerce-checkout .wc-block-checkout .wc-block-components-checkout-place-order-button:not(.is-link) {
+		min-height: 48px !important;
+		padding-left: 1.25rem !important;
+		padding-right: 1.25rem !important;
+		font-size: 1.0625rem !important;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout .wc-block-checkout__sidebar {
+		padding: 1.75rem !important;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout .wc-block-components-radio-control-accordion-option,
+	body.woocommerce-checkout .wc-block-checkout .wc-block-components-radio-control__option {
+		padding: 0.75rem 1rem !important;
+	}
+}

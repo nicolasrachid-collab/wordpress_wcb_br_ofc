@@ -16,41 +16,30 @@
  * refactor dedicado (CSS + markup) para evitar dobro de espaçamento e regressões visuais.
  */
 
-$wcb_testi_product_titles = array();
-if ( class_exists( 'WooCommerce' ) ) {
-	$wcb_testi_pq = new WP_Query(
-		array(
-			'post_type'              => 'product',
-			'post_status'            => 'publish',
-			'posts_per_page'         => 30,
-			'orderby'                => 'rand',
-			'no_found_rows'          => true,
-			'update_post_meta_cache' => false,
-			'update_term_meta_cache' => false,
-			'fields'                 => 'ids',
-		)
-	);
-	if ( ! empty( $wcb_testi_pq->posts ) ) {
-		foreach ( $wcb_testi_pq->posts as $wcb_testi_pid ) {
-			$wcb_testi_prod = wc_get_product( (int) $wcb_testi_pid );
-			if ( $wcb_testi_prod && $wcb_testi_prod->is_visible() ) {
-				$wcb_testi_product_titles[] = $wcb_testi_prod->get_name();
-			}
-		}
-	}
-	wp_reset_postdata();
-}
-
-$wcb_testi_fallback_tags = array(
-	'Cloud & Vape',
-	'Yoop 8000 Puffs',
-	'Vaporesso 3800',
-	'Lost Mary 3500',
-	'Elfbar 600',
-	'Uwell Caliburn',
-	'Vivo X Salt',
-	'Smok Nord 4',
-	'Geek Bar Pulse',
+/**
+ * Etiquetas curtas por tipo de produto (home — depoimentos), em vez do título completo do catálogo.
+ */
+$wcb_testi_display_tags = array(
+	'Pod System',
+	'Pod Refil',
+	'Cartucho Pod',
+	'Coil',
+	'Coil Mesh',
+	'Algodão',
+	'Bateria 18650',
+	'Bateria 21700',
+	'Mod Box',
+	'Mod Mecânico',
+	'AIO',
+	'Atomizador RTA',
+	'Atomizador RDA',
+	'Atomizador RDTA',
+	'Tank Subohm',
+	'Drip Tip',
+	'Carregador',
+	'Juice 30ml',
+	'Juice 60ml',
+	'Salt Nic',
 );
 
 $testimonials = array(
@@ -101,15 +90,11 @@ $testimonials = array(
 	),
 );
 
-$n_titles = count( $wcb_testi_product_titles );
+$n_tags = count( $wcb_testi_display_tags );
 foreach ( $testimonials as $wcb_testi_i => &$wcb_testi_row ) {
-	if ( $n_titles > 0 ) {
-		$wcb_testi_row['tag'] = $wcb_testi_product_titles[ $wcb_testi_i % $n_titles ];
-	} else {
-		$wcb_testi_row['tag'] = isset( $wcb_testi_fallback_tags[ $wcb_testi_i ] )
-			? $wcb_testi_fallback_tags[ $wcb_testi_i ]
-			: __( 'Produto em destaque', 'wcb-theme' );
-	}
+	$wcb_testi_row['tag'] = $n_tags > 0
+		? $wcb_testi_display_tags[ $wcb_testi_i % $n_tags ]
+		: __( 'Produto em destaque', 'wcb-theme' );
 	$wcb_testi_row['img'] = 'https://api.dicebear.com/7.x/notionists/png?seed=' . rawurlencode( $wcb_testi_row['name'] ) . '&size=128';
 }
 unset( $wcb_testi_row );
@@ -131,8 +116,7 @@ $col3 = array_slice($testimonials, 6, 3);
             </div>
             <h2 id="wcb-testi-heading" class="wcb-testi__title">Depoimentos que vão virar benefícios</h2>
             <div class="wcb-testi__sub-wrap">
-                <p class="wcb-testi__sub">Em breve chega o <strong>Cloud Prime</strong>: avaliações bem feitas por quem compra na White Cloud passam a virar vantagens exclusivas no programa.</p>
-                <p class="wcb-testi__sub wcb-testi__sub--tagline">Quanto mais útil for o seu feedback, mais você ganha.</p>
+                <p class="wcb-testi__sub"><?php echo wp_kses( __( 'Em breve o <strong>Cloud Prime</strong> recompensa quem compra aqui: avaliações bem feitas viram vantagens exclusivas no programa. Quanto mais o seu feedback ajudar, mais você ganha.', 'wcb-theme' ), array( 'strong' => array() ) ); ?></p>
             </div>
         </div>
 

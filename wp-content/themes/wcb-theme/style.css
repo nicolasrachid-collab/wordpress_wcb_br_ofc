@@ -170,6 +170,7 @@ html {
     font-size: 16px;
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    min-height: 100%;
 }
 
 body {
@@ -225,6 +226,7 @@ button {
     max-width: var(--wcb-container);
     margin: 0 auto;
     padding: 0 var(--wcb-space-lg);
+    box-sizing: border-box;
 }
 
 .wcb-container-sm {
@@ -723,6 +725,8 @@ button {
     top: 0;
     z-index: 1000;
     transition: box-shadow 0.3s;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .wcb-header.scrolled {
@@ -734,10 +738,13 @@ button {
     align-items: center;
     gap: var(--wcb-space-lg);
     height: var(--wcb-header-h);
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-/* Desktop largo: grid 3 colunas evita busca “invadir” a linha do menu e mantém ações à direita */
-@media (min-width: 769px) {
+/* Desktop largo (≥1024): grid 3 colunas. Entre 769–1023px fica o layout “tablet” da Fase 3 (max-width:1023px), evitando overflow horizontal e faixa branca. */
+@media (min-width: 1024px) {
     #wcb-site-header .wcb-header .wcb-header__inner {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
@@ -745,18 +752,24 @@ button {
         column-gap: clamp(0.75rem, 1.5vw, 1.25rem);
     }
 
-    #wcb-site-header .wcb-header .wcb-header__logo {
-        grid-column: 1;
+    /* Logo + busca partilham as duas primeiras colunas (wrapper) */
+    #wcb-site-header .wcb-header .wcb-header__brand-search {
+        grid-column: 1 / 3;
+        display: flex;
+        align-items: center;
+        gap: clamp(0.75rem, 1.5vw, 1.25rem);
+        min-width: 0;
     }
 
-    #wcb-site-header .wcb-header .wcb-header__search {
-        grid-column: 2;
-        flex: unset;
+    #wcb-site-header .wcb-header .wcb-header__brand-search .wcb-header__logo {
+        flex: 0 0 auto;
+    }
+
+    #wcb-site-header .wcb-header .wcb-header__brand-search .wcb-header__search {
+        flex: 1 1 auto;
+        min-width: 0;
         max-width: min(600px, 100%);
         width: 100%;
-        justify-self: center;
-        margin-inline: auto;
-        min-width: 0;
     }
 
     #wcb-site-header .wcb-header .wcb-header__actions {
@@ -808,10 +821,20 @@ button {
     color: var(--wcb-blue);
 }
 
+/* Logo + busca (wrapper; desktop ≥1024 ocupa colunas 1–2 no grid) */
+.wcb-header__brand-search {
+    display: flex;
+    align-items: center;
+    gap: var(--wcb-space-md);
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 /* Search Bar */
 .wcb-header__search {
     flex: 1;
     max-width: 600px;
+    min-width: 0;
     position: relative;
 }
 
@@ -1411,33 +1434,7 @@ button {
     opacity: 0.92;
 }
 
-@media (max-width: 768px) {
-    .wcb-header__cloud-club-btn--soon {
-        gap: 0.3rem;
-        margin: 0;
-        min-height: 2.35rem;
-        padding: 0 0.55rem;
-        align-items: center;
-    }
-
-    .wcb-header__cloud-club-btn svg.wcb-header__cloud-club-btn__mark {
-        width: 14px;
-        height: 14px;
-    }
-
-    .wcb-header__cloud-club-btn__title {
-        display: none;
-    }
-
-    .wcb-header__cloud-club-btn__divider {
-        display: none;
-    }
-
-    .wcb-header__cloud-club-btn__soon {
-        font-size: 0.5625rem;
-        letter-spacing: 0.1em;
-    }
-}
+/* Cloud Prime compacto ≤783px: css/wcb-nav-mobile-bp.css (alinha ao drawer) */
 
 /* Header Actions (account, favorites, cart) */
 .wcb-header__actions {
@@ -1474,6 +1471,10 @@ button {
     width: 22px;
     height: 22px;
     stroke-width: 1.8;
+}
+
+.wcb-header__account-mobile-hint {
+    display: none;
 }
 
 .wcb-header__cart-count {
@@ -2185,9 +2186,6 @@ button {
     border-color: rgba(244, 63, 94, 0.3);
 }
 
-/* ============================================================
-   MOBILE MENU
-   ============================================================ */
 .wcb-mobile-toggle {
     display: none;
     align-items: center;
@@ -2213,7 +2211,7 @@ button {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
+    z-index: 100000;
     opacity: 0;
     transition: opacity 0.3s;
 }
@@ -2223,27 +2221,36 @@ button {
     opacity: 1;
 }
 
+/* Drawer: translateX(-100%) esconde 100% à esquerda, independente da largura (evita vazamento com width responsiva). */
 .wcb-mobile-menu {
     position: fixed;
     top: 0;
-    left: -300px;
-    width: 300px;
-    height: 100vh;
+    bottom: 0;
+    left: 0;
+    width: min(100vw - 24px, 360px);
+    max-width: 100%;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: none;
     background: var(--wcb-white);
-    z-index: 2001;
-    transition: left 0.3s var(--wcb-ease);
+    z-index: 100001;
+    transform: translateX(-100%);
+    transition: transform 0.3s var(--wcb-ease);
     overflow-y: auto;
+    box-sizing: border-box;
     box-shadow: var(--wcb-shadow-xl);
 }
 
 .wcb-mobile-menu.active {
-    left: 0;
+    transform: translateX(0);
 }
 
 .wcb-mobile-menu__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     padding: var(--wcb-space-md) var(--wcb-space-lg);
     border-bottom: 1px solid var(--wcb-gray-200);
 }
@@ -2263,7 +2270,8 @@ button {
     background: var(--wcb-gray-100);
 }
 
-.wcb-mobile-menu__nav a {
+/* Só listas legacy fora do drill-down (.wcb-mm); links dentro do drill-down usam phase3 */
+.wcb-mobile-menu__nav > *:not([data-wcb-mm]) a {
     display: block;
     padding: 0.85rem var(--wcb-space-lg);
     font-size: var(--wcb-font-size-md);
@@ -2273,7 +2281,7 @@ button {
     transition: background var(--wcb-duration), color var(--wcb-duration);
 }
 
-.wcb-mobile-menu__nav a:hover {
+.wcb-mobile-menu__nav > *:not([data-wcb-mm]) a:hover {
     background: var(--wcb-blue-bg);
     color: var(--wcb-blue);
 }
@@ -2281,7 +2289,7 @@ button {
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
     .wcb-topbar {
         display: none;
     }
@@ -2291,37 +2299,18 @@ button {
         padding: 0 var(--wcb-space-md);
     }
 
-    .wcb-header__search {
-        position: absolute;
-        top: var(--wcb-header-h);
-        left: 0;
-        right: 0;
-        max-width: 100%;
-        padding: var(--wcb-space-sm) var(--wcb-space-md);
-        background: var(--wcb-white);
-        box-shadow: var(--wcb-shadow-md);
-        display: none;
-        z-index: 999;
-    }
-
-    .wcb-header__search.active {
-        display: block;
-    }
+    /* Busca no mobile: layout em grid (#wcb-site-header) — wcb-navigation-responsive-phase3.css */
 
     .wcb-mobile-toggle {
         display: flex;
     }
 
-    .wcb-header__action span {
+    .wcb-header__action span:not(.wcb-header__account-mobile-hint) {
         display: none;
     }
 
-    .wcb-nav__categories {
-        display: none;
-    }
-
-    .wcb-nav__inner {
-        justify-content: center;
+    .wcb-header__account-mobile-hint {
+        display: block !important;
     }
 
     .wcb-footer__columns {
@@ -2803,10 +2792,6 @@ button {
     content: '';
     position: absolute;
     inset: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    max-width: 100%;
     pointer-events: none;
     z-index: 0;
     background:
@@ -3386,9 +3371,25 @@ button {
     align-content: start;
 }
 
-/* Single-row variant (1 linha de 5) */
+/* Single-row (Novidades): grid-template-rows auto evita 1fr esticar a linha; stretch iguala altura dos cards na linha */
 .wcb-paged-carousel__grid--single-row {
-    grid-template-rows: 1fr;
+    grid-template-rows: auto;
+    align-items: stretch;
+    height: auto;
+    min-height: 0;
+}
+
+.wcb-paged-carousel:has(.wcb-paged-carousel__grid--single-row) .wcb-paged-carousel__track {
+    align-items: stretch;
+}
+
+.wcb-paged-carousel:has(.wcb-paged-carousel__grid--single-row) .wcb-carousel-viewport {
+    height: auto;
+}
+
+.wcb-paged-carousel__slide:has(> .wcb-paged-carousel__grid--single-row) {
+    height: auto;
+    align-self: stretch;
 }
 
 /* Row 2 header — controles alinhados à direita */
@@ -3459,20 +3460,21 @@ button {
 }
 
 /* ── Responsivo ─────────────────────────────────────────── */
-@media (max-width: 1024px) {
-    .wcb-paged-carousel__grid {
+/* Single-row (Novidades): ≤1023px em css/wcb-paged-carousel-touch.css */
+@media (max-width: 1023px) {
+    .wcb-paged-carousel__grid:not(.wcb-paged-carousel__grid--single-row) {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (max-width: 640px) {
-    .wcb-paged-carousel__grid {
+    .wcb-paged-carousel__grid:not(.wcb-paged-carousel__grid--single-row) {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 420px) {
-    .wcb-paged-carousel__grid {
+    .wcb-paged-carousel__grid:not(.wcb-paged-carousel__grid--single-row) {
         grid-template-columns: 1fr;
     }
 }
@@ -6033,10 +6035,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
         font-size: 2.5rem;
     }
 
-    /* Show FAB cart on mobile */
-    .wcb-fab-cart {
-        display: flex;
-    }
+    /* FAB oculto no mobile: #wcb-mbar-cart na barra inferior */
 
     /* Sticky ATC auto-show on single product mobile */
     .single-product .wcb-sticky-atc {
@@ -6981,59 +6980,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
 
 /* â”€â”€ Mobile â”€â”€ */
-@media (max-width: 768px) {
-    .wcb-nav__list {
-        display: none;
-    }
 
-    .wcb-mega {
-        position: static;
-        transform: none;
-        min-width: 0;
-        width: 100%;
-        box-shadow: none;
-        border: none;
-        border-top: none;
-        border-radius: 0;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        display: none;
-    }
-
-    .wcb-nav__item--mega.is-open .wcb-mega {
-        display: block;
-    }
-
-    .wcb-mega__inner {
-        flex-direction: column;
-    }
-
-    .wcb-mega__cols {
-        flex-direction: column;
-        border-right: none;
-        padding: 1rem;
-        gap: 0.5rem;
-    }
-
-    .wcb-mega__col {
-        padding: 0;
-        border-right: none;
-    }
-
-    .wcb-mega__side {
-        width: 100%;
-        padding: 1rem;
-        background: #f8faff;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .wcb-mega__banner {
-        flex: 1;
-        min-width: 200px;
-    }
-}
 
 
 
@@ -7270,58 +7217,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 }
 
 /* â”€â”€ Mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-@media (max-width: 768px) {
-    .wcb-nav__list {
-        display: none;
-    }
 
-    .wcb-mega {
-        position: static;
-        transform: none;
-        min-width: 0;
-        box-shadow: none;
-        border: none;
-        border-radius: 0;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        display: none;
-    }
-
-    .wcb-nav__item--mega.is-open .wcb-mega {
-        display: block;
-    }
-
-    .wcb-mega__inner {
-        flex-direction: column;
-        padding: .75rem 1rem;
-        gap: .5rem;
-    }
-
-    .wcb-mega__cols {
-        flex-direction: column;
-        border-right: none;
-        padding-right: 0;
-        margin-right: 0;
-    }
-
-    .wcb-mega__col {
-        padding: 0;
-        border-right: none;
-    }
-
-    .wcb-mega__side {
-        width: 100%;
-        flex-direction: row;
-        gap: .75rem;
-        flex-wrap: wrap;
-    }
-
-    .wcb-mega__banner {
-        flex: 1;
-        min-width: 200px;
-    }
-}
 
 
 /* â”€â”€ Nav bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -7657,71 +7553,6 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     width: 14px;
     height: 14px;
 }
-
-/* ================================================================
-   MOBILE â€” Accordion
-   ================================================================ */
-@media (max-width: 768px) {
-    .wcb-nav__list {
-        display: none;
-        /* hidden â€” mobile uses the slide-in menu */
-    }
-
-    /* Mobile accordion items for AcessÃ³rios */
-    .wcb-mega {
-        position: static;
-        transform: none;
-        min-width: 0;
-        box-shadow: none;
-        border: none;
-        border-radius: 0;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        display: none;
-        padding: 0;
-    }
-
-    .wcb-nav__item--mega.is-open .wcb-mega {
-        display: block;
-    }
-
-    .wcb-mega__inner {
-        flex-direction: column;
-        padding: 0.75rem 1rem;
-        gap: 0.5rem;
-    }
-
-    .wcb-mega__cols {
-        flex-direction: column;
-        border-right: none;
-        padding-right: 0;
-        margin-right: 0;
-        gap: 0.25rem;
-    }
-
-    .wcb-mega__col {
-        padding: 0;
-        border-right: none;
-    }
-
-    .wcb-mega__col-header {
-        cursor: pointer;
-    }
-
-    .wcb-mega__side {
-        width: 100%;
-        flex-direction: row;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .wcb-mega__banner {
-        flex: 1;
-        min-width: 200px;
-    }
-}
-
 
 /* ============================================================
    PRODUCT REVIEWS â€” Premium Inspired Design
@@ -8139,13 +7970,19 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+    align-items: stretch;
+    /* Altura idêntica dos dois cards (px) — também em mobile via override abaixo */
+    --wcb-promo-banner-card-height: 360px;
 }
 
 /* ── Card container ───────────────────────────── */
 .wcb-promo-banner-card {
     position: relative;
     display: block;
-    min-height: 360px;
+    box-sizing: border-box;
+    height: var(--wcb-promo-banner-card-height, 360px);
+    min-height: var(--wcb-promo-banner-card-height, 360px);
+    max-height: var(--wcb-promo-banner-card-height, 360px);
     border-radius: 4px;
     overflow: hidden;
     background-color: #0f172a;
@@ -8330,10 +8167,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 @media (max-width: 768px) {
     .wcb-promo-banners__grid {
         grid-template-columns: 1fr;
-    }
-
-    .wcb-promo-banner-card {
-        min-height: 260px;
+        --wcb-promo-banner-card-height: 260px;
     }
 
     .wcb-promo-banner-card__body {
@@ -8375,6 +8209,11 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     padding: 1rem 0;
     border-bottom: 1px solid #f0f2f8;
     background: #fff;
+}
+
+/* Desktop: wrapper não afeta o layout (filhos participam do .wcb-container). */
+.wcb-trust__viewport {
+    display: contents;
 }
 
 .wcb-trust__grid {
@@ -8440,16 +8279,21 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     line-height: 1.2;
 }
 
-@media (max-width: 768px) {
+/* ≤1110px: grelha 2×2 (alinhada ao layout em ~700px de largura). */
+@media (max-width: 1110px) {
     .wcb-trust__grid {
-        flex-wrap: wrap;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.5rem;
     }
 
     .wcb-trust__item {
-        flex: 1 1 calc(50% - 0.5rem);
         border-right: none;
         border: 1px solid #f1f3f8;
+        box-sizing: border-box;
+    }
+
+    .wcb-trust__item:last-child {
+        border-right: 1px solid #f1f3f8;
     }
 }
 
@@ -9356,52 +9200,13 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     opacity: 1;
 }
 
-/* ── Mobile: accordion ── */
-@media (max-width: 768px) {
-    .wcb-nav__item--mega>.wcb-mega {
-        position: static;
-        width: 100%;
-        transform: none;
-        opacity: 1;
-        visibility: hidden;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease, visibility 0s linear 0.3s;
-        box-shadow: none;
-        border-radius: 0;
-        border: none;
-        border-top: 2px solid var(--wcb-blue);
-    }
-
-    .wcb-nav__item--mega.is-open>.wcb-mega {
-        visibility: visible;
-        max-height: 600px;
-        transition: max-height 0.3s ease, visibility 0s linear 0s;
-    }
-
-    .wcb-mega__simple {
-        flex-direction: column;
-        padding: 0.75rem 1rem;
-    }
-
-    .wcb-mega__simple>li {
-        max-width: 100%;
-        padding: 0;
-        border-right: none;
-        border-bottom: 1px solid #f0f2f8;
-        padding-bottom: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-}
-
-
-
 /* =========================================================
    PATCH SUBMENU DESKTOP — VISUAL FIGMA ADAPTADO
    Escopo: apenas submenu / mega menu atual do projeto
    ========================================================= */
 
-@media (min-width: 1024px) {
+/* ≥784px: acordeão mobile até 783px — evita megamenu “morto” e overflow da barra entre 769–783px */
+@media (min-width: 784px) {
 
     /* -----------------------------------------
      1. ROOT DO ITEM COM MEGA
@@ -10145,14 +9950,12 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     color: #111827;
 }
 
-/* Overlay mobile */
+/* Overlay mobile — sem backdrop-filter: Firefox/Chromium podem falhar pintura ao scroll com fixed+inset+blur. */
 .wcb-shop__sidebar-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .4);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.55);
     z-index: 999;
     opacity: 0;
     transition: opacity .25s;
@@ -13066,10 +12869,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
         font-size: 2.5rem;
     }
 
-    /* Show FAB cart on mobile */
-    .wcb-fab-cart {
-        display: flex;
-    }
+    /* FAB oculto no mobile: #wcb-mbar-cart na barra inferior */
 
     /* Sticky ATC auto-show on single product mobile */
     .single-product .wcb-sticky-atc {
@@ -14014,59 +13814,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
 
 /* â”€â”€ Mobile â”€â”€ */
-@media (max-width: 768px) {
-    .wcb-nav__list {
-        display: none;
-    }
 
-    .wcb-mega {
-        position: static;
-        transform: none;
-        min-width: 0;
-        width: 100%;
-        box-shadow: none;
-        border: none;
-        border-top: none;
-        border-radius: 0;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        display: none;
-    }
-
-    .wcb-nav__item--mega.is-open .wcb-mega {
-        display: block;
-    }
-
-    .wcb-mega__inner {
-        flex-direction: column;
-    }
-
-    .wcb-mega__cols {
-        flex-direction: column;
-        border-right: none;
-        padding: 1rem;
-        gap: 0.5rem;
-    }
-
-    .wcb-mega__col {
-        padding: 0;
-        border-right: none;
-    }
-
-    .wcb-mega__side {
-        width: 100%;
-        padding: 1rem;
-        background: #f8faff;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .wcb-mega__banner {
-        flex: 1;
-        min-width: 200px;
-    }
-}
 
 
 
@@ -14303,58 +14051,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 }
 
 /* â”€â”€ Mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-@media (max-width: 768px) {
-    .wcb-nav__list {
-        display: none;
-    }
 
-    .wcb-mega {
-        position: static;
-        transform: none;
-        min-width: 0;
-        box-shadow: none;
-        border: none;
-        border-radius: 0;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        display: none;
-    }
-
-    .wcb-nav__item--mega.is-open .wcb-mega {
-        display: block;
-    }
-
-    .wcb-mega__inner {
-        flex-direction: column;
-        padding: .75rem 1rem;
-        gap: .5rem;
-    }
-
-    .wcb-mega__cols {
-        flex-direction: column;
-        border-right: none;
-        padding-right: 0;
-        margin-right: 0;
-    }
-
-    .wcb-mega__col {
-        padding: 0;
-        border-right: none;
-    }
-
-    .wcb-mega__side {
-        width: 100%;
-        flex-direction: row;
-        gap: .75rem;
-        flex-wrap: wrap;
-    }
-
-    .wcb-mega__banner {
-        flex: 1;
-        min-width: 200px;
-    }
-}
 
 
 /* â”€â”€ Nav bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -14690,71 +14387,6 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     width: 14px;
     height: 14px;
 }
-
-/* ================================================================
-   MOBILE â€” Accordion
-   ================================================================ */
-@media (max-width: 768px) {
-    .wcb-nav__list {
-        display: none;
-        /* hidden â€” mobile uses the slide-in menu */
-    }
-
-    /* Mobile accordion items for AcessÃ³rios */
-    .wcb-mega {
-        position: static;
-        transform: none;
-        min-width: 0;
-        box-shadow: none;
-        border: none;
-        border-radius: 0;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        display: none;
-        padding: 0;
-    }
-
-    .wcb-nav__item--mega.is-open .wcb-mega {
-        display: block;
-    }
-
-    .wcb-mega__inner {
-        flex-direction: column;
-        padding: 0.75rem 1rem;
-        gap: 0.5rem;
-    }
-
-    .wcb-mega__cols {
-        flex-direction: column;
-        border-right: none;
-        padding-right: 0;
-        margin-right: 0;
-        gap: 0.25rem;
-    }
-
-    .wcb-mega__col {
-        padding: 0;
-        border-right: none;
-    }
-
-    .wcb-mega__col-header {
-        cursor: pointer;
-    }
-
-    .wcb-mega__side {
-        width: 100%;
-        flex-direction: row;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .wcb-mega__banner {
-        flex: 1;
-        min-width: 200px;
-    }
-}
-
 
 /* ============================================================
    PRODUCT REVIEWS â€” Premium Inspired Design
@@ -15172,13 +14804,19 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+    align-items: stretch;
+    /* Altura idêntica dos dois cards (px) — também em mobile via override abaixo */
+    --wcb-promo-banner-card-height: 360px;
 }
 
 /* ── Card container ───────────────────────────── */
 .wcb-promo-banner-card {
     position: relative;
     display: block;
-    min-height: 360px;
+    box-sizing: border-box;
+    height: var(--wcb-promo-banner-card-height, 360px);
+    min-height: var(--wcb-promo-banner-card-height, 360px);
+    max-height: var(--wcb-promo-banner-card-height, 360px);
     border-radius: 4px;
     overflow: hidden;
     background-color: #0f172a;
@@ -15363,10 +15001,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 @media (max-width: 768px) {
     .wcb-promo-banners__grid {
         grid-template-columns: 1fr;
-    }
-
-    .wcb-promo-banner-card {
-        min-height: 260px;
+        --wcb-promo-banner-card-height: 260px;
     }
 
     .wcb-promo-banner-card__body {
@@ -15408,6 +15043,11 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     padding: 1rem 0;
     border-bottom: 1px solid #f0f2f8;
     background: #fff;
+}
+
+/* Desktop: wrapper não afeta o layout (filhos participam do .wcb-container). */
+.wcb-trust__viewport {
+    display: contents;
 }
 
 .wcb-trust__grid {
@@ -15473,16 +15113,21 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     line-height: 1.2;
 }
 
-@media (max-width: 768px) {
+/* ≤1110px: grelha 2×2 (alinhada ao layout em ~700px de largura). */
+@media (max-width: 1110px) {
     .wcb-trust__grid {
-        flex-wrap: wrap;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.5rem;
     }
 
     .wcb-trust__item {
-        flex: 1 1 calc(50% - 0.5rem);
         border-right: none;
         border: 1px solid #f1f3f8;
+        box-sizing: border-box;
+    }
+
+    .wcb-trust__item:last-child {
+        border-right: 1px solid #f1f3f8;
     }
 }
 
@@ -15562,171 +15207,6 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
 .wcb-announce__close:hover {
     background: rgba(255, 255, 255, 0.28);
-}
-
-/* ============================================================
-   PREMIUM SECTION HEADERS
-   ============================================================ */
-.wcb-section__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f1f3f8;
-    position: relative;
-}
-
-.wcb-section__header::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 48px;
-    height: 2px;
-    background: linear-gradient(90deg, #1d4ed8, #60a5fa);
-    border-radius: 2px;
-}
-
-.wcb-section__title {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-}
-
-.wcb-section__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--wcb-blue);
-    background: transparent;
-    border: 1.5px solid color-mix(in srgb, var(--wcb-blue) 45%, transparent);
-    padding: 0.5rem 1.25rem;
-    border-radius: var(--wcb-radius-full);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-    transition:
-        background 0.25s ease,
-        color 0.25s ease,
-        border-color 0.25s ease,
-        gap 0.25s ease,
-        box-shadow 0.25s ease,
-        transform 0.2s ease;
-}
-
-.wcb-section__link:hover {
-    background: var(--wcb-blue-hover);
-    color: var(--wcb-white);
-    border-color: var(--wcb-blue-hover);
-    gap: 0.7rem;
-    box-shadow: 0 6px 20px color-mix(in srgb, var(--wcb-blue) 35%, transparent);
-    transform: translateY(-2px);
-}
-
-/* ============================================================
-   SCROLL FADE-IN ANIMATIONS
-   ============================================================ */
-.wcb-section {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.wcb-section.wcb-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Stagger child cards */
-.wcb-section.wcb-visible .wcb-product-card {
-    animation: wcbCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.wcb-section.wcb-visible .wcb-product-card:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.wcb-section.wcb-visible .wcb-product-card:nth-child(2) {
-    animation-delay: 0.10s;
-}
-
-.wcb-section.wcb-visible .wcb-product-card:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.wcb-section.wcb-visible .wcb-product-card:nth-child(4) {
-    animation-delay: 0.20s;
-}
-
-.wcb-section.wcb-visible .wcb-product-card:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-.wcb-section.wcb-visible .wcb-product-card:nth-child(n+6) {
-    animation-delay: 0.30s;
-}
-
-@keyframes wcbCardIn {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ============================================================
-   ENHANCED PRODUCT CARD HOVER
-   ============================================================ */
-.wcb-product-card {
-    transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.wcb-product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1),
-        0 2px 8px rgba(15, 23, 42, 0.05);
-}
-
-/* ============================================================
-   PROMO BANNERS FADE-IN
-   ============================================================ */
-.wcb-promo-banners {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.wcb-promo-banners.wcb-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .wcb-section,
-    .wcb-promo-banners {
-        opacity: 1;
-        transform: none;
-        transition: none;
-    }
-
-    .wcb-section.wcb-visible .wcb-product-card {
-        animation: none;
-    }
 }
 
 /* ============================================================
@@ -16074,73 +15554,9 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     }
 }
 
-/* ============================================================
-   MEGA MENU — Redesign Premium UX/UI
-   ✔ Viewport-safe: nunca sai da tela (right:0 para últimos itens)
-   ✔ Hierarquia correta: CATEGORIA PAI em cima, filhos abaixo
-   ✔ Flex layout por coluna (sem CSS columns que quebra grupos)
-   ✔ Hover delay + animacao suave + area de tolerancia
-   ✔ Escaneabilidade maxima
-   ============================================================ */
-
-/* ── Posicionador pai ── */
-.wcb-nav__item--mega {
-    position: relative;
-}
-
-/* ── Container do dropdown ── */
-.wcb-nav__item--mega>.wcb-mega {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: min(880px, calc(100vw - 16px));
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-top: 3px solid var(--wcb-blue);
-    border-radius: 0 0 12px 12px;
-    box-shadow:
-        0 20px 50px rgba(15, 23, 42, 0.12),
-        0 4px 16px rgba(15, 23, 42, 0.06);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    /* Delay de abertura ~150ms para evitar acionar ao passar o mouse */
-    transition:
-        opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
-        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
-        visibility 0s linear 0.3s;
-    pointer-events: none;
-    z-index: 9000;
-    overflow: hidden;
-    /* Mantém área de tolerância — não fecha ao mover mouse para o dropdown */
-    margin-top: 0;
-}
-
-/* Abertura: sem delay no fechamento */
-.wcb-nav__item--mega:hover>.wcb-mega,
-.wcb-nav__item--mega.is-open>.wcb-mega {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    pointer-events: auto;
-    transition:
-        opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
-        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
-        visibility 0s linear 0s;
-}
-
-/* ── VIEWPORT SAFETY: itens nos últimos 4 da nav alinham à direita ── */
-.wcb-nav__list>.wcb-nav__item--mega:nth-last-child(-n+4)>.wcb-mega {
-    left: auto;
-    right: 0;
-}
-
-/* ── Inner wrapper ── */
-.wcb-mega__inner {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-}
+/* Bloco duplicado removido: impunha position:relative + width:min(880px,…)
+   DEPOIS do patch desktop, vencendo a cascata e estreitando o mega. Ver
+   “MEGA MENU — #wcb-nav largura total” no fim do ficheiro. */
 
 /* ============================================================
    .wcb-mega__simple — LISTA HIERÁRQUICA GERADA PELO nav-walker.php
@@ -16391,46 +15807,6 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     opacity: 1;
 }
 
-/* ── Mobile: accordion ── */
-@media (max-width: 768px) {
-    .wcb-nav__item--mega>.wcb-mega {
-        position: static;
-        width: 100%;
-        transform: none;
-        opacity: 1;
-        visibility: hidden;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease, visibility 0s linear 0.3s;
-        box-shadow: none;
-        border-radius: 0;
-        border: none;
-        border-top: 2px solid var(--wcb-blue);
-    }
-
-    .wcb-nav__item--mega.is-open>.wcb-mega {
-        visibility: visible;
-        max-height: 600px;
-        transition: max-height 0.3s ease, visibility 0s linear 0s;
-    }
-
-    .wcb-mega__simple {
-        flex-direction: column;
-        padding: 0.75rem 1rem;
-    }
-
-    .wcb-mega__simple>li {
-        max-width: 100%;
-        padding: 0;
-        border-right: none;
-        border-bottom: 1px solid #f0f2f8;
-        padding-bottom: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-}
-
-
-
 /* =========================================================
    PATCH SUBMENU DESKTOP — VISUAL FIGMA ADAPTADO
    Escopo: apenas submenu / mega menu atual do projeto
@@ -16445,12 +15821,14 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
         position: static;
     }
 
+    /* Largura = barra .wcb-nav (100% viewport), sem 100vw (evita overflow com barra de scroll) */
     .wcb-nav__item.wcb-nav__item--mega>.wcb-mega {
         position: absolute;
         left: 0;
         right: 0;
         top: 100%;
-        width: 100vw;
+        width: auto;
+        max-width: none;
         z-index: 90;
 
         background: #fff;
@@ -17204,14 +16582,12 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     color: #111827;
 }
 
-/* Overlay mobile */
+/* Overlay mobile — sem backdrop-filter: Firefox/Chromium podem falhar pintura ao scroll com fixed+inset+blur. */
 .wcb-shop__sidebar-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .4);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.55);
     z-index: 999;
     opacity: 0;
     transition: opacity .25s;
@@ -18023,7 +17399,8 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     }
 }
 
-@media (max-width: 768px) {
+/* ≤782px: alinhado à admin bar WP (782) — elimina faixa híbrida 769–782 (drawer + overlay coerentes). */
+@media (max-width: 782px) {
     .wcb-shop__filter-toggle {
         display: inline-flex;
     }
@@ -20475,15 +19852,13 @@ body.rtl .wcb-pdp-sticky.is-visible {
     }
 }
 
-/* ============================================================
-   MOBILE BOTTOM BAR
-   ============================================================ */
 .wcb-mobile-bottom-bar {
     display: none;
     /* oculto no desktop */
 }
 
-@media (max-width: 768px) {
+/* Barra inferior + header sem fav/carrinho: alinhado ao drawer/header mobile (<1024px, como phase3) */
+@media (max-width: 1023px) {
     .wcb-mobile-bottom-bar {
         display: flex;
         position: fixed;
@@ -20506,15 +19881,17 @@ body.rtl .wcb-pdp-sticky.is-visible {
         align-items: center;
         justify-content: center;
         gap: 2px;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 500;
         color: #6b7280;
         text-decoration: none;
         background: none;
         border: none;
         cursor: pointer;
-        padding: 4px 8px;
+        padding: 4px 2px;
         position: relative;
+        flex: 1 1 0;
+        min-width: 0;
         transition: color .15s;
         -webkit-tap-highlight-color: transparent;
     }
@@ -20524,14 +19901,29 @@ body.rtl .wcb-pdp-sticky.is-visible {
         color: #1a56db;
     }
 
-    .wcb-mobile-bottom-bar__item svg {
+    .wcb-mobile-bottom-bar__item > svg {
         flex-shrink: 0;
+    }
+
+    /* Badge ancorado ao ícone 22×22, não à célula inteira da barra */
+    .wcb-mobile-bottom-bar__icon-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+
+    .wcb-mobile-bottom-bar__icon-wrap svg {
+        display: block;
     }
 
     .wcb-mobile-bottom-bar__badge {
         position: absolute;
-        top: 0;
-        right: 2px;
+        top: -4px;
+        right: -5px;
         min-width: 16px;
         height: 16px;
         background: #dc2626;
@@ -20544,6 +19936,14 @@ body.rtl .wcb-pdp-sticky.is-visible {
         justify-content: center;
         line-height: 1;
         padding: 0 3px;
+        box-sizing: border-box;
+        border: 1.5px solid #fff;
+    }
+
+    /* Favoritos e carrinho só na #wcb-mobile-bottom-bar (<1024px) */
+    #wcb-site-header #wcb-header-fav-link,
+    #wcb-site-header #wcb-mini-cart-trigger {
+        display: none !important;
     }
 
     /* Adiciona espaço inferior no body para não cobrir conteúdo */
@@ -22823,12 +22223,24 @@ button:hover {
     margin: 0 0 12px;
 }
 
+.wcb-testi__sub-wrap {
+    max-width: 580px;
+    margin: 0 auto;
+}
+
 .wcb-testi__sub {
     font-size: 0.95rem;
     color: rgba(255, 255, 255, 0.45);
-    max-width: 460px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     line-height: 1.7;
+    /* Máximo 2 linhas (layout fixo no header da secção) */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .wcb-testi__sub strong {
@@ -22842,10 +22254,20 @@ button:hover {
     grid-template-columns: 1fr;
     gap: 20px;
     max-height: 640px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     overflow: hidden;
     /* fade top/bottom */
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
     mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* Grid: min-width:0 evita colunas “empurrarem” além do .wcb-container (corte à direita) */
+.wcb-testi__stage > .wcb-testi__col {
+    min-width: 0;
+    max-width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -22916,6 +22338,9 @@ button:hover {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 4px;
     padding: 22px 24px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
     transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     cursor: default;
 }
@@ -22928,7 +22353,7 @@ button:hover {
 .wcb-testi__card:hover {
     background: rgba(255, 255, 255, 0.07);
     border-color: rgba(37, 99, 235, 0.3);
-    transform: translateY(-4px) scale(1.01);
+    transform: translateY(-4px);
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(37, 99, 235, 0.15);
     transition-delay: 60ms;
 }
@@ -22947,13 +22372,17 @@ button:hover {
     color: rgba(255, 255, 255, 0.6);
     line-height: 1.65;
     margin: 0 0 16px;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* Footer do card */
 .wcb-testi__footer {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
+    min-width: 0;
 }
 
 .wcb-testi__avatar {
@@ -22997,7 +22426,9 @@ button:hover {
 }
 
 .wcb-testi__product-tag {
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 100%;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -23008,6 +22439,8 @@ button:hover {
     color: #93c5fd;
     border: 1px solid rgba(37, 99, 235, 0.2);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ==============================================
@@ -23037,6 +22470,9 @@ button:hover {
     background: #ffffff !important;
     border-color: rgba(0, 0, 0, 0.07) !important;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .wcb-testi__card:hover {
@@ -23158,8 +22594,8 @@ button:hover {
    POLÍTICA DE PRIVACIDADE — pp-*
    ================================================================ */
 
-/* Fontes */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Fontes: Inter carregada por wp_enqueue_style( wcb-google-fonts ) em inc/enqueue.php.
+   @import aqui era ignorado (tem de estar no topo da folha). */
 
 /* Variáveis */
 :root {
@@ -24048,23 +23484,7 @@ html {
     display: none !important;
 }
 
-.wcb-mega {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100vw - 2 * max((100vw - 1440px) / 2, 0px));
-    max-width: 1440px;
-    background: #fff;
-    border-top: 2px solid #1d4ed8;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.13);
-    border-radius: 0 0 8px 8px;
-    z-index: 999;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-}
+/* Largura/posição do .wcb-mega: bloco ~6317 (left/right + translateY). Não duplicar aqui — evitava animação e z-index. */
 
 /* ── Ponte invisível ACIMA do painel (preenche o gap menu→painel) ── */
 .wcb-mega::before {
@@ -24443,14 +23863,15 @@ html {
 /* ================================================================
    PROMO DROPDOWN — Hover no link "Promoções" da navbar
    ================================================================ */
+/* Irmão do .wcb-nav__inner, filho de .wcb-nav — mesma largura útil da faixa, sem breakout 100vw */
 .wcb-promo-dd {
     position: absolute;
     top: 100%;
-    left: 50%;
-    right: auto;
-    width: 100vw;
+    left: 0;
+    right: 0;
+    width: auto;
     max-width: none;
-    margin-left: -50vw;
+    margin-left: 0;
     box-sizing: border-box;
     z-index: 1010;
     background: #ffffff;
@@ -24739,15 +24160,10 @@ html {
     line-height: 1.3;
 }
 
-/* ── Responsivo ── */
-@media (max-width: 768px) {
-    .wcb-promo-dd {
-        display: none !important;
-    }
-}
+/* Promo dropdown oculto ≤783px: css/wcb-nav-mobile-bp.css */
 
 @media (max-width: 420px) {
-    .wcb-paged-carousel__grid {
+    .wcb-paged-carousel__grid:not(.wcb-paged-carousel__grid--single-row) {
         grid-template-columns: 1fr;
     }
 }
@@ -24901,6 +24317,17 @@ html {
     grid-row: 2;
 }
 
+/* Dois banners “Mais Vendidos”: no desktop/tablet a grelha vê só os .wcb-vendidos-layout__banner; ≤890px o grupo vira faixa horizontal */
+.wcb-vendidos-banners-group,
+.wcb-vendidos-banners-group__inner,
+.wcb-vendidos-banners-group__track {
+    display: contents;
+}
+
+.wcb-vendidos-banners-group__dots {
+    display: none;
+}
+
 /* Carrossel com altura pelo conteúdo (como Novidades), para a linha da grelha crescer com os cards */
 .wcb-vendidos-layout__products .wcb-paged-carousel {
     flex: 0 0 auto;
@@ -24956,17 +24383,40 @@ html {
 
 /* Responsivo — vendidos layout */
 @media (max-width: 1024px) {
-    .wcb-vendidos-layout {
+    /* Super Ofertas / flash: coluna única, ordem DOM (banner — produtos — …) */
+    .wcb-vendidos-layout.wcb-flash-ofertas-layout {
         grid-template-columns: 1fr;
     }
 
-    .wcb-vendidos-layout__banner {
+    .wcb-vendidos-layout.wcb-flash-ofertas-layout .wcb-vendidos-layout__banner {
         grid-column: 1;
         max-height: 320px;
     }
 
-    .wcb-vendidos-layout__products {
+    .wcb-vendidos-layout.wcb-flash-ofertas-layout .wcb-vendidos-layout__products {
         grid-column: 1;
+    }
+
+    /*
+     * Home “Mais Vendidos”: ≤1024px — dois carrosséis primeiro; banners por baixo.
+     * 891–1024px: dois banners lado a lado. ≤890px: um de cada vez + slide (ver bloco seguinte).
+     */
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-layout__products--row1 {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-layout__products--row2 {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banner-card {
+        min-height: 268px !important;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banner-card__content {
+        padding: 12px !important;
     }
 
     .wcb-vendidos-layout__banner .wcb-lifestyle--side .wcb-lifestyle__inner {
@@ -24975,6 +24425,116 @@ html {
 
     .wcb-paged-carousel__grid--vendidos {
         grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Home Mais Vendidos: 891–1024px — dois banners na mesma linha (grelha 2 colunas na 3.ª linha) */
+@media (max-width: 1024px) and (min-width: 891px) {
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 14px 0.75rem;
+        align-items: stretch;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-layout__banner--row1 {
+        grid-column: 1;
+        grid-row: 3;
+        max-height: none;
+        min-width: 0;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-layout__banner--row2 {
+        grid-column: 2;
+        grid-row: 3;
+        max-height: none;
+        min-width: 0;
+    }
+}
+
+/* Home Mais Vendidos: ≤890px — faixa horizontal: 1 banner visível + swipe + pontos */
+@media (max-width: 890px) {
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 14px;
+        align-items: stretch;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group {
+        display: block;
+        grid-column: 1 / -1;
+        grid-row: 3;
+        min-width: 0;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group__inner {
+        display: block;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group__track {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        touch-action: pan-x;
+        scrollbar-width: none;
+        border-radius: 4px;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group__track::-webkit-scrollbar {
+        display: none;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group .wcb-vendidos-layout__banner {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group__dots {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .wcb-vendidos-banners-group__dot {
+        width: 8px;
+        height: 8px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.22);
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .wcb-vendidos-banners-group__dot.is-active {
+        background: #2563eb;
+        transform: scale(1.15);
+    }
+
+    .wcb-vendidos-banners-group__dot:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 2px;
+    }
+}
+
+@media (max-width: 890px) and (prefers-reduced-motion: reduce) {
+    .wcb-vendidos-layout:not(.wcb-flash-ofertas-layout) .wcb-vendidos-banners-group__track {
+        scroll-behavior: auto;
+        scroll-snap-type: none;
     }
 }
 
@@ -28107,17 +27667,13 @@ html {
    ================================================================ */
 #wcb-super-ofertas.wcb-flash-offers {
     isolation: isolate;
+    position: relative;
 }
 
 #wcb-super-ofertas.wcb-flash-offers::before {
     content: '';
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    max-width: 100%;
-    top: 0;
-    bottom: 0;
+    inset: 0;
     z-index: 0;
     pointer-events: none;
     background:
@@ -30224,7 +29780,6 @@ header .wcb-product-card:hover .wcb-product-card__img-primary,
     height: 100%;
 }
 
-
 /* ================================================================
    TEOR/NICOTINA PILLS — Mais visíveis e premium
    ================================================================ */
@@ -31033,6 +30588,42 @@ header .wcb-product-card:hover .wcb-product-card__img-primary,
     z-index: 1000;
     background: var(--wcb-white);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    /* overflow-x aqui recorta o .wcb-mega (position:absolute) — só no .wcb-header */
+}
+
+/* Sticky só no wrapper: .wcb-header com sticky dentro de #wcb-site-header (também sticky) gerava
+ * compositing estranho no Chrome mobile — viewport “branca” ou vazia após scroll. */
+#wcb-site-header .wcb-header {
+    position: relative;
+    top: auto;
+}
+
+/* Impede header/nav/.wcb-container a reportarem largura > viewport (ex.: 772px com html ~560px) */
+#wcb-site-header .wcb-container {
+    min-width: 0;
+    max-width: min(var(--wcb-container, 1440px), 100%);
+    box-sizing: border-box;
+}
+
+/*
+ * Mesmo elemento que .wcb-container — não usar max-width: 100% aqui: ganhava a cascata
+ * e esticava header/nav à largura do viewport em vez do grid (--wcb-container + margin auto).
+ */
+#wcb-site-header .wcb-header__inner,
+#wcb-site-header .wcb-nav__inner {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+#wcb-site-header .wcb-nav {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 body.admin-bar .wcb-site-header {
@@ -31248,6 +30839,57 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
     -webkit-text-fill-color: #f59e0b !important;
 }
 
+/* Novidades (single-row): cards preenchem altura da célula; corpo flex empurra CTA para o fundo */
+#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card,
+#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card {
+    height: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__img-wrap,
+#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__img-wrap {
+    flex-shrink: 0;
+}
+
+#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__body,
+#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
+#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
+#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout,
+#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout {
+    margin-top: auto;
+}
+
+/* Título: 2 linhas estáveis (evita jitter quando a linha iguala altura) */
+#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title,
+#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    min-height: calc(0.88rem * 1.35 * 2);
+}
+
+#wcb-novidades-carousel .wcb-paged-carousel__track,
+#wcb-novidades2-carousel .wcb-paged-carousel__track {
+    align-items: stretch;
+}
+
+#wcb-novidades-carousel .wcb-carousel-viewport,
+#wcb-novidades2-carousel .wcb-carousel-viewport {
+    height: auto;
+}
+
 /* --- front-page.php: banners estáticos “Mais Vendidos” --- */
 .wcb-vendidos-layout__banner--dual {
     display: flex !important;
@@ -31348,7 +30990,9 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
     inset: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: flex-end !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    text-align: left !important;
     z-index: 3 !important;
     padding: 24px !important;
     color: var(--wcb-white) !important;
@@ -31594,3 +31238,112 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
         height: 12px;
     }
 }
+
+/* ============================================================
+   MEGA MENU — #wcb-nav largura total (desktop/tablet, sem 100vw)
+   Corrige cascata: duplicados antigos com ~880px ou relative no li.
+   Mobile (≤783): acordeão mantém regras existentes; este bloco começa em 784px.
+   ============================================================ */
+@media (min-width: 784px) {
+    #wcb-nav .wcb-nav__list > .wcb-nav__item--mega:nth-last-child(-n + 4) > .wcb-mega,
+    #wcb-nav .wcb-nav__item.wcb-nav__item--mega > .wcb-mega {
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+    }
+
+    #wcb-nav .wcb-mega__inner {
+        width: 100%;
+        max-width: none;
+        margin-left: auto;
+        margin-right: auto;
+        box-sizing: border-box;
+        padding-top: 24px;
+        padding-bottom: 26px;
+        padding-left: clamp(1.25rem, 3vw, 2.75rem);
+        padding-right: clamp(1.25rem, 3vw, 2.75rem);
+    }
+}
+
+/* =============================================================================
+   Tablet/mobile ≤1023px: secções sempre visíveis (fade-in + stagger dos cards com “both”
+   podiam deixar conteúdo em opacity:0; !important vence folhas de plugin/cache).
+   scroll-behavior:auto + header sem transition reduz glitches de compositing ao scroll.
+   (Bug Chrome sticky+admin: altura 0 / viewport branca — antes só ≤783px; alinhar à faixa hamburger.)
+   ============================================================================= */
+@media (max-width: 1023px) {
+    html {
+        scroll-behavior: auto;
+        height: auto !important;
+        min-height: 0 !important;
+        contain: none !important;
+    }
+
+    body {
+        display: block !important;
+        height: auto !important;
+        min-height: 100dvh !important;
+        contain: none !important;
+    }
+
+    /*
+     * Sticky no wrapper + barra admin em viewports estreitas: bug de compositing no Chrome
+     * (htmlScrollH ~ viewport, body/main com altura 0, viewport branca). Fluxo normal.
+     */
+    .wcb-site-header {
+        position: relative !important;
+        top: auto !important;
+        transition: none;
+    }
+
+    body.admin-bar .wcb-site-header {
+        top: auto !important;
+    }
+
+    /*
+     * Recolher .wcb-announcement com transição (is-scrolled) gerou frames onde
+     * htmlScrollH ≈ viewport e body/main ficavam com altura 0 (logs WCB_DBG).
+     * Em mobile mantemos a faixa visível e sem transition.
+     */
+    .wcb-announcement {
+        transition: none !important;
+    }
+
+    .wcb-site-header.is-scrolled .wcb-announcement {
+        max-height: 38px !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        border-bottom: none !important;
+        opacity: 1 !important;
+    }
+
+    #main-content.wcb-main {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        min-height: 45vh !important;
+    }
+
+    .wcb-section,
+    .wcb-promo-banners {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    /* Cards: sem wcbCardIn (fill “both” podia manter opacity:0 antes/durante animação). */
+    .wcb-section .wcb-product-card {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+

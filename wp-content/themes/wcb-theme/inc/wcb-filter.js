@@ -151,6 +151,13 @@
     debounceTimer = setTimeout(runAjaxFilter, 350);
   }
 
+  /** Remove estilos inline da grelha (evita opacity:0 preso se AJAX falhar ou success=false). */
+  function clearGridTransitionStyles() {
+    if (!grid) return;
+    grid.style.removeProperty('opacity');
+    grid.style.removeProperty('transform');
+  }
+
   function runAjaxFilter() {
     if (isLoading) return;
     isLoading = true;
@@ -192,42 +199,49 @@
     })
     .then(function (res) { return res.json(); })
     .then(function (response) {
-      if (response.success) {
-        // Update product grid with smooth transition
-        var productsContainer = grid.querySelector('ul.products') || grid;
-        
-        // Fade out
-        grid.style.opacity = '0';
-        grid.style.transform = 'translateY(8px)';
+      if (!response || !response.success) {
+        clearGridTransitionStyles();
+        return;
+      }
 
-        setTimeout(function () {
-          // Replace content
-          // Remove existing product list and no-results
+      // Fade out
+      grid.style.opacity = '0';
+      grid.style.transform = 'translateY(8px)';
+
+      setTimeout(function () {
+        try {
           var existingList = grid.querySelector('ul.products');
           var existingNoResults = grid.querySelector('.wcb-filter__no-results');
-          var existingChips = grid.querySelector('.wcb-filter-chips');
           var existingPagination = grid.querySelector('.woocommerce-pagination');
-          var existingResultCount = grid.querySelector('.woocommerce-result-count');
-          var existingOrdering = grid.querySelector('.woocommerce-ordering');
-          
+
           if (existingList) existingList.remove();
           if (existingNoResults) existingNoResults.remove();
           if (existingPagination) existingPagination.remove();
-          
-          // Insert new HTML
+
+          if (!response.data || typeof response.data.html !== 'string') {
+            clearGridTransitionStyles();
+            return;
+          }
+
           grid.insertAdjacentHTML('beforeend', response.data.html);
 
-          // Update count
-          updateCount(response.data.total);
+          updateCount(
+            response.data.total,
+            response.data.visible_count,
+            response.data.result_capped
+          );
 
-          // Fade in
           grid.style.opacity = '1';
           grid.style.transform = 'translateY(0)';
-        }, 200);
-      }
+        } catch (e) {
+          clearGridTransitionStyles();
+          console.error('WCB Filter DOM error:', e);
+        }
+      }, 200);
     })
     .catch(function (err) {
       console.error('WCB Filter error:', err);
+      clearGridTransitionStyles();
     })
     .finally(function () {
       isLoading = false;
@@ -237,16 +251,35 @@
     });
   }
 
-  function updateCount(total) {
+  function updateCount(total, visibleCount, resultCapped) {
     if (!countTextEl) return;
 
-    var text = total + ' produto' + (total !== 1 ? 's' : '');
+    total = typeof total === 'number' ? total : parseInt(total, 10) || 0;
+    visibleCount =
+      typeof visibleCount === 'number' ? visibleCount : parseInt(visibleCount, 10);
+    if (isNaN(visibleCount)) {
+      visibleCount = total;
+    }
+    resultCapped = !!resultCapped;
+
+    var text;
+    if (resultCapped && total > visibleCount) {
+      text =
+        'Mostrando ' +
+        visibleCount +
+        ' de ' +
+        total +
+        ' produto' +
+        (total !== 1 ? 's' : '');
+    } else {
+      text = total + ' produto' + (total !== 1 ? 's' : '');
+    }
     countTextEl.textContent = text;
 
     // Also update the unified toolbar count
     var toolbarCount = document.getElementById('wcb-toolbar-count');
     if (toolbarCount) {
-      toolbarCount.textContent = total + ' produto' + (total !== 1 ? 's' : '');
+      toolbarCount.textContent = text;
       toolbarCount.classList.add('wcb-shop__toolbar-count--pulse');
       setTimeout(function () {
         toolbarCount.classList.remove('wcb-shop__toolbar-count--pulse');

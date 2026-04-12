@@ -15,6 +15,19 @@
     }
 }
 
+/* Mesma faixa que custom-cursor.js (≤1023px, drawer / nav mobile): evita cursor:none + backdrop-filter se JS antigo em cache */
+@media (max-width: 1023px) {
+    body.wcb-custom-cursor--active,
+    body.wcb-custom-cursor--active * {
+        cursor: auto !important;
+    }
+
+    .wcb-cursor-ring,
+    .wcb-cursor-dot {
+        display: none !important;
+    }
+}
+
 /* Esconde cursor nativo quando o custom está ligado */
 body.wcb-custom-cursor--active,
 body.wcb-custom-cursor--active * {
