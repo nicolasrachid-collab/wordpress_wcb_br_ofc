@@ -6,10 +6,10 @@
  */
 
 @media (max-width: 1023px) {
-	/* Área útil: barra inferior fixa + safe-area */
-	main#main-content.wcb-main {
-		padding-bottom: max(4.75rem, calc(3.35rem + env(safe-area-inset-bottom, 0px)));
-	}
+	/*
+	 * Espaço para a barra inferior fixa: apenas body { padding-bottom: --wcb-mobile-bottom-bar-h }
+	 * em style.css — evitar somar padding duplo em main + body na PDP e no resto do site.
+	 */
 
 	/* Cromado: sem setas; largura alinhada ao contentor (padding vem do .wcb-container) */
 	.wcb-paged-carousel {
@@ -152,14 +152,14 @@
 	.wcb-paged-carousel .wcb-product-card__rating {
 		margin-bottom: 0 !important;
 		gap: 2px !important;
-		min-height: 1.125rem !important;
+		min-height: 1.375rem !important;
 		flex-shrink: 0 !important;
 	}
 
 	.wcb-paged-carousel .wcb-product-card__stars,
 	.wcb-paged-carousel .wcb-product-card__stars-empty,
 	.wcb-paged-carousel .wcb-product-card__stars-fill {
-		font-size: 0.8rem !important;
+		font-size: 1.05rem !important;
 	}
 
 	.wcb-paged-carousel .wcb-product-card__rating-val {
@@ -167,7 +167,7 @@
 	}
 
 	.wcb-paged-carousel .wcb-product-card__price-current {
-		font-size: 1.18rem !important;
+		font-size: 20px !important;
 		font-weight: 800 !important;
 		letter-spacing: -0.035em;
 		font-variant-numeric: tabular-nums;
@@ -253,8 +253,8 @@
 	}
 }
 
-/* Largura dos cards no strip (peek intencional) — mais estreito = mesma escala visual que “Mais vendidos” */
-@media (max-width: 430px) {
+/* Largura dos cards no strip (peek) — breakpoints alinhados à PDP: mobile ≤480px */
+@media (max-width: 480px) {
 	.wcb-paged-carousel__grid--single-row .wcb-product-card {
 		flex: 0 0 auto;
 		width: min(
@@ -267,7 +267,7 @@
 	}
 }
 
-@media (min-width: 431px) and (max-width: 767px) {
+@media (min-width: 481px) and (max-width: 767px) {
 	.wcb-paged-carousel__grid--single-row .wcb-product-card {
 		flex: 0 0 auto;
 		width: min(

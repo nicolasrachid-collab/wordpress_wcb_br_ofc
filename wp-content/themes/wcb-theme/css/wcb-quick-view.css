@@ -1,0 +1,781 @@
+/**
+ * WCB — Quick View (única fonte de estilos do modal QV).
+ * Migrado de inc/woocommerce.php (wp_head); enqueue: wcb-quick-view (inc/enqueue.php).
+ */
+
+/* ── Overlay ── */
+.wcb-qv-overlay {
+    display: none;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    background: rgba(10, 15, 30, 0.55) !important;
+    backdrop-filter: blur(10px) saturate(1.2) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(1.2) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.5rem !important;
+    opacity: 0;
+    transition: opacity 0.25s ease !important;
+}
+
+.wcb-qv-overlay.is-open {
+    display: flex !important;
+    opacity: 1;
+}
+
+/* ── Modal Container ── */
+.wcb-qv-modal {
+    background: #fff !important;
+    border-radius: 20px !important;
+    width: min(80vw, 1080px) !important;
+    max-width: min(80vw, 1080px) !important;
+    height: min(80vh, calc(100dvh - 3rem)) !important;
+    max-height: min(80vh, calc(100dvh - 3rem)) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    scroll-behavior: smooth !important;
+    position: relative !important;
+    box-shadow:
+        0 25px 60px -12px rgba(10, 15, 30, 0.28),
+        0 0 0 1px rgba(15, 23, 42, 0.06) !important;
+    animation: wcbQvIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes wcbQvIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ── Close Button ── */
+#wcb-qv-close {
+    position: absolute !important;
+    top: 0.85rem !important;
+    right: 0.85rem !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #475569 !important;
+    transition: all 0.15s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+#wcb-qv-close:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    transform: rotate(90deg) !important;
+}
+
+#wcb-qv-close:focus-visible {
+    outline: 2px solid rgba(21, 93, 253, 0.55) !important;
+    outline-offset: 2px !important;
+}
+
+/* ── Loading State ── */
+.wcb-qv-loading {
+    display: flex;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    padding: 5rem 2rem !important;
+    gap: 1rem !important;
+    color: #94a3b8 !important;
+    font-size: 0.85rem !important;
+}
+
+.wcb-qv-loading.is-hidden {
+    display: none !important;
+    flex: 0 0 0 !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+.wcb-qv-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #155DFD;
+    border-radius: 50%;
+    animation: wcbQvSpin 0.7s linear infinite;
+}
+
+@keyframes wcbQvSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Content: galeria + buybox (preenche altura do modal) ── */
+#wcb-qv-content {
+    display: none !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    flex: 0 0 0 !important;
+    overflow: hidden !important;
+}
+
+#wcb-qv-content.is-visible {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    position: relative !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Skip link: fora do grid; só visível com :focus-visible (teclado) */
+.wcb-qv-skip-buy {
+    position: absolute !important;
+    left: 1rem !important;
+    top: 0.55rem !important;
+    z-index: 11 !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.wcb-qv-skip-buy:focus-visible {
+    width: auto !important;
+    height: auto !important;
+    padding: 0.4rem 0.75rem !important;
+    clip-path: none !important;
+    clip: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: #155DFD !important;
+    background: #eff6ff !important;
+    border-radius: 8px !important;
+    text-decoration: none !important;
+    outline: 2px solid rgba(21, 93, 253, 0.45) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 2px 10px rgba(21, 93, 253, 0.12) !important;
+}
+
+.wcb-qv-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    margin-top: 0 !important;
+    overflow: hidden !important;
+}
+
+/* ── LEFT: Gallery ── */
+.wcb-qv-left {
+    position: relative !important;
+    background: linear-gradient(165deg, #f1f5f9 0%, #f8fafc 45%, #ffffff 100%) !important;
+    padding: 1.65rem 1.5rem 1.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 20px 0 0 0 !important;
+    border-right: 1px solid rgba(226, 232, 240, 0.95) !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+    align-self: stretch !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-gutter: stable !important;
+}
+
+.wcb-qv-left::-webkit-scrollbar {
+    width: 5px;
+}
+
+.wcb-qv-left::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.wcb-qv-main-img-wrap {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 200px !important;
+    max-height: none !important;
+    overflow: hidden !important;
+}
+
+.wcb-qv-main-img {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 12px !important;
+    object-fit: contain !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+/* Badge (discount) */
+.wcb-qv-badge {
+    position: absolute !important;
+    top: 1.25rem !important;
+    left: 1.25rem !important;
+    background: #ef4444 !important;
+    color: #fff !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    z-index: 2 !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* ── Gallery Thumbnails (horizontal) ── */
+.wcb-qv-thumbs {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 0.85rem !important;
+    overflow-x: auto !important;
+    padding-bottom: 4px !important;
+    scrollbar-width: none !important;
+}
+
+.wcb-qv-thumbs::-webkit-scrollbar {
+    display: none;
+}
+
+.wcb-qv-thumb {
+    flex-shrink: 0 !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 8px !important;
+    border: 2px solid transparent !important;
+    background: #fff !important;
+    cursor: pointer !important;
+    overflow: hidden !important;
+    transition: all 0.15s ease !important;
+    padding: 2px !important;
+}
+
+.wcb-qv-thumb:hover {
+    border-color: #cbd5e1 !important;
+}
+
+.wcb-qv-thumb.active {
+    border-color: #155DFD !important;
+    box-shadow: 0 0 0 2px rgba(21, 93, 253, 0.15) !important;
+}
+
+.wcb-qv-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 5px !important;
+    display: block !important;
+}
+
+/* ── RIGHT: Product Info (estrutura / scroll) ── */
+.wcb-qv-right {
+    padding: 1.55rem 3rem 1.65rem 1.65rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+    align-self: stretch !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 0 20px 0 0 !important;
+    scrollbar-gutter: stable !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f8fafc 100%) !important;
+}
+
+#wcb-qv-pdp-buybox {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    margin-bottom: 14px !important;
+}
+
+.wcb-qv-right > .wcb-qv-full-link {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+}
+
+#wcb-qv-pdp-buybox .wcb-pdp-divider--buybox {
+    margin: 0.75rem 0 0.65rem !important;
+}
+
+.wcb-qv-right::-webkit-scrollbar {
+    width: 5px;
+}
+
+.wcb-qv-right::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* ── Conteúdo / tipografia / preços / ações (paridade 1:1 com ex-inline wp_head) ── */
+
+.wcb-qv-cat {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.11em !important;
+    text-transform: uppercase !important;
+    color: #155DFD !important;
+    display: inline-block !important;
+    margin: 0 0 0.55rem !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    line-height: 1.2 !important;
+}
+
+.wcb-qv-title {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 1.38rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    margin: 0 0 0.65rem !important;
+    line-height: 1.22 !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* ── Rating ── */
+.wcb-qv-rating {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-bottom: 0.75rem !important;
+    font-size: 0.82rem !important;
+    color: #64748b !important;
+}
+
+.wcb-qv-stars {
+    display: flex;
+    gap: 1px;
+}
+
+.wcb-qv-star {
+    width: 14px;
+    height: 14px;
+    fill: #e2e8f0;
+    transition: fill 0.15s;
+}
+
+.wcb-qv-star.on {
+    fill: #f59e0b;
+}
+
+.wcb-qv-rating-count {
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+/* ── Price Block ── */
+.wcb-qv-price-block {
+    margin-bottom: 0.75rem !important;
+}
+
+.wcb-qv-price-old {
+    font-size: 0.88rem !important;
+    color: #94a3b8 !important;
+    text-decoration: line-through !important;
+    font-weight: 500 !important;
+    display: block !important;
+    margin-bottom: 2px !important;
+}
+
+.wcb-qv-price-current {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 1.55rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.02em !important;
+}
+
+.wcb-qv-pix {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
+    border-radius: 6px !important;
+    padding: 5px 12px !important;
+    font-size: 0.8rem !important;
+    color: #166534 !important;
+    margin-top: 0.45rem !important;
+    font-weight: 500 !important;
+}
+
+.wcb-qv-installments {
+    font-size: 0.78rem !important;
+    color: #94a3b8 !important;
+    margin-top: 4px !important;
+}
+
+/* ── Specs ── */
+.wcb-qv-specs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin: 0.35rem 0 0.85rem !important;
+}
+
+.wcb-qv-spec {
+    font-size: 0.75rem !important;
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
+/* ── Low Stock ── */
+.wcb-qv-low-stock {
+    font-size: 0.8rem !important;
+    color: #d97706 !important;
+    background: #fffbeb !important;
+    border: 1px solid #fed7aa !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    margin: 0.5rem 0 !important;
+    font-weight: 500 !important;
+}
+
+/* ══ Variation Swatches ══ */
+.wcb-qv-variations {
+    margin: 0.75rem 0 0.25rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+}
+
+.wcb-qv-var-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.wcb-qv-var-label {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.wcb-qv-var-label span {
+    font-weight: 500 !important;
+    text-transform: none !important;
+    color: #64748b !important;
+    letter-spacing: 0 !important;
+}
+
+.wcb-qv-var-options {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+}
+
+.wcb-qv-var-btn {
+    background: #fff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 7px 16px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    position: relative !important;
+    white-space: nowrap !important;
+}
+
+.wcb-qv-var-btn:hover {
+    border-color: #155DFD !important;
+    color: #155DFD !important;
+    background: rgba(21, 93, 253, 0.03) !important;
+}
+
+.wcb-qv-var-btn.active {
+    border-color: #155DFD !important;
+    background: rgba(21, 93, 253, 0.06) !important;
+    color: #155DFD !important;
+    box-shadow: 0 0 0 2px rgba(21, 93, 253, 0.12) !important;
+}
+
+.wcb-qv-var-notice {
+    font-size: 0.78rem !important;
+    color: #ef4444 !important;
+    display: none !important;
+    margin-top: 2px !important;
+}
+
+.wcb-qv-var-notice.visible {
+    display: block !important;
+}
+
+/* ── Divider ── */
+.wcb-qv-divider {
+    border: none !important;
+    border-top: 1px solid #f1f5f9 !important;
+    margin: 0.75rem 0 !important;
+}
+
+/* ── Actions ── */
+.wcb-qv-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    margin-top: auto !important;
+    padding-top: 0.5rem !important;
+}
+
+.wcb-qv-add-btn {
+    width: 100% !important;
+    background: #155DFD !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 13px 24px !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 14px rgba(21, 93, 253, 0.25) !important;
+    text-decoration: none !important;
+    letter-spacing: 0.01em !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.wcb-qv-add-btn:hover {
+    background: #1249d6 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(21, 93, 253, 0.35) !important;
+}
+
+.wcb-qv-add-btn:active {
+    transform: translateY(0) !important;
+}
+
+.wcb-qv-add-btn.loading {
+    opacity: 0.7 !important;
+    pointer-events: none !important;
+}
+
+.wcb-qv-add-btn.added {
+    background: #16a34a !important;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3) !important;
+}
+
+.wcb-qv-add-btn--disabled {
+    background: #94a3b8 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+}
+
+.wcb-qv-add-btn--disabled:hover {
+    background: #94a3b8 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Stock Label ── */
+.wcb-qv-in-stock {
+    font-size: 0.78rem !important;
+    color: #16a34a !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.wcb-qv-out-stock {
+    font-size: 0.78rem !important;
+    color: #dc2626 !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+/* ── Stock Row (below variants) ── */
+.wcb-qv-stock-row {
+    min-height: 20px !important;
+    margin: 0.35rem 0 0 !important;
+}
+
+/* ── Quantity Stepper ── */
+.wcb-qv-qty {
+    display: flex !important;
+    align-items: center !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    height: 46px !important;
+}
+
+.wcb-qv-qty__btn {
+    width: 38px !important;
+    height: 100% !important;
+    border: none !important;
+    background: #f8fafc !important;
+    cursor: pointer !important;
+    font-size: 1.1rem !important;
+    color: #334155 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.12s ease !important;
+    padding: 0 !important;
+    user-select: none !important;
+}
+
+.wcb-qv-qty__btn:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.wcb-qv-qty__btn:active {
+    background: #cbd5e1 !important;
+}
+
+.wcb-qv-qty__val {
+    width: 36px !important;
+    text-align: center !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    user-select: none !important;
+}
+
+/* ── Cart Row (qty + btn side by side) ── */
+.wcb-qv-cart-row {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+.wcb-qv-cart-row .wcb-qv-add-btn {
+    flex: 1 !important;
+}
+
+/* ── Full Link (Secondary button) ── */
+.wcb-qv-full-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: 0.85rem !important;
+    color: #334155 !important;
+    text-decoration: none !important;
+    margin-top: 1.1rem !important;
+    font-weight: 600 !important;
+    transition: all 0.15s ease !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 11px 20px !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+    width: 100% !important;
+    text-align: center !important;
+}
+
+.wcb-qv-full-link:hover {
+    border-color: #155DFD !important;
+    color: #155DFD !important;
+    background: rgba(21, 93, 253, 0.03) !important;
+}
+
+/* ── Responsive (@media max-width 700px — paridade ex-inline) ── */
+@media (max-width: 700px) {
+    .wcb-qv-overlay {
+        padding: 0.75rem !important;
+    }
+
+    .wcb-qv-modal {
+        border-radius: 16px !important;
+        height: min(80vh, calc(100dvh - 2.5rem)) !important;
+        max-height: min(80vh, calc(100dvh - 2.5rem)) !important;
+    }
+
+    .wcb-qv-top {
+        grid-template-columns: 1fr !important;
+    }
+
+    #wcb-qv-content {
+        max-height: none !important;
+    }
+
+    .wcb-qv-left {
+        max-height: none !important;
+        overflow-y: visible !important;
+        border-radius: 16px 16px 0 0 !important;
+        border-right: none !important;
+        padding: 1.25rem !important;
+    }
+
+    .wcb-qv-right {
+        border-radius: 0 !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        padding: 1.25rem !important;
+    }
+
+    .wcb-qv-main-img-wrap {
+        min-height: 200px !important;
+        max-height: 260px !important;
+    }
+
+    .wcb-qv-title {
+        font-size: 1.15rem !important;
+    }
+
+    .wcb-qv-price-current {
+        font-size: 1.35rem !important;
+    }
+
+    .wcb-qv-cart-row {
+        flex-direction: column !important;
+    }
+
+    .wcb-qv-qty {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+}

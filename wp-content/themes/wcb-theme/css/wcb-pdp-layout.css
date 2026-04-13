@@ -1,0 +1,1583 @@
+/**
+ * WCB — PDP buybox (PDP + Quick View)
+ *
+ * Carregado após wcb-style (e antes de wcb-pdp-responsive-phase1 na PDP).
+ * Escopo: .wcb-pdp #wcb-pdp-buybox e .wcb-qv-modal #wcb-qv-pdp-buybox (especificidade > Woo sem :is).
+ */
+
+/* Barra de oferta na buybox — laranja sólido vibrante */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 1.1rem;
+    margin-top: 0.25rem;
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: #ff6a00;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 10px 28px -8px rgba(255, 106, 0, 0.42),
+        0 4px 14px rgba(0, 0, 0, 0.07);
+}
+
+/* Sem overlay de degradê — fundo totalmente sólido */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox::before,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox::after {
+    display: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 8px;
+    padding: 14px 16px 14px 14px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__icon {
+    grid-row: 1 / span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    color: #fff;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__icon svg {
+    display: block;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__text {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.98);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer {
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border-radius: 10px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.12) inset,
+        0 4px 12px rgba(0, 0, 0, 0.22);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__secondary {
+    display: inline;
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.92;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 480px) {
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__inner {
+        padding: 12px 12px 12px 10px;
+        column-gap: 12px;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__text {
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer {
+        font-size: 0.95rem;
+        padding: 5px 11px;
+    }
+}
+/* ── 2B. BUY BOX ── */
+.wcb-pdp-buybox {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--wcb-space-md) + 2px);
+}
+
+.wcb-pdp-buybox__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+
+@media (min-width: 1024px) {
+    .wcb-pdp-buybox__title {
+        font-size: 2rem;
+    }
+}
+
+/* Rating */
+.wcb-pdp-buybox__rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.wcb-pdp-buybox__stars {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+.wcb-pdp-buybox__stars .wcb-pdp-buybox__star {
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 1px rgba(245, 158, 11, 0.28));
+}
+
+.wcb-pdp-buybox__rating-link {
+    font-size: var(--wcb-font-size-sm);
+    color: var(--wcb-gray-500);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .2s;
+}
+
+.wcb-pdp-buybox__rating-link:hover {
+    color: var(--wcb-blue);
+}
+
+/* Divider */
+.wcb-pdp-divider {
+    border: none;
+    border-top: 1px solid #e8ecf0;
+    margin: 8px 0;
+}
+
+/* Price block */
+.wcb-pdp-buybox__price-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Cartão de preço — referência clean (borda fina, fundo branco) */
+.wcb-pdp-buybox__price-card {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 16px 18px;
+    background: #fff;
+    border: 1px solid #eef0f3;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.wcb-pdp-buybox__price-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wcb-pdp-buybox__price-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wcb-pdp-buybox__price-main--secondary {
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.wcb-pdp-buybox__price-old {
+    font-size: var(--wcb-font-size-sm);
+    color: var(--wcb-gray-400);
+    text-decoration: line-through;
+}
+
+.wcb-pdp-buybox__price-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--wcb-space-sm);
+    flex-wrap: wrap;
+}
+
+.wcb-pdp-buybox__price-current {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--wcb-gray-800);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.wcb-pdp-buybox__price-hint {
+    margin: 4px 0 0;
+    font-size: var(--wcb-font-size-xs);
+    font-weight: 500;
+    color: var(--wcb-gray-500);
+    line-height: 1.35;
+}
+
+.wcb-pdp-buybox__discount {
+    background: var(--wcb-promo-orange, #ea580c);
+    color: #fff;
+    font-size: var(--wcb-font-size-xs);
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.wcb-pdp-buybox__price-ticket.wcb-pdp-buybox__pix--hero,
+.wcb-pdp-buybox__pix--hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 11px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.wcb-pdp-buybox__price-ticket__lead {
+    margin: 0 0 2px;
+    padding: 0;
+    line-height: 1.12;
+}
+
+.wcb-pdp-buybox__price-ticket__suffix {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: -0.02em;
+}
+
+.wcb-pdp-buybox__price-ticket__card {
+    margin: 4px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 10px;
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.wcb-pdp-buybox__price-ticket__card-prefix,
+.wcb-pdp-buybox__price-ticket__card-suffix {
+    font-weight: 500;
+    color: #64748b;
+}
+
+.wcb-pdp-buybox__price-ticket__card .wcb-pdp-buybox__price-current {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: -0.02em;
+}
+
+.wcb-pdp-buybox__pix-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.wcb-pdp-buybox__pix-pill {
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #059669;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    padding: 2px 8px;
+    border-radius: 6px;
+    line-height: 1.2;
+}
+
+.wcb-pdp-buybox__price-ticket__lead .wcb-pdp-buybox__pix-value,
+.wcb-pdp-buybox__pix-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    display: inline;
+}
+
+.wcb-pdp-buybox__economize {
+    margin: 2px 0 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #059669;
+    letter-spacing: -0.01em;
+    line-height: 1.45;
+}
+
+.wcb-pdp-buybox__pix-note {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #94a3b8;
+    line-height: 1.45;
+    max-width: 24rem;
+}
+
+.wcb-pdp-buybox__price-ticket .wcb-pdp-buybox__installments,
+.wcb-pdp-buybox__installments {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.wcb-pdp-buybox__installments-note {
+    color: var(--wcb-gray-400);
+    font-weight: 400;
+}
+
+/* Urgency */
+.wcb-pdp-buybox__urgency {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--wcb-font-size-sm);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.wcb-pdp-buybox__urgency--low {
+    background: linear-gradient(165deg, #fffbeb 0%, #fff7ed 45%, #ffedd5 100%);
+    color: #9a3412;
+    border: 1px solid rgba(234, 88, 12, 0.38);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 2px 10px rgba(234, 88, 12, 0.12);
+    animation: wcbPdpLowStockPulse 2.4s ease-in-out infinite;
+}
+
+.wcb-pdp-buybox__urgency--low strong {
+    color: #c2410c;
+    font-weight: 700;
+}
+
+@keyframes wcbPdpLowStockPulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.7) inset,
+            0 2px 8px rgba(234, 88, 12, 0.08);
+    }
+
+    50% {
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.75) inset,
+            0 3px 16px rgba(234, 88, 12, 0.18),
+            0 0 0 1px rgba(251, 146, 60, 0.15);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcb-pdp-buybox__urgency--low,
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__urgency--low, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__urgency--low{
+        animation: none;
+    }
+}
+
+.wcb-pdp-buybox__urgency--ok {
+    background: linear-gradient(
+        165deg,
+        #ffffff 0%,
+        var(--wcb-green-light, #e6faf4) 48%,
+        color-mix(in srgb, var(--wcb-green-light, #e6faf4) 75%, #ecfdf5) 100%
+    );
+    color: var(--wcb-green-dark, #00a06a);
+    border: 1px solid color-mix(in srgb, var(--wcb-green, #00c07f) 28%, var(--wcb-gray-200, #e5e7eb));
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+        0 2px 8px color-mix(in srgb, var(--wcb-green, #00c07f) 12%, transparent);
+    letter-spacing: 0.01em;
+    padding: 9px 14px;
+    border-radius: var(--wcb-radius-md, 8px);
+    gap: 8px;
+    line-height: 1.35;
+}
+
+.wcb-pdp-buybox__urgency-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--wcb-green, #00c07f);
+    box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--wcb-green, #00c07f) 35%, transparent),
+        0 0 0 3px rgba(255, 255, 255, 0.9);
+}
+
+.wcb-pdp-buybox__urgency--out {
+    background: #FEF2F2;
+    color: var(--wcb-red);
+    border: 1px solid rgba(239, 68, 68, .2);
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* Short desc */
+.wcb-pdp-buybox__desc {
+    font-size: var(--wcb-font-size-base);
+    color: #64748b;
+    line-height: 1.65;
+}
+
+.wcb-pdp-buybox__desc p {
+    margin: 0;
+}
+
+/* SKU abaixo do título */
+.wcb-pdp-buybox__sku {
+    font-size: 0.8rem;
+    color: var(--wcb-gray-400);
+    letter-spacing: 0.04em;
+    margin: 2px 0 0;
+    font-weight: 500;
+    font-family: var(--wcb-font);
+}
+
+/* Form (WooCommerce add-to-cart override) */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations {
+    width: 100%;
+    margin-bottom: 16px;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations label {
+    font-weight: 600;
+    font-size: var(--wcb-font-size-sm);
+    color: var(--wcb-gray-700);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations select, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--wcb-gray-300, #d1d5db);
+    border-radius: 6px;
+    font-size: var(--wcb-font-size-base);
+    background: var(--wcb-white);
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart.variations_form, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart.variations_form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wcb-space-sm);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--wcb-space-sm);
+}
+
+/* Subtotal ocupa linha completa; qty + CTA na linha seguinte (form em row) */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .wcb-pdp-subtotal, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .wcb-pdp-subtotal {
+    flex: 1 0 100%;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity {
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"] {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    margin-top: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .quantity {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--wcb-gray-200);
+    border-radius: 6px;
+    background: var(--wcb-white);
+    overflow: hidden;
+    width: fit-content;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .qty, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .qty {
+    width: 52px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-size: var(--wcb-font-size-lg);
+    font-weight: 700;
+    color: var(--wcb-gray-900);
+    padding: 8px 0;
+    -moz-appearance: textfield;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .qty::-webkit-inner-spin-button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .qty::-webkit-inner-spin-button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .qty::-webkit-outer-spin-button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .qty::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn {
+    background: var(--wcb-gray-100);
+    border: none;
+    padding: 0 14px;
+    font-size: 18px;
+    cursor: pointer;
+    /* Sobrepõe .wcb-qty-btn global (style.css height:36px) — alinhar ao .qty min-height 48px */
+    box-sizing: border-box;
+    height: 48px;
+    min-height: 48px;
+    align-self: stretch;
+    transition: background .2s;
+    color: var(--wcb-gray-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:hover {
+    background: var(--wcb-gray-200);
+}
+
+.wcb-pdp-buybox__meta {
+    font-size: var(--wcb-font-size-xs);
+    color: var(--wcb-gray-400);
+    margin: 0;
+}
+/* ══════════════════════════════════════════════════════════════
+   PDP PREMIUM — POLISH & WOOCOMMERCE FORM OVERRIDES
+   ══════════════════════════════════════════════════════════════ */
+
+/*
+ * !important restantes no ficheiro (além de pseudo-elementos do CTA / swatch disabled):
+ *   • display:none em blocos Woo redundantes + anti-FOUC — folha .woocommerce e JS podem reexibir.
+ */
+
+/* ── OCULTAR ELEMENTOS NATIVOS REDUNDANTES ── */
+/* Já exibimos preço, estoque e descrição no nosso bloco custom acima */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-price, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-price,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-availability, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-availability,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .product_meta, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .product_meta,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-product-details__short-description, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-product-details__short-description {
+    display: none !important;
+}
+
+/* Stock text nativo ("84 em estoque") — já temos nosso badge */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .stock, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .stock {
+    display: none !important;
+}
+
+/* ── FORMULÁRIO DE VARIAÇÕES PREMIUM ── */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations_form, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations_form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Tabela de variações → layout limpo */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations {
+    width: 100%;
+    margin: 0 0 var(--wcb-space-lg);
+    border: none;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations tbody, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wcb-space-md);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations tr, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations tr {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations td, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations td {
+    display: block;
+    padding: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations .label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations .label {
+    padding: 0;
+    text-align: left;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations .label label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations .label label {
+    font-weight: 700;
+    font-size: var(--wcb-font-size-sm);
+    color: var(--wcb-gray-800);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-family: var(--wcb-font);
+    text-align: left;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations .value, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations .value {
+    padding: 0;
+    position: relative;
+}
+
+/* Select premium */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations select, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations select {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    border: 1.5px solid var(--wcb-gray-200);
+    border-radius: var(--wcb-radius-lg);
+    font-size: var(--wcb-font-size-base);
+    font-weight: 500;
+    font-family: var(--wcb-font);
+    color: var(--wcb-gray-800);
+    background: var(--wcb-white);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations select:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations select:hover {
+    border-color: var(--wcb-gray-400);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations select:focus, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations select:focus {
+    border-color: var(--wcb-blue);
+    box-shadow: 0 0 0 3px rgba(21, 93, 253, 0.1);
+}
+
+/* Link "Limpar" — pill style */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .reset_variations, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .reset_variations {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--wcb-gray-500);
+    text-decoration: none;
+    margin-top: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--wcb-gray-200);
+    background: var(--wcb-gray-50, #f9fafb);
+    transition: all 0.2s;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .reset_variations::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .reset_variations::before {
+    content: '×';
+    font-size: 0.9rem;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .reset_variations:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .reset_variations:hover {
+    color: var(--wcb-red);
+    border-color: var(--wcb-red);
+    background: rgba(239, 68, 68, 0.04);
+}
+
+/* ── SINGLE VARIATION WRAP (onde WOO mostra preço + estoque + botão) ── */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_variation_wrap, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_variation_wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wcb-space-sm);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_variation_wrap .single_variation, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_variation_wrap .single_variation {
+    display: none !important;
+    /* oculta o bloco de preço/estoque nativo */
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--wcb-space-sm);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity {
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"] {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    margin-top: 0;
+}
+
+/* ── QUANTIDADE — Visual Premium ── */
+/* Ocultar spinners/buttons nativos do browser */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form input[type="number"]::-webkit-inner-spin-button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form input[type="number"]::-webkit-inner-spin-button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form input[type="number"]::-webkit-outer-spin-button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form input[type="number"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .quantity {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--wcb-gray-200);
+    border-radius: 6px;
+    background: var(--wcb-white);
+    overflow: hidden;
+    width: fit-content;
+    min-height: 48px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .qty, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .qty {
+    width: 52px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--wcb-gray-900);
+    padding: 0 4px;
+    line-height: 48px;
+    min-height: 48px;
+    height: 100%;
+    box-sizing: border-box;
+    font-family: var(--wcb-font);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn {
+    background: var(--wcb-gray-50, #f9fafb);
+    border: none;
+    min-width: 44px;
+    width: 44px;
+    box-sizing: border-box;
+    height: 48px;
+    min-height: 48px;
+    align-self: stretch;
+    font-size: 1.125rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--wcb-gray-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:hover {
+    background: var(--wcb-gray-200);
+    color: var(--wcb-gray-900);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:active, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:active {
+    background: var(--wcb-gray-300);
+    transform: scale(0.95);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-minus, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-minus {
+    border-right: 1px solid var(--wcb-gray-200);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-plus, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-plus {
+    border-left: 1px solid var(--wcb-gray-200);
+}
+
+/* ── BUYBOX PRICE BLOCK — animação suave de atualização ── */
+.wcb-pdp-buybox__price-current,
+.wcb-pdp-buybox__pix-value {
+    transition: opacity 0.15s ease;
+}
+
+/* ── WOOCOMMERCE VARIATION PRICE HTML (bloco que aparece abaixo das variações) ── */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-price .price, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-price .price {
+    display: none !important;
+}
+/* ── ANTI-FOUC: Hide native WooCommerce variation selects to prevent flash ── */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations_form .variations select, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations_form .variations select {
+    display: none !important;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations_form .variations td.label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations_form .variations td.label {
+    display: none !important;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations_form .variations .reset_variations, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations_form .variations .reset_variations {
+    display: none !important;
+}
+@keyframes wcbSubtotalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wcb-pdp-subtotal__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.wcb-pdp-subtotal__value {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.wcb-pdp-subtotal__label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--wcb-gray-600, #4b5563);
+    min-width: 0;
+}
+
+.wcb-pdp-subtotal__label svg {
+    color: var(--wcb-blue, #155dfd);
+    flex-shrink: 0;
+}
+
+.wcb-pdp-subtotal__label small {
+    font-weight: 500;
+    color: var(--wcb-gray-500, #6b7280);
+    font-size: 0.75rem;
+}
+
+.wcb-pdp-subtotal__price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--wcb-gray-900, #111827);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.wcb-pdp-subtotal__pix {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: var(--wcb-radius-md, 8px);
+    background: var(--wcb-green-light, #e6faf4);
+    border: 1px solid color-mix(in srgb, var(--wcb-green, #00c07f) 22%, var(--wcb-gray-200, #e5e7eb));
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--wcb-green-dark, #00a06a);
+    line-height: 1.35;
+}
+
+.wcb-pdp-subtotal__pix svg {
+    color: var(--wcb-green, #00c07f);
+    flex-shrink: 0;
+}
+/* ═══════════════════════════════════════════════════════════════
+   PDP BUYBOX — Conversão: hierarquia, menos ruído, CTA dominante
+   (Não altera o card de preço .wcb-pdp-buybox__price-card / __price-block)
+   ═══════════════════════════════════════════════════════════════ */
+
+.wcb-pdp #wcb-pdp-buybox, .wcb-qv-modal #wcb-qv-pdp-buybox{
+    gap: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox > .wcb-pdp-buybox__title, .wcb-qv-modal #wcb-qv-pdp-buybox > .wcb-pdp-buybox__title{
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: #1e293b;
+    margin: 0 0 6px;
+}
+
+@media (min-width: 1024px) {
+    .wcb-pdp #wcb-pdp-buybox > .wcb-pdp-buybox__title, .wcb-qv-modal #wcb-qv-pdp-buybox > .wcb-pdp-buybox__title{
+        font-size: 1.65rem;
+    }
+}
+
+.wcb-pdp #wcb-pdp-buybox > .wcb-pdp-buybox__price-block, .wcb-qv-modal #wcb-qv-pdp-buybox > .wcb-pdp-buybox__price-block{
+    margin-bottom: 0;
+}
+
+/* Meta logo abaixo do título, antes do card de preço */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__after-price, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__after-price{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__sku, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__sku{
+    font-size: 0.7rem;
+    color: #94a3b8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0;
+    font-weight: 500;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__rating, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__rating{
+    gap: 8px;
+    margin: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__rating-link, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__rating-link{
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__rating-link:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__rating-link:hover{
+    color: #334155;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc{
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: #64748b;
+    margin: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc p, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc p{
+    margin: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc p + p, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc p + p{
+    margin-top: 0.5em;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc-inner, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc-inner{
+    position: relative;
+}
+
+/* Colapsado: só as primeiras 2 linhas (mesmo font-size/line-height do .wcb-pdp-buybox__desc) */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc.is-collapsible:not(.is-expanded) .wcb-pdp-buybox__desc-inner, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc.is-collapsible:not(.is-expanded) .wcb-pdp-buybox__desc-inner{
+    max-height: calc(0.875rem * 1.55 * 2);
+    overflow: hidden;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc.is-collapsible:not(.is-expanded) .wcb-pdp-buybox__desc-inner::after, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc.is-collapsible:not(.is-expanded) .wcb-pdp-buybox__desc-inner::after{
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1.25rem;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc-toggle, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc-toggle{
+    display: inline-block;
+    margin-top: 4px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc-toggle:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc-toggle:hover{
+    color: #475569;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__desc-toggle:focus-visible, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__desc-toggle:focus-visible{
+    outline: 2px solid #94a3b8;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__urgency--low, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__urgency--low{
+    background: linear-gradient(165deg, #fffbeb 0%, #fff7ed 45%, #ffedd5 100%);
+    color: #9a3412;
+    border: 1px solid rgba(234, 88, 12, 0.38);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 2px 10px rgba(234, 88, 12, 0.12);
+    animation: wcbPdpLowStockPulse 2.4s ease-in-out infinite;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__urgency--low strong, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__urgency--low strong{
+    color: #c2410c;
+    font-weight: 700;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-divider--buybox, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-divider--buybox{
+    margin: 14px 0 12px;
+    border-top-color: #eef0f3;
+}
+
+/* ── Variação: cartão e swatches neutros (sem azul de destaque) ── */
+.wcb-pdp #wcb-pdp-buybox .wcb-variation-card, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-variation-card{
+    background: #ffffff;
+    border: 1px solid #eef0f3;
+    border-radius: 6px;
+    padding: 10px 12px 8px;
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-variation-card:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-variation-card:hover{
+    border-color: #e0e0e0;
+    box-shadow: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-variation-card__label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-variation-card__label{
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.05em;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-variation-card__label-icon, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-variation-card__label-icon{
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 6px;
+    width: 22px;
+    height: 22px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-variation-card__hint, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-variation-card__hint{
+    color: #94a3b8;
+    font-style: normal;
+    font-size: 0.7rem;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-variation-card__hint.is-selected, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-variation-card__hint.is-selected{
+    color: #334155;
+    font-weight: 600;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-wrap, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-wrap{
+    gap: 6px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-wrap--dots, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-wrap--dots{
+    gap: 8px;
+}
+
+/* Bolinha: só o círculo — não herdar caixa do .wcb-swatch-btn */
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot{
+    min-width: 0;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 50%;
+    text-transform: none;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot .wcb-swatch-dot, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot .wcb-swatch-dot{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot:hover:not(.is-disabled), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot:hover:not(.is-disabled){
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transform: scale(1.06);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot.is-active, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot.is-active{
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot.is-active .wcb-swatch-dot, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot.is-active .wcb-swatch-dot{
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px #0f172a, inset 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot.is-active::after, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot.is-active::after{
+    display: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot){
+    min-height: 40px;
+    min-width: 52px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: none;
+    transform: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot):hover:not(.is-disabled), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot):hover:not(.is-disabled){
+    border-color: #cbd5e1;
+    color: #334155;
+    background: #f8fafc;
+    transform: none;
+    box-shadow: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot).is-active, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot).is-active{
+    border-color: #0f172a;
+    border-width: 2px;
+    padding: 7px 13px;
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 600;
+    box-shadow: none;
+    transform: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn.is-active::after, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn.is-active::after{
+    display: none;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn.is-disabled:not(.wcb-swatch-btn--dot), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn.is-disabled:not(.wcb-swatch-btn--dot){
+    opacity: 0.72;
+    color: #94a3b8;
+    text-decoration: none;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    font-weight: 500;
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed !important;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot.is-disabled, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot.is-disabled{
+    opacity: 1;
+    background: transparent;
+    position: relative;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot.is-disabled .wcb-swatch-dot, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot.is-disabled .wcb-swatch-dot{
+    opacity: 0.5;
+    border-color: rgba(148, 163, 184, 0.45);
+    filter: saturate(0.55) brightness(0.96);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-swatch-btn--dot.is-disabled::after, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-swatch-btn--dot.is-disabled::after{
+    content: '' !important;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    width: 40px;
+    height: 1.5px;
+    pointer-events: none !important;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.25) 15%, #cbd5e1 50%, rgba(148, 163, 184, 0.25) 85%, transparent 100%);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65);
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Form: respiro linear (compacto) */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart{
+    gap: 8px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations{
+    margin-bottom: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations tbody, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations tbody{
+    gap: 8px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations tr, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations tr{
+    gap: 4px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form){
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart.variations_form, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart.variations_form{
+    flex-direction: column;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity{
+    flex-shrink: 0;
+    align-self: flex-start;
+    width: fit-content;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"],
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"]{
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    margin-top: 0;
+}
+
+/* Quantidade — 6px, altura alinhada ao CTA na mesma linha */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .quantity{
+    display: flex;
+    align-items: stretch;
+    border: 1px solid rgba(226, 232, 240, 0.98);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    min-height: 48px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .qty, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .qty{
+    width: 48px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 0 4px;
+    line-height: 48px;
+    min-height: 48px;
+    height: auto;
+    box-sizing: border-box;
+    flex: 0 0 48px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn{
+    background:
+        linear-gradient(152deg, rgba(255, 255, 255, 0.99) 0%, rgba(244, 248, 255, 0.52) 42%, rgba(250, 251, 253, 0.99) 100%),
+        #fff;
+    border: none;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+    color: var(--wcb-blue-mid, #3b72fe);
+    min-width: 44px;
+    width: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    box-sizing: border-box;
+    height: 48px;
+    min-height: 48px;
+    align-self: stretch;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:hover, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .wcb-qty-btn:hover{
+    background:
+        linear-gradient(152deg, rgba(244, 248, 255, 0.88) 0%, rgba(228, 236, 255, 0.62) 45%, rgba(248, 250, 252, 0.99) 100%),
+        #fff;
+    color: var(--wcb-blue, #155dfd);
+}
+
+/* Adicionar ao carrinho — alinhado ao CTA newsletter (.wcb-nl4__btn): gradiente, brilho ::before, sombra */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]{
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #2563eb 0%, #155dfd 55%, #0f48d4 100%);
+    color: #fff;
+    border: none;
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    padding: 15px 22px;
+    border-radius: 6px;
+    margin-top: 0;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+    box-shadow:
+        0 4px 20px rgba(21, 93, 253, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button::before,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]::before{
+    content: '' !important;
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.55s ease;
+    pointer-events: none !important;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover::before,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover::before{
+    left: 130%;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover:not(:disabled):not(.disabled), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover:not(:disabled):not(.disabled),
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover:not(:disabled), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover:not(:disabled){
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow:
+        0 10px 32px rgba(21, 93, 253, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transition-delay: 50ms;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:active, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:active,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:active, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:active{
+    transform: translateY(0);
+    box-shadow:
+        0 4px 20px rgba(21, 93, 253, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button.disabled, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button.disabled,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:disabled, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:disabled,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:disabled, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:disabled{
+    opacity: 0.88;
+    cursor: not-allowed !important;
+    transform: none;
+    box-shadow:
+        0 2px 12px rgba(21, 93, 253, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    background: linear-gradient(135deg, #2563eb 0%, #155dfd 55%, #0f48d4 100%);
+    color: #fff;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button.disabled::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button.disabled::before,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:disabled::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:disabled::before,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:disabled::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:disabled::before{
+    transition: none;
+    left: -75%;
+}
+
+/* Subtotal — PDP + Quick View: cartão azul suave + chip PIX verde marca */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal{
+    background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        color-mix(in srgb, var(--wcb-blue-pale, #f0f4ff) 55%, #ffffff) 100%
+    );
+    border: 1px solid var(--wcb-gray-200, #e5e7eb);
+    border-radius: var(--wcb-radius-lg, 12px);
+    padding: 14px 16px;
+    margin: 12px 0 10px;
+    box-shadow: var(--wcb-shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal__row, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal__row{
+    gap: 12px;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal__label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal__label{
+    color: var(--wcb-gray-600, #4b5563);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal__label svg, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal__label svg{
+    color: var(--wcb-blue, #155dfd);
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal__price, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal__price{
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--wcb-gray-900, #111827);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal__pix, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal__pix{
+    color: var(--wcb-green-dark, #00a06a);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: var(--wcb-radius-md, 8px);
+    background: var(--wcb-green-light, #e6faf4);
+    border: 1px solid color-mix(in srgb, var(--wcb-green, #00c07f) 22%, var(--wcb-gray-200, #e5e7eb));
+    line-height: 1.35;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-subtotal__pix svg, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-subtotal__pix svg{
+    display: block;
+    flex-shrink: 0;
+    color: var(--wcb-green, #00c07f);
+}
+
+/* Seta do CTA — newsletter usa currentColor branco + leve movimento no hover */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-cta-arrow, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-cta-arrow{
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    opacity: 0.92;
+    transition: transform 0.2s ease;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover .wcb-pdp-cta-arrow, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover .wcb-pdp-cta-arrow,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover .wcb-pdp-cta-arrow, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover .wcb-pdp-cta-arrow{
+    transform: translateX(3px);
+}
+
+@media (max-width: 480px) {
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form),
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"],
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"], .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"] {
+        width: 100%;
+        flex: none;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity,
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity {
+        align-self: flex-start;
+        width: fit-content;
+        max-width: none;
+    }
+}
+
+/* Swatches: texto nativo do <label> (substitui regra global removida de style.css) */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations td.label label, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations td.label label,
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .variations td.label label .wcb-swatch-selected-val, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .variations td.label label .wcb-swatch-selected-val{
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button::before,
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]::before{
+        transition: none;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover::before,
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover::before, .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover::before{
+        left: -75%;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover:not(:disabled):not(.disabled), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form .single_add_to_cart_button:hover:not(:disabled):not(.disabled),
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover:not(:disabled), .wcb-qv-modal #wcb-qv-pdp-buybox .wcb-pdp-buybox__form button[name="add-to-cart"]:hover:not(:disabled){
+        transform: none;
+    }
+}

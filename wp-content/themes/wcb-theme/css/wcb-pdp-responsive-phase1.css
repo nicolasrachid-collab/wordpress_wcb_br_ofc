@@ -1,13 +1,21 @@
 /**
- * WCB — PDP Fase 1: tablet e mobile (escopo .wcb-pdp apenas).
- * Breakpoints: 1024, 820, 768, 430, 390, 375, 360.
- * Desktop (min-width: 1025px): sem regras aqui.
+ * WCB — PDP responsivo (escopo .wcb-pdp; buybox em wcb-pdp-layout.css + #wcb-pdp-buybox / #wcb-qv-pdp-buybox aqui onde indicado).
+ *
+ * Breakpoints (alinhados ao tema: hero desktop = min-width 1024px; barra mobile ≤1023px):
+ *   • Tablet: max-width 1023px (481px–1023px + mobile até 480)
+ *   • Mobile: max-width 480px
+ *   • Estreito (opcional): max-width 390px
+ *
+ * Desktop (min-width: 1024px): sem regras aqui para layout hero/galeria.
+ *
+ * Nota: não usar overflow-x em .wcb-pdp — quebraria position:sticky da galeria no desktop.
  */
 
-/* Nota: não usar overflow-x em .wcb-pdp — quebraria position:sticky da galeria no desktop. */
-
+/* Mesmo grid do header (.wcb-container): largura máxima --wcb-container, centrado; não usar max-width:100% aqui (esticava a PDP à largura do #primary). */
 .wcb-pdp .wcb-container {
-	max-width: 100%;
+	max-width: min(var(--wcb-container, 1440px), 100%);
+	margin-left: auto;
+	margin-right: auto;
 	box-sizing: border-box;
 }
 
@@ -42,8 +50,8 @@
 	max-width: 100%;
 }
 
-/* ── 1024 — tablet / hero já em 1 coluna no tema ── */
-@media (max-width: 1024px) {
+/* ── Tablet e mobile comum: até 1023px ───────────────────────────── */
+@media (max-width: 1023px) {
 	.wcb-pdp {
 		padding-top: var(--wcb-space-md, 1rem);
 		padding-bottom: var(--wcb-space-md, 1rem);
@@ -54,7 +62,44 @@
 		padding-right: max(16px, env(safe-area-inset-right, 0px));
 	}
 
-	/* Faixa de benefícios: 4 colunas quebram layout em tablet */
+	.wcb-pdp-hero {
+		gap: var(--wcb-space-xl);
+	}
+
+	.wcb-pdp-buybox__title {
+		font-size: clamp(1.35rem, 3.2vw, 1.65rem);
+		line-height: 1.22;
+	}
+
+	.wcb-pdp .wcb-breadcrumb {
+		font-size: 0.8125rem;
+		line-height: 1.45;
+		row-gap: 4px;
+	}
+
+	.wcb-pdp-gallery__placeholder {
+		min-height: min(360px, 55vw);
+	}
+
+	@media (min-width: 660px) {
+		.wcb-pdp-gallery__main {
+			width: min(563px, 100%);
+			margin-left: auto;
+			margin-right: auto;
+			flex: 0 0 auto;
+		}
+
+		.wcb-pdp-gallery__zoom {
+			width: 100%;
+			aspect-ratio: 1 / 1;
+		}
+
+		.wcb-pdp-gallery__img {
+			padding: 0;
+		}
+	}
+
+	/* Benefícios: 2 colunas no tablet */
 	.wcb-pdp-benefits {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 12px;
@@ -89,31 +134,28 @@
 	}
 
 	.wcb-pdp-buybox__price-card {
-		padding: 14px 16px;
-		gap: 12px;
-	}
-}
-
-/* ── 825 — iPad retrato / tablets estreitos (alinhado à loja / header) ── */
-@media (max-width: 825px) {
-	.wcb-pdp-buybox__title {
-		font-size: clamp(1.35rem, 3.2vw, 1.65rem);
-		line-height: 1.22;
+		padding: 14px 14px;
+		gap: 10px;
 	}
 
-	.wcb-pdp .wcb-breadcrumb {
-		font-size: 0.8125rem;
-		line-height: 1.45;
-		row-gap: 4px;
+	.wcb-pdp-buybox__pix--hero .wcb-pdp-buybox__pix-value {
+		font-size: 1.9rem;
 	}
 
-	.wcb-pdp-gallery__placeholder {
-		min-height: min(360px, 55vw);
+	.wcb-pdp-buybox__price-current {
+		font-size: 1.05rem;
 	}
-}
 
-/* ── 768 — tablet pequeno ── */
-@media (max-width: 768px) {
+	/* Trust: 3 ícones em faixa tablet (481–1023px); mobile 1 col em ≤480px abaixo */
+	.wcb-pdp-buybox__trust {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	/* Variações: linha vira coluna */
+	.wcb-pdp-buybox__form .variations tr {
+		flex-direction: column;
+	}
+
 	.wcb-pdp-reviews-list__head {
 		flex-direction: column;
 		align-items: stretch;
@@ -150,8 +192,8 @@
 	}
 }
 
-/* ── 430 — telemóveis largos ── */
-@media (max-width: 430px) {
+/* ── Mobile: até 480px ──────────────────────────────────────────── */
+@media (max-width: 480px) {
 	.wcb-pdp .wcb-container {
 		padding-left: max(12px, env(safe-area-inset-left, 0px));
 		padding-right: max(12px, env(safe-area-inset-right, 0px));
@@ -181,7 +223,21 @@
 		padding: 12px 14px;
 	}
 
+	.wcb-pdp-benefits__icon {
+		width: 40px;
+		height: 40px;
+	}
+
+	.wcb-pdp-buybox__trust {
+		grid-template-columns: 1fr;
+	}
+
+	.wcb-pdp-trust-item {
+		gap: var(--wcb-space-md);
+	}
+
 	.wcb-pdp-tabs__nav {
+		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 		scroll-snap-type: x proximity;
 	}
@@ -217,41 +273,53 @@
 		padding: var(--wcb-space-md, 1rem);
 	}
 
-	/* Form simples: quantidade + CTA em coluna — CTA forte e largura total */
-	.wcb-pdp-buybox__form form.cart:not(.variations_form) {
+	/* Form: coluna + quantidade à esquerda (PDP + Quick View; detalhe em wcb-pdp-layout.css) */
+	#wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form),
+	#wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart,
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form),
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart {
 		flex-direction: column;
 		align-items: stretch;
 	}
 
-	.wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity {
+	#wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity,
+	#wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity,
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .quantity,
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity {
 		align-self: flex-start;
 		width: fit-content;
 		max-width: none;
-		justify-content: flex-start;
 	}
 
-	.wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
-	.wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"] {
-		width: 100% !important;
+	#wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
+	#wcb-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"],
+	#wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
+	#wcb-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"],
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > .single_add_to_cart_button,
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form form.cart:not(.variations_form) > button[name="add-to-cart"],
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
+	#wcb-qv-pdp-buybox .wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"] {
+		width: 100%;
 		flex: 1 1 auto;
 		min-height: 48px;
 	}
 
-	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .quantity {
-		align-self: flex-start;
-		width: fit-content;
-		max-width: none;
-	}
-
-	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart .single_add_to_cart_button,
-	.wcb-pdp-buybox__form .woocommerce-variation-add-to-cart button[name="add-to-cart"] {
-		width: 100% !important;
+	.wcb-pdp-buybox__form .quantity {
 		min-height: 48px;
+	}
+
+	.wcb-pdp-buybox__form .wcb-qty-btn {
+		width: 40px;
+		min-width: 40px;
+		height: 48px;
+		min-height: 48px;
+		box-sizing: border-box;
+		align-self: stretch;
+	}
+
+	.wcb-pdp-buybox__form .qty {
+		width: 48px;
+		font-size: 1rem;
 	}
 
 	.wcb-pdp-subtotal__row {
@@ -267,14 +335,20 @@
 		text-align: right;
 	}
 
-	:is(#wcb-pdp-buybox) .wcb-swatch-btn:not(.wcb-swatch-btn--dot) {
+	#wcb-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot),
+	#wcb-qv-pdp-buybox .wcb-swatch-btn:not(.wcb-swatch-btn--dot) {
 		min-height: 40px;
 		padding: 0.3rem 0.65rem;
 	}
 }
 
-/* ── 390 — iPhone 12/13/14 ── */
+/* ── Telas estreitas: até 390px ─────────────────────────────────── */
 @media (max-width: 390px) {
+	.wcb-pdp .wcb-container {
+		padding-left: max(10px, env(safe-area-inset-left, 0px));
+		padding-right: max(10px, env(safe-area-inset-right, 0px));
+	}
+
 	.wcb-pdp-tab-btn {
 		padding: 10px 12px;
 		font-size: 0.8125rem;
@@ -284,32 +358,25 @@
 	.wcb-pdp-buybox__form .quantity .wcb-qty-btn {
 		min-width: 42px;
 		width: 42px;
-	}
-}
-
-/* ── 375 / 360 — telemóveis estreitos ── */
-@media (max-width: 375px) {
-	.wcb-pdp .wcb-container {
-		padding-left: max(10px, env(safe-area-inset-left, 0px));
-		padding-right: max(10px, env(safe-area-inset-right, 0px));
+		height: 48px;
+		min-height: 48px;
+		box-sizing: border-box;
 	}
 
 	.wcb-pdp-buybox__form .single_add_to_cart_button,
 	.wcb-pdp-buybox__form button[name="add-to-cart"] {
-		padding-left: 16px !important;
-		padding-right: 16px !important;
-		font-size: 1rem !important;
+		padding-left: 16px;
+		padding-right: 16px;
+		font-size: 1rem;
 	}
-}
 
-@media (max-width: 360px) {
 	#wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__inner {
 		column-gap: 10px;
 		padding: 11px 10px;
 	}
 
-	.wcb-pdp-gallery__thumb {
-		width: 56px;
-		height: 56px;
+	#wcb-qv-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__inner {
+		column-gap: 10px;
+		padding: 11px 10px;
 	}
 }

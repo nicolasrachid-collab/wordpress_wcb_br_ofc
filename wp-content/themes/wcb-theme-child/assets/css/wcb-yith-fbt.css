@@ -402,7 +402,7 @@
 	align-items: baseline;
 	gap: 0.35rem 0.5rem;
 	font-size: 0.72rem;
-	color: #94a3b8;
+	color: #0f172a;
 }
 
 .wcb-fbt__footer-total-label {
@@ -414,7 +414,7 @@
 .wcb-fbt__footer-total-amount {
 	font-size: 0.78rem;
 	font-weight: 600;
-	color: #94a3b8;
+	color: #0f172a;
 	letter-spacing: normal;
 }
 

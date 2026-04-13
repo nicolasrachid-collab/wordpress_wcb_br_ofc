@@ -85,6 +85,21 @@ function wcb_enqueue_assets() {
     );
 
     $wcb_wc_qv_scripts = class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_admin();
+    $wcb_pdp_buybox_css = $wcb_wc_qv_scripts || ( function_exists( 'is_product' ) && is_product() );
+    if ( $wcb_pdp_buybox_css ) {
+        wp_enqueue_style(
+            'wcb-pdp-layout',
+            WCB_URI . '/css/wcb-pdp-layout.css',
+            array( 'wcb-style' ),
+            WCB_VERSION
+        );
+        wp_enqueue_style(
+            'wcb-quick-view',
+            WCB_URI . '/css/wcb-quick-view.css',
+            array( 'wcb-pdp-layout' ),
+            WCB_VERSION
+        );
+    }
     if ( $wcb_wc_qv_scripts ) {
         wp_enqueue_script( 'wc-add-to-cart' );
         wp_enqueue_script( 'wc-add-to-cart-variation' );
@@ -100,6 +115,18 @@ function wcb_enqueue_assets() {
     $wcb_main_deps = array( 'jquery' );
     if ( $wcb_wc_qv_scripts ) {
         $wcb_main_deps[] = 'wcb-variation-buybox';
+    }
+
+    // Carrossel paginado (PDP similares; API global para alinhar com front-page no futuro)
+    if ( function_exists( 'is_product' ) && is_product() ) {
+        wp_enqueue_script(
+            'wcb-paged-carousel',
+            WCB_URI . '/js/wcb-paged-carousel.js',
+            array(),
+            WCB_VERSION,
+            true
+        );
+        $wcb_main_deps[] = 'wcb-paged-carousel';
     }
 
     // Theme JS
@@ -158,7 +185,7 @@ function wcb_enqueue_assets() {
         wp_enqueue_style(
             'wcb-pdp-responsive-phase1',
             WCB_URI . '/css/wcb-pdp-responsive-phase1.css',
-            array( 'wcb-style' ),
+            array( 'wcb-style', 'wcb-pdp-layout' ),
             WCB_VERSION
         );
     }
