@@ -225,6 +225,7 @@ function wcb_promo_banner_image_src( $mod_key, $legacy_basename, $fallback_url )
 require_once WCB_DIR . '/inc/wcb-pure-helpers.php';
 require_once WCB_DIR . '/inc/product-rating-display.php';
 require_once WCB_DIR . '/inc/nav-walker.php';
+require_once WCB_DIR . '/inc/admin-mobile-menu-quick-buy.php';
 require_once WCB_DIR . '/inc/mobile-menu-drilldown.php';
 require_once WCB_DIR . '/inc/enqueue.php';
 require_once WCB_DIR . '/inc/wcb-debug-trust-log.php';
@@ -241,6 +242,8 @@ require_once WCB_DIR . '/inc/wcb-attribute-swatches.php';
 require_once WCB_DIR . '/inc/customizer.php';
 require_once WCB_DIR . '/inc/carousel-backfill.php';
 require_once WCB_DIR . '/inc/super-ofertas-context.php';
+require_once WCB_DIR . '/inc/wcb-home-vitrines-engine.php';
+require_once WCB_DIR . '/inc/wcb-super-ofertas-wc-settings.php';
 require_once WCB_DIR . '/inc/wcb-flash-campaigns.php';
 require_once WCB_DIR . '/inc/newsletter.php';
 require_once WCB_DIR . '/inc/widgets-sidebar.php';

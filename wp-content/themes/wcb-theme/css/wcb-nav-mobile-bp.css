@@ -98,18 +98,6 @@
 }
 
 /*
- * 783–1023px: “tablet” loja (drawer só em ≤782). Entre 769–782 o drawer mobile aplica-se — não forçar relative aqui.
- */
-@media (max-width: 1023px) and (min-width: 783px) {
-	body.woocommerce .wcb-shop__sidebar {
-		position: relative !important;
-		top: auto !important;
-		max-height: none !important;
-		overflow-y: visible !important;
-	}
-}
-
-/*
  * ≤825px: largura explícita no eixo raiz + header — evita métricas estranhas (ex. corpo 0×0 no
  * inspector) e mantém o mesmo “modo estreito” que phase2/PDP acima.
  */

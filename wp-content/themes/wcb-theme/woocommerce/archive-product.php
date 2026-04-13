@@ -63,7 +63,7 @@ $total_products = wc_get_loop_prop('total') ?: $wp_query->found_posts;
 
             <!-- View mode toggles -->
             <div class="wcb-shop__view-toggles" aria-label="Modo de visualização">
-                <button class="wcb-shop__view-btn" data-view="3" aria-label="Grid 3 colunas" title="3 colunas">
+                <button class="wcb-shop__view-btn is-active" data-view="3" aria-label="Grid 3 colunas" title="3 colunas">
                     <!-- 2×2 large squares = spacious view -->
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <rect x="0.5" y="0.5" width="6.5" height="6.5" rx="1.2" fill="currentColor"/>
@@ -72,7 +72,7 @@ $total_products = wc_get_loop_prop('total') ?: $wp_query->found_posts;
                         <rect x="9" y="9" width="6.5" height="6.5" rx="1.2" fill="currentColor"/>
                     </svg>
                 </button>
-                <button class="wcb-shop__view-btn is-active" data-view="4" aria-label="Grid 4 colunas"
+                <button class="wcb-shop__view-btn" data-view="4" aria-label="Grid 4 colunas"
                     title="4 colunas">
                     <!-- 3×3 small squares = dense grid view -->
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -217,41 +217,5 @@ $total_products = wc_get_loop_prop('total') ?: $wp_query->found_posts;
 </button>
 
 <?php /* woocommerce_sidebar removido — usamos sidebar própria dentro do layout */ ?>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // ── View Mode Toggle ──
-        var viewBtns = document.querySelectorAll('.wcb-shop__view-btn');
-        var grid = document.querySelector('.wcb-shop__main ul.products');
-
-        viewBtns.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                viewBtns.forEach(function (b) { b.classList.remove('is-active'); });
-                btn.classList.add('is-active');
-
-                var cols = btn.getAttribute('data-view');
-                if (grid) {
-                    grid.classList.remove('grid-3');
-                    if (cols === '3') {
-                        grid.classList.add('grid-3');
-                    }
-                }
-                // Persist preference
-                try { localStorage.setItem('wcb_grid_view', cols); } catch (e) { }
-            });
-        });
-
-        // Restore preference
-        try {
-            var saved = localStorage.getItem('wcb_grid_view');
-            if (saved && grid) {
-                viewBtns.forEach(function (b) {
-                    b.classList.toggle('is-active', b.getAttribute('data-view') === saved);
-                });
-                grid.classList.toggle('grid-3', saved === '3');
-            }
-        } catch (e) { }
-    });
-</script>
 
 <?php get_footer('shop'); ?>

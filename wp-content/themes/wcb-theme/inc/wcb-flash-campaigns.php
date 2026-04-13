@@ -466,65 +466,98 @@ function wcb_flash_campaigns_register_acf() {
 add_action( 'acf/init', 'wcb_flash_campaigns_register_acf' );
 
 /**
- * Busca ACF (post_object) para produtos: evita WP_Query com `s` no conteúdo HTML (lento / timeout).
- * Usa WC_Product_Data_Store_CPT::search_products (título, excerpt, SKU, LIMIT), com paginação estável.
+ * Busca segura para campo ACF de produtos da campanha flash.
+ *
+ * Estratégia:
+ * - não usa search_products do WooCommerce;
+ * - não depende de wc_product_meta_lookup;
+ * - sem termo `s`, devolve $args (2.ª passagem name/key não quebra post__in);
+ * - busca só em post_title e _sku, com LIMIT/OFFSET alinhados ao Select2.
  *
  * @param array<string,mixed> $args    Argumentos WP_Query do ACF.
  * @param array<string,mixed> $field   Definição do campo ACF.
  * @param int|string          $post_id Post em edição (campanha).
  * @return array<string,mixed>
  */
-function wcb_flash_campaign_acf_post_object_products_query( $args, $_field, $_post_id ) {
+function wcb_fc_produtos_safe_query( $args, $_field, $_post_id ) {
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		return $args;
 	}
 
-	$post_statuses = apply_filters(
-		'woocommerce_search_products_post_statuses',
-		current_user_can( 'edit_private_products' ) ? array( 'private', 'publish' ) : array( 'publish' )
-	);
+	global $wpdb;
 
-	$args['post_status']            = $post_statuses;
+	// Sem busca: mantém fluxo ACF; na 2.ª execução do filtro (name + key) `s` já foi removido.
+	if ( empty( $args['s'] ) ) {
+		return $args;
+	}
+
+	$search = trim( (string) wp_unslash( $args['s'] ) );
+	if ( $search === '' ) {
+		return $args;
+	}
+
+	$search = function_exists( 'wc_clean' ) ? wc_clean( $search ) : sanitize_text_field( $search );
+
+	unset( $args['s'] );
+
 	$args['update_post_meta_cache'] = false;
 	$args['update_term_meta_cache'] = false;
 	$args['no_found_rows']          = true;
 
-	$search = isset( $args['s'] ) ? trim( (string) $args['s'] ) : '';
-	if ( $search === '' ) {
-		$args['orderby'] = 'title';
-		$args['order']   = 'ASC';
-		return $args;
-	}
-
-	unset( $args['s'] );
-
 	$per_page = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : 20;
-	if ( $per_page < 1 ) {
-		$per_page = 20;
+	$per_page = max( 1, min( 40, $per_page ) );
+	$paged    = isset( $args['paged'] ) ? max( 1, (int) $args['paged'] ) : 1;
+	$offset   = ( $paged - 1 ) * $per_page;
+
+	$statuses = apply_filters(
+		'woocommerce_search_products_post_statuses',
+		current_user_can( 'edit_private_products' ) ? array( 'private', 'publish' ) : array( 'publish' )
+	);
+	$statuses = array_values(
+		array_unique(
+			array_intersect(
+				array_map( 'sanitize_key', (array) $statuses ),
+				array( 'publish', 'private' )
+			)
+		)
+	);
+	if ( $statuses === array() ) {
+		$statuses = array( 'publish' );
 	}
-	$per_page = min( $per_page, 40 );
+	$args['post_status'] = $statuses;
+	$status_in           = "'" . implode( "','", array_map( 'esc_sql', $statuses ) ) . "'";
 
-	$paged = isset( $args['paged'] ) ? (int) $args['paged'] : 1;
-	if ( $paged < 1 ) {
-		$paged = 1;
+	$like       = '%' . $wpdb->esc_like( $search ) . '%';
+	$numeric_id = preg_match( '/^\d+$/', $search ) ? absint( $search ) : 0;
+
+	$sql = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_sku'
+		WHERE p.post_type = 'product'
+		AND p.post_status IN ($status_in)
+		AND (
+			p.post_title LIKE %s
+			OR ( pm.meta_id IS NOT NULL AND pm.meta_value <> '' AND pm.meta_value LIKE %s )
+			OR ( %d <> 0 AND p.ID = %d )
+		)
+		ORDER BY p.post_title ASC
+		LIMIT %d OFFSET %d";
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- status_in vem de lista fixa + esc_sql.
+	$prepared = $wpdb->prepare( $sql, $like, $like, $numeric_id, $numeric_id, $per_page, $offset );
+
+	$product_ids = array();
+	if ( is_string( $prepared ) && $prepared !== '' ) {
+		$col = $wpdb->get_col( $prepared );
+		if ( $wpdb->last_error === '' && is_array( $col ) ) {
+			$product_ids = array_values( array_filter( array_map( 'absint', $col ) ) );
+		}
 	}
 
-	$fetch_cap = min( 120, $per_page * $paged );
-
-	$term = wc_clean( wp_unslash( $search ) );
-
-	try {
-		$data_store = WC_Data_Store::load( 'product' );
-		$all_ids    = $data_store->search_products( $term, '', false, false, $fetch_cap, null, null );
-	} catch ( Exception $e ) {
-		$all_ids = array();
+	if ( $product_ids === array() ) {
+		$args['post__in'] = array( 0 );
+	} else {
+		$args['post__in'] = $product_ids;
 	}
-
-	$all_ids = is_array( $all_ids ) ? array_values( array_filter( array_map( 'absint', $all_ids ) ) ) : array();
-	$offset  = ( $paged - 1 ) * $per_page;
-	$page_ids = array_slice( $all_ids, $offset, $per_page );
-
-	$args['post__in']       = $page_ids !== array() ? $page_ids : array( 0 );
 	$args['orderby']        = 'post__in';
 	$args['posts_per_page'] = $per_page;
 	$args['paged']          = 1;
@@ -532,7 +565,8 @@ function wcb_flash_campaign_acf_post_object_products_query( $args, $_field, $_po
 	return $args;
 }
 
-add_filter( 'acf/fields/post_object/query/name=wcb_fc_produtos', 'wcb_flash_campaign_acf_post_object_products_query', 25, 3 );
+add_filter( 'acf/fields/post_object/query/name=wcb_fc_produtos', 'wcb_fc_produtos_safe_query', 20, 3 );
+add_filter( 'acf/fields/post_object/query/key=field_wcb_fc_produtos', 'wcb_fc_produtos_safe_query', 20, 3 );
 
 /**
  * Invalida cache ao gravar campanha.

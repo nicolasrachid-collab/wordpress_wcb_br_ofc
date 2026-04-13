@@ -2,6 +2,13 @@
 /**
  * Menu mobile — drill-down (painéis horizontais, alinhado ao menu primary).
  *
+ * Painel raiz (extensível, sem alterar drill-down):
+ * `wcb_mm_show_root_promo_hero`, `wcb_mm_show_root_quick_buy`, `wcb_mm_root_quick_buy_items`, `wcb_mm_root_quick_buy_links`,
+ * `wcb_mm_root_quick_buy_section_label` (defeito: “Mais pesquisados”), `wcb_mm_show_root_categories_label`, `wcb_mm_root_categories_section_label`,
+ * `wcb_mm_show_root_all_categories_cta`, `wcb_mm_root_all_categories_cta_label`, `wcb_mm_root_shop_url`,
+ * `wcb_mm_show_root_services_block`, `wcb_mm_root_services_section_label`, `wcb_mm_root_service_links`.
+ * Atalhos “Mais pesquisados”: `wcb_mm_quick_buy_items`. Rodapé WhatsApp: `wcb_mm_drawer_footer` (Aparência → Atalhos menu mobile).
+ *
  * @package WCB_Theme
  */
 
@@ -235,6 +242,294 @@ function wcb_mm_root_promo_cta_config() {
 }
 
 /**
+ * URL de categoria de produto por slug (para atalhos “Comprar rápido”).
+ *
+ * @param string $slug Slug de product_cat.
+ * @return string URL ou string vazia.
+ */
+function wcb_mm_product_category_url_by_slug( $slug ) {
+	$slug = sanitize_title( (string) $slug );
+	if ( '' === $slug || ! taxonomy_exists( 'product_cat' ) ) {
+		return '';
+	}
+	$term = get_term_by( 'slug', $slug, 'product_cat' );
+	if ( ! $term || is_wp_error( $term ) ) {
+		return '';
+	}
+	$link = get_term_link( $term );
+	return is_wp_error( $link ) ? '' : (string) $link;
+}
+
+/**
+ * Itens padrão do bloco “Comprar rápido” (slug → URL resolvida depois).
+ *
+ * @return array<int, array{label: string, slug: string}>
+ */
+function wcb_mm_root_quick_buy_default_items() {
+	return array(
+		array(
+			'label' => __( 'Pods descartáveis', 'wcb-theme' ),
+			'slug'  => 'pods-descartaveis',
+		),
+		array(
+			'label' => __( 'Aparelhos', 'wcb-theme' ),
+			'slug'  => 'aparelhos',
+		),
+		array(
+			'label' => __( 'Juices', 'wcb-theme' ),
+			'slug'  => 'juices',
+		),
+		array(
+			'label' => __( 'SaltNic', 'wcb-theme' ),
+			'slug'  => 'saltnic',
+		),
+	);
+}
+
+/**
+ * Links finais do “Comprar rápido” (após resolver slugs / filtro).
+ *
+ * @return array<int, array{label: string, url: string}>
+ */
+function wcb_mm_root_quick_buy_resolved_links() {
+	$items = apply_filters( 'wcb_mm_root_quick_buy_items', wcb_mm_root_quick_buy_default_items() );
+	$out   = array();
+	foreach ( (array) $items as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$label = isset( $row['label'] ) ? (string) $row['label'] : '';
+		$label = trim( $label );
+		if ( '' === $label ) {
+			continue;
+		}
+		$url = '';
+		if ( ! empty( $row['url'] ) ) {
+			$url = (string) $row['url'];
+		} elseif ( ! empty( $row['slug'] ) ) {
+			$url = wcb_mm_product_category_url_by_slug( (string) $row['slug'] );
+		}
+		$u = esc_url( $url );
+		if ( '' === $u || '#' === $u ) {
+			continue;
+		}
+		$out[] = array(
+			'label' => $label,
+			'url'   => $url,
+		);
+	}
+
+	return apply_filters( 'wcb_mm_root_quick_buy_links', $out );
+}
+
+/**
+ * CTA “Promoções” em destaque (abaixo da busca), estilo botão — não substitui o item da lista (oculto por CSS quando o hero existe).
+ *
+ * @param string $mm_uid Prefixo único da instância drill-down.
+ */
+function wcb_mm_root_promo_hero_markup( $mm_uid = '' ) {
+	if ( ! (bool) apply_filters( 'wcb_mm_show_root_promo_hero', true ) ) {
+		return;
+	}
+	$cfg = wcb_mm_root_promo_cta_config();
+	if ( null === $cfg ) {
+		return;
+	}
+	$uid = is_string( $mm_uid ) && '' !== $mm_uid ? $mm_uid : 'wcb-mm-' . wp_unique_id();
+	$active = wcb_mm_chip_is_active( $cfg['url'] ) ? ' is-active' : '';
+	?>
+	<div class="wcb-mm-root-promo-hero">
+		<a class="wcb-mm-root-promo-hero__btn<?php echo esc_attr( $active ); ?>" href="<?php echo esc_url( $cfg['url'] ); ?>">
+			<?php echo wcb_mm_promo_menu_icon_svg( $uid . '-hero' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<span class="wcb-mm-root-promo-hero__label"><?php echo esc_html( $cfg['label'] ); ?></span>
+		</a>
+	</div>
+	<?php
+}
+
+/**
+ * Bloco “Mais pesquisados” (atalhos) — grelha (URLs filtráveis).
+ *
+ * @param string $mm_uid Prefixo único da instância drill-down.
+ */
+function wcb_mm_root_quick_buy_markup( $mm_uid = '' ) {
+	if ( ! (bool) apply_filters( 'wcb_mm_show_root_quick_buy', true ) ) {
+		return;
+	}
+	$links = wcb_mm_root_quick_buy_resolved_links();
+	if ( empty( $links ) ) {
+		return;
+	}
+	$quick_title = (string) apply_filters(
+		'wcb_mm_root_quick_buy_section_label',
+		__( 'Mais pesquisados', 'wcb-theme' )
+	);
+	if ( '' === trim( $quick_title ) ) {
+		return;
+	}
+	?>
+	<div class="wcb-mm-root-quick">
+		<p class="wcb-mm-root-quick__label"><?php echo esc_html( $quick_title ); ?></p>
+		<div class="wcb-mm-root-quick__grid" role="list">
+			<?php
+			foreach ( array_slice( $links, 0, 4 ) as $row ) :
+				$u = esc_url( $row['url'] );
+				if ( '' === $u ) {
+					continue;
+				}
+				$chip_active = wcb_mm_chip_is_active( $row['url'] ) ? ' is-active' : '';
+				?>
+			<a class="wcb-mm-root-quick__chip<?php echo esc_attr( $chip_active ); ?>" role="listitem" href="<?php echo esc_url( $u ); ?>"><?php echo esc_html( $row['label'] ); ?></a>
+				<?php
+			endforeach;
+			?>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * URL da loja (CTA “Ver todas as categorias”).
+ *
+ * @return string
+ */
+function wcb_mm_root_shop_url() {
+	$url = '';
+	if ( class_exists( 'WooCommerce' ) ) {
+		$shop = wc_get_page_permalink( 'shop' );
+		if ( $shop ) {
+			$url = $shop;
+		}
+	}
+
+	return (string) apply_filters( 'wcb_mm_root_shop_url', $url );
+}
+
+/**
+ * Label de secção acima da lista principal (painel raiz).
+ * Filtros: `wcb_mm_show_root_categories_label`, `wcb_mm_root_categories_section_label`.
+ */
+function wcb_mm_root_categories_section_markup() {
+	if ( ! (bool) apply_filters( 'wcb_mm_show_root_categories_label', true ) ) {
+		return;
+	}
+	$label = (string) apply_filters(
+		'wcb_mm_root_categories_section_label',
+		__( 'Explorar categorias', 'wcb-theme' )
+	);
+	if ( '' === trim( $label ) ) {
+		return;
+	}
+	?>
+	<p class="wcb-mm-section-label wcb-mm-section-label--explore"><?php echo esc_html( $label ); ?></p>
+	<?php
+}
+
+/**
+ * CTA final do painel raiz — link direto à loja (sem drill-down).
+ */
+function wcb_mm_root_all_categories_cta_markup() {
+	if ( ! (bool) apply_filters( 'wcb_mm_show_root_all_categories_cta', true ) ) {
+		return;
+	}
+	$url = wcb_mm_root_shop_url();
+	if ( '' === $url ) {
+		return;
+	}
+	$label = (string) apply_filters(
+		'wcb_mm_root_all_categories_cta_label',
+		__( 'Ver todos os produtos', 'wcb-theme' )
+	);
+	if ( '' === trim( $label ) ) {
+		return;
+	}
+	?>
+	<div class="wcb-mm-root-cta-wrap">
+		<a class="wcb-mm-ver-todos wcb-mm-root-cta wcb-mm-root-cta--shop-exit" href="<?php echo esc_url( $url ); ?>">
+			<span class="wcb-mm-ver-todos__text"><?php echo esc_html( $label ); ?></span>
+			<svg class="wcb-mm-ver-todos__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+		</a>
+	</div>
+	<?php
+}
+
+/**
+ * Links institucionais opcionais (painel raiz). Filtrável; só renderiza se houver entradas.
+ *
+ * @return array<int, array{label: string, url: string}>
+ */
+function wcb_mm_root_service_links() {
+	$links = array();
+
+	$privacy_id = (int) get_option( 'wp_page_for_privacy_policy' );
+	if ( $privacy_id && 'publish' === get_post_status( $privacy_id ) ) {
+		$links[] = array(
+			'label' => __( 'Política de privacidade', 'wcb-theme' ),
+			'url'   => get_permalink( $privacy_id ),
+		);
+	}
+
+	if ( function_exists( 'wc_terms_and_conditions_page_id' ) ) {
+		$terms_id = (int) wc_terms_and_conditions_page_id();
+		if ( $terms_id && 'publish' === get_post_status( $terms_id ) ) {
+			$links[] = array(
+				'label' => __( 'Termos e condições', 'wcb-theme' ),
+				'url'   => get_permalink( $terms_id ),
+			);
+		}
+	}
+
+	return apply_filters( 'wcb_mm_root_service_links', $links );
+}
+
+/**
+ * Bloco “Serviços” abaixo da lista principal.
+ */
+function wcb_mm_root_services_markup() {
+	if ( ! (bool) apply_filters( 'wcb_mm_show_root_services_block', true ) ) {
+		return;
+	}
+	$links = wcb_mm_root_service_links();
+	$valid = array();
+	foreach ( $links as $row ) {
+		if ( empty( $row['url'] ) || empty( $row['label'] ) || ! is_string( $row['label'] ) ) {
+			continue;
+		}
+		$raw = $row['url'];
+		$u   = esc_url( $raw );
+		if ( '' === $u || '#' === $u ) {
+			continue;
+		}
+		$valid[] = array(
+			'label' => $row['label'],
+			'url'   => $raw,
+		);
+	}
+	if ( empty( $valid ) ) {
+		return;
+	}
+	$services_title = (string) apply_filters(
+		'wcb_mm_root_services_section_label',
+		__( 'Serviços', 'wcb-theme' )
+	);
+	if ( '' === trim( $services_title ) ) {
+		return;
+	}
+	?>
+	<div class="wcb-mm-root-services wcb-mm-root-services--muted">
+		<p class="wcb-mm-section-label wcb-mm-section-label--services"><?php echo esc_html( $services_title ); ?></p>
+		<ul class="wcb-mm-root-services__list" role="list">
+			<?php foreach ( $valid as $row ) : ?>
+			<li class="wcb-mm-root-services__item">
+				<a class="wcb-mm-root-services__link" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( (string) $row['label'] ); ?></a>
+			</li>
+			<?php endforeach; ?>
+		</ul>
+	</div>
+	<?php
+}
+
+/**
  * Barra de busca no painel raiz.
  */
 function wcb_mm_root_search_markup() {
@@ -283,21 +578,55 @@ function wcb_mm_root_has_visible_promo_menu_item( array $items ) {
 }
 
 /**
- * Secção fixa inferior: atalho Conta (copy conforme sessão).
+ * Secção fixa inferior: CTA comercial (por defeito grupo WhatsApp).
+ *
+ * Filtros:
+ * - `wcb_mm_show_root_footer` (bool) — ocultar o bloco.
+ * - `wcb_mm_root_footer_cta_url` (string) — URL final (sobrepor tudo).
+ * - `wcb_mm_root_footer_cta_label` (string) — texto do link.
+ *
+ * Ordem da URL sem filtro: opção `wcb_mm_drawer_footer` (Aparência → Atalhos menu mobile), depois theme mod `wcb_nl4_whatsapp_url`, depois placeholder.
  */
 function wcb_mm_root_footer_markup() {
-	$account_url = class_exists( 'WooCommerce' ) ? wc_get_account_endpoint_url( 'dashboard' ) : wp_login_url();
-	$logged_in     = is_user_logged_in();
-	$label         = $logged_in
-		? __( 'Acessar minha conta', 'wcb-theme' )
-		: __( 'Faça seu login ou cadastre-se', 'wcb-theme' );
+	if ( ! (bool) apply_filters( 'wcb_mm_show_root_footer', true ) ) {
+		return;
+	}
+	$stored = wcb_mm_drawer_footer_get_stored();
+	$from_admin = isset( $stored['url'] ) ? trim( (string) $stored['url'] ) : '';
+	$from_theme = trim( (string) get_theme_mod( 'wcb_nl4_whatsapp_url', '' ) );
+	$fallback   = 'https://chat.whatsapp.com/SEU-LINK-AQUI';
+	if ( '' !== $from_admin ) {
+		$default_wa = $from_admin;
+	} elseif ( '' !== $from_theme ) {
+		$default_wa = $from_theme;
+	} else {
+		$default_wa = $fallback;
+	}
+	$footer_url = (string) apply_filters( 'wcb_mm_root_footer_cta_url', $default_wa );
+
+	$default_copy = __( 'Entre no grupo VIP do WhatsApp e receba ofertas exclusivas', 'wcb-theme' );
+	$from_label   = isset( $stored['label'] ) ? trim( (string) $stored['label'] ) : '';
+	$footer_label = (string) apply_filters(
+		'wcb_mm_root_footer_cta_label',
+		'' !== $from_label ? $from_label : $default_copy
+	);
+	if ( '' === trim( $footer_label ) ) {
+		return;
+	}
+	$footer_url = trim( $footer_url );
+	if ( '' === $footer_url || '#' === $footer_url ) {
+		$footer_url = '#';
+		$is_action  = false;
+	} else {
+		$is_action = true;
+	}
 	?>
 	<div class="wcb-mm-root-footer">
-		<a class="wcb-mm-root-footer__account" href="<?php echo esc_url( $account_url ); ?>">
+		<a class="wcb-mm-root-footer__account wcb-mm-root-footer__cta wcb-mm-root-footer__cta--whatsapp" href="<?php echo esc_url( $footer_url ); ?>"<?php echo $is_action ? ' target="_blank" rel="noopener noreferrer"' : ''; ?>>
 			<span class="wcb-mm-root-footer__account-icon" aria-hidden="true">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 			</span>
-			<span class="wcb-mm-root-footer__account-label"><?php echo esc_html( $label ); ?></span>
+			<span class="wcb-mm-root-footer__account-label"><?php echo esc_html( $footer_label ); ?></span>
 		</a>
 	</div>
 	<?php
@@ -331,11 +660,11 @@ function wcb_mm_drawer_header_cap_markup() {
 			__( 'Olá, %s', 'wcb-theme' ),
 			$name
 		);
-		$subtitle = __( 'Acompanhe seus pedidos, aproveite ofertas e encontre seus favoritos.', 'wcb-theme' );
+		$subtitle = __( 'Pedidos, ofertas e favoritos.', 'wcb-theme' );
 	} else {
 		$wrapper_class .= ' wcb-mobile-menu__header-text--guest';
 		$title    = __( 'Entre ou crie sua conta', 'wcb-theme' );
-		$subtitle = __( 'Desbloqueie ofertas e compre mais rápido.', 'wcb-theme' );
+		$subtitle = __( 'Compre com mais rapidez.', 'wcb-theme' );
 	}
 	?>
 	<div class="<?php echo esc_attr( $wrapper_class ); ?>">
@@ -540,7 +869,14 @@ function wcb_mobile_drilldown_menu_html( $theme_location = 'primary' ) {
 				<div class="wcb-mm-panel wcb-mm-panel--root" id="<?php echo esc_attr( $root_panel_id ); ?>" role="group" aria-label="<?php echo esc_attr__( 'Menu principal', 'wcb-theme' ); ?>" aria-hidden="false">
 					<?php wcb_mm_root_search_markup(); ?>
 					<div class="wcb-mm-scroll">
+					<?php wcb_mm_root_promo_hero_markup( $mm_uid ); ?>
+					<?php wcb_mm_root_quick_buy_markup( $mm_uid ); ?>
+					<div class="wcb-mm-root-block wcb-mm-root-block--categories">
+					<?php wcb_mm_root_categories_section_markup(); ?>
 					<?php echo $root_ul; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php wcb_mm_root_all_categories_cta_markup(); ?>
+					</div>
+					<?php wcb_mm_root_services_markup(); ?>
 					</div>
 					<?php wcb_mm_root_footer_markup(); ?>
 				</div>
@@ -566,11 +902,15 @@ function wcb_mobile_drilldown_fallback_html() {
 				<div class="wcb-mm-panel wcb-mm-panel--root" id="<?php echo esc_attr( $root_panel_id ); ?>" role="group" aria-label="<?php echo esc_attr__( 'Menu principal', 'wcb-theme' ); ?>" aria-hidden="false">
 					<?php wcb_mm_root_search_markup(); ?>
 					<div class="wcb-mm-scroll">
+					<?php wcb_mm_root_promo_hero_markup( $mm_uid ); ?>
+					<?php wcb_mm_root_quick_buy_markup( $mm_uid ); ?>
+					<div class="wcb-mm-root-block wcb-mm-root-block--categories">
+					<?php wcb_mm_root_categories_section_markup(); ?>
 					<ul class="wcb-mobile-menu__list wcb-mm-list" role="list">
 						<li class="wcb-mm-item menu-item"><div class="wcb-mm-row wcb-mm-row--leaf"><a class="wcb-mm-link wcb-mm-link--leaf" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Início', 'wcb-theme' ); ?></a></div></li>
 						<?php
 						$wcb_mm_fb_promo = wcb_mm_root_promo_cta_config();
-						if ( null !== $wcb_mm_fb_promo ) :
+						if ( null !== $wcb_mm_fb_promo && ! (bool) apply_filters( 'wcb_mm_show_root_promo_hero', true ) ) :
 							?>
 						<li class="wcb-mm-item wcb-mm-item--promo menu-item"><div class="wcb-mm-row wcb-mm-row--leaf"><a class="wcb-mm-link wcb-mm-link--leaf wcb-mm-link--promo<?php echo wcb_mm_chip_is_active( $wcb_mm_fb_promo['url'] ) ? ' is-active' : ''; ?>" href="<?php echo esc_url( $wcb_mm_fb_promo['url'] ); ?>"><?php echo wcb_mm_promo_menu_icon_svg( $mm_uid . '-fb-promo' ); ?><span class="wcb-mm-link__label"><?php echo esc_html( $wcb_mm_fb_promo['label'] ); ?></span></a></div></li>
 						<?php endif; ?>
@@ -580,6 +920,9 @@ function wcb_mobile_drilldown_fallback_html() {
 							<li class="wcb-mm-item menu-item"><div class="wcb-mm-row wcb-mm-row--leaf"><a class="wcb-mm-link wcb-mm-link--leaf" href="<?php echo esc_url( wc_get_account_endpoint_url( 'dashboard' ) ); ?>"><?php esc_html_e( 'Minha Conta', 'wcb-theme' ); ?></a></div></li>
 						<?php endif; ?>
 					</ul>
+					<?php wcb_mm_root_all_categories_cta_markup(); ?>
+					</div>
+					<?php wcb_mm_root_services_markup(); ?>
 					</div>
 					<?php wcb_mm_root_footer_markup(); ?>
 				</div>

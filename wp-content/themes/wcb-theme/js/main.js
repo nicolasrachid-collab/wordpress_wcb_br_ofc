@@ -537,6 +537,7 @@
     window.addEventListener('resize', function () {
         if (window.innerWidth > 1023) {
             closeMobileMenu();
+            wcbCloseShopFiltersIfOpen();
         } else if (mobileMenu && mobileMenu.classList.contains('active') && typeof window.wcbMmDrilldownSize === 'function') {
             window.requestAnimationFrame(function () {
                 if (mobileMenu.classList.contains('active')) {
@@ -968,6 +969,69 @@
                 new ResizeObserver(scheduleMeasure).observe(siteHeader);
             } catch (e) { /* noop */ }
         }
+    })();
+
+    /* Altura da toolbar da loja — sidebar sticky fica sempre abaixo do header + toolbar */
+    (function wcbShopToolbarHeightVar() {
+        const toolbar = document.querySelector('.wcb-shop__toolbar');
+        if (!toolbar) return;
+
+        function measure() {
+            const h = Math.ceil(toolbar.offsetHeight);
+            if (h < 1 || !Number.isFinite(h)) {
+                document.documentElement.style.removeProperty('--wcb-shop-toolbar-h');
+                return;
+            }
+            document.documentElement.style.setProperty('--wcb-shop-toolbar-h', h + 'px');
+        }
+
+        function schedule() {
+            window.requestAnimationFrame(measure);
+        }
+
+        schedule();
+        window.addEventListener('load', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+        if (typeof ResizeObserver !== 'undefined') {
+            try {
+                new ResizeObserver(schedule).observe(toolbar);
+            } catch (e) { /* noop */ }
+        }
+    })();
+
+    /* Loja: toggle grid 3 vs 4 colunas (classe .grid-3 + localStorage) */
+    (function wcbInitShopGridViewToggle() {
+        const grid = document.querySelector('.wcb-shop__main ul.products');
+        const viewBtns = document.querySelectorAll('.wcb-shop__view-btn');
+        if (!grid || !viewBtns.length) return;
+
+        function applyView(cols) {
+            const v = cols === '4' ? '4' : '3';
+            viewBtns.forEach((b) => {
+                b.classList.toggle('is-active', b.getAttribute('data-view') === v);
+            });
+            grid.classList.toggle('grid-3', v === '3');
+            try {
+                localStorage.setItem('wcb_grid_view', v);
+            } catch (e) { /* noop */ }
+        }
+
+        let saved = null;
+        try {
+            saved = localStorage.getItem('wcb_grid_view');
+        } catch (e) { /* noop */ }
+        if (saved !== '3' && saved !== '4') {
+            saved = '3';
+        }
+        applyView(saved);
+
+        viewBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const cols = btn.getAttribute('data-view');
+                if (cols !== '3' && cols !== '4') return;
+                applyView(cols);
+            });
+        });
     })();
 
     /* ============================================================

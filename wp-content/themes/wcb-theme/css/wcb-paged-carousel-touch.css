@@ -78,12 +78,9 @@
 	#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title,
 	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title,
 	#wcb-pdp-similar-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__title {
-		min-height: calc(0.78rem * 1.28 * 2) !important;
+		min-height: calc(14px * 1.28 * 2) !important;
 	}
 
-	#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
-	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
-	#wcb-pdp-similar-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-mobile,
 	#wcb-novidades-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout,
 	#wcb-novidades2-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout,
 	#wcb-pdp-similar-carousel .wcb-paged-carousel__grid--single-row .wcb-product-card__cta-soldout {
@@ -122,11 +119,25 @@
 		line-height: 1.2 !important;
 	}
 
-	.wcb-paged-carousel .wcb-product-card__fav {
+	.wcb-paged-carousel .wcb-product-card__img-actions {
 		top: 6px;
 		right: 6px;
-		transform: scale(0.88);
-		opacity: 0.82;
+		gap: 6px;
+		width: 36px;
+		align-items: stretch;
+	}
+
+	.wcb-paged-carousel .wcb-product-card__img-actions .wcb-product-card__fav,
+	.wcb-paged-carousel .wcb-product-card__img-actions .wcb-product-card__cta-mobile {
+		width: 100% !important;
+		height: 36px !important;
+		min-height: 36px !important;
+	}
+
+	/* Mesmo tamanho que o carrinho na pilha (sem scale no fav — alinhamento visual) */
+	.wcb-paged-carousel .wcb-product-card__img-actions .wcb-product-card__fav {
+		transform: none;
+		opacity: 1;
 	}
 
 	.wcb-paged-carousel .wcb-product-card__cat {
@@ -143,7 +154,7 @@
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		overflow: hidden;
-		font-size: 0.78rem !important;
+		font-size: 14px !important;
 		line-height: 1.28 !important;
 		min-height: 0 !important;
 		margin-bottom: 0 !important;
@@ -227,34 +238,24 @@
 		min-height: 1.375rem !important;
 	}
 
-	.wcb-paged-carousel .wcb-product-card__cta-mobile {
-		min-height: 44px;
-		max-height: 46px;
-		margin-top: auto !important;
-		padding: 9px 12px !important;
-		font-size: 0.72rem !important;
-		font-weight: 700 !important;
-		border-radius: 8px !important;
-		box-sizing: border-box;
-		border: 1px solid rgba(255, 255, 255, 0.12) !important;
-		box-shadow:
-			0 1px 0 rgba(255, 255, 255, 0.18) inset,
-			0 2px 8px rgba(21, 93, 253, 0.22) !important;
+	/* Carrinho = ícone na imagem (largura alinhada ao fav) */
+	.wcb-paged-carousel .wcb-product-card__img-actions .wcb-product-card__cta-mobile {
+		margin-top: 0 !important;
+		padding: 0 !important;
+		border-radius: 50% !important;
+		box-sizing: border-box !important;
 	}
 
-	/* Altura uniforme: empurra CTA para o fundo do card (anula margin-top fixo acima) */
-	.wcb-paged-carousel__grid--vendidos-row .wcb-product-card__cta-mobile,
+	/* Altura uniforme: só CTA esgotado no fundo do card */
 	.wcb-paged-carousel__grid--vendidos-row .wcb-product-card__cta-soldout,
-	.wcb-paged-carousel__slide:not(:has(> .wcb-paged-carousel__grid--single-row))
-		> .wcb-paged-carousel__grid:not(.wcb-paged-carousel__grid--vendidos-row) .wcb-product-card__cta-mobile,
 	.wcb-paged-carousel__slide:not(:has(> .wcb-paged-carousel__grid--single-row))
 		> .wcb-paged-carousel__grid:not(.wcb-paged-carousel__grid--vendidos-row) .wcb-product-card__cta-soldout {
 		margin-top: auto !important;
 	}
 
-	.wcb-paged-carousel .wcb-product-card__cta-mobile svg {
-		width: 14px !important;
-		height: 14px !important;
+	.wcb-paged-carousel .wcb-product-card__img-actions .wcb-product-card__cta-mobile svg {
+		width: 16px !important;
+		height: 16px !important;
 	}
 
 	.wcb-paged-carousel .wcb-product-card__cta-soldout {
@@ -263,17 +264,7 @@
 		box-sizing: border-box !important;
 	}
 
-	/*
-	 * Super Ofertas: CTA do carrossel já estilizado em style.css (laranja, sem glow azul).
-	 * Anula borda/sombra do strip genérico (evita !important “ganhar” por ordem).
-	 */
-	#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__cta-mobile {
-		min-height: 48px !important;
-		max-height: none !important;
-		padding: 12px 14px !important;
-		border: none !important;
-		box-shadow: none !important;
-	}
+	/* Super Ofertas: sem carrinho na imagem (style.css); favorito visível no mobile */
 
 	#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-row {
 		min-height: 48px !important;

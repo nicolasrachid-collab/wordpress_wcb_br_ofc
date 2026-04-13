@@ -2,7 +2,7 @@
 /**
  * WCB Theme — Product Card (fonte oficial de listagem)
  *
- * Hierarquia: Imagem → Nome → Avaliação → Preço (PIX herói quando existe) → CTA no hover
+ * Hierarquia: Imagem (favorito + carrinho ícone) → Nome → Avaliação → Preço → overlay hover desktop
  * BEM: .wcb-product-card, .wcb-product-card__*, modificadores --out-of-stock
  *
  * Legado .wcb-card5* foi unificado neste ficheiro; não duplicar markup noutros templates.
@@ -127,6 +127,15 @@ if ($product->is_type('variable')) {
         }
     }
 }
+
+/* Super Ofertas: timer da campanha — precisa antes da área da imagem (CTA ao lado do fav). */
+$wcb_so_flash_end = null;
+if ( $in_stock && is_array( $wcb_pc_track ) && isset( $wcb_pc_track['wcb_track'] ) && 'super-ofertas' === (string) $wcb_pc_track['wcb_track'] && function_exists( 'wcb_get_product_flash_timer' ) ) {
+	$wcb_so_flash_end = wcb_get_product_flash_timer( (int) $product->get_id() );
+}
+
+// Carrinho na pilha da imagem: sempre que em stock (antes ocultava em Super Ofertas com timer de campanha).
+$wcb_show_img_stack_cart = $in_stock;
 ?>
 
 <div class="wcb-product-card<?php echo !$in_stock ? ' wcb-product-card--out-of-stock' : ''; ?>" data-product-id="<?php echo esc_attr( (string) $product->get_id() ); ?>"
@@ -160,15 +169,32 @@ if ($product->is_type('variable')) {
             <?php endif; ?>
         </div>
 
-        <!-- Favorite (top-right) -->
-        <button type="button" class="wcb-product-card__fav" title="<?php echo esc_attr( $wcb_fav_btn_label ); ?>"
-            aria-label="<?php echo esc_attr( $wcb_fav_btn_label ); ?>"
-            data-product-id="<?php echo esc_attr( (string) $product->get_id() ); ?>">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-        </button>
+        <!-- Favorito + carrinho (ícones empilhados, canto superior direito) -->
+        <div class="wcb-product-card__img-actions">
+            <button type="button" class="wcb-product-card__fav" title="<?php echo esc_attr( $wcb_fav_btn_label ); ?>"
+                aria-label="<?php echo esc_attr( $wcb_fav_btn_label ); ?>"
+                data-product-id="<?php echo esc_attr( (string) $product->get_id() ); ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+            </button>
+            <?php if ( $wcb_show_img_stack_cart ) : ?>
+                <a href="<?php echo esc_url( $product->add_to_cart_url() ); ?>"
+                    class="wcb-product-card__cta-mobile add_to_cart_button ajax_add_to_cart"
+                    data-quantity="1"
+                    data-product_id="<?php echo esc_attr( (string) $product->get_id() ); ?>"
+                    data-product_sku="<?php echo esc_attr( $product->get_sku() ); ?>"
+                    aria-label="<?php echo esc_attr__( 'Adicionar ao carrinho', 'wcb-theme' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <circle cx="9" cy="21" r="1" />
+                        <circle cx="20" cy="21" r="1" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                </a>
+            <?php endif; ?>
+        </div>
 
         <!-- Image -->
         <a href="<?php the_permalink(); ?>" class="wcb-product-card__img" tabindex="-1">
@@ -298,20 +324,9 @@ if ($product->is_type('variable')) {
             </div>
         <?php endif; ?>
 
-        <?php
-		/*
-		 * Super Ofertas: timer da campanha (ACF) via wcb_get_product_flash_timer — mesma prioridade que na PDP
-		 * (campanha > wcb_pdp_offer_timer_scope; o scope do produto não afeta o card na home).
-		 */
-		$wcb_so_flash_end = null;
-		if ( $in_stock && is_array( $wcb_pc_track ) && isset( $wcb_pc_track['wcb_track'] ) && 'super-ofertas' === (string) $wcb_pc_track['wcb_track'] && function_exists( 'wcb_get_product_flash_timer' ) ) {
-			$wcb_so_flash_end = wcb_get_product_flash_timer( (int) $product->get_id() );
-		}
-		?>
-
         <?php if ($in_stock): ?>
             <?php if ( is_string( $wcb_so_flash_end ) && $wcb_so_flash_end !== '' ) : ?>
-                <!-- Super Ofertas: countdown da campanha + carrinho compacto (mobile); desktop mantém hover na imagem -->
+                <!-- Super Ofertas: countdown da campanha + carrinho compacto -->
                 <div class="wcb-product-card__timer-row">
                     <div class="wcb-product-card__timer" data-wcb-timer data-end="<?php echo esc_attr( $wcb_so_flash_end ); ?>">
                         <span class="wcb-product-card__timer-label"><?php esc_html_e( 'Termina em', 'wcb-theme' ); ?></span>
@@ -326,29 +341,13 @@ if ($product->is_type('variable')) {
                         data-product_sku="<?php echo esc_attr( $product->get_sku() ); ?>"
                         aria-label="<?php echo esc_attr__( 'Adicionar ao carrinho', 'wcb-theme' ); ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                             <circle cx="9" cy="21" r="1" />
                             <circle cx="20" cy="21" r="1" />
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                         </svg>
                     </a>
                 </div>
-            <?php else : ?>
-        <!-- CTA visível mobile (desktop usa hover) -->
-        <a href="<?php echo esc_url($product->add_to_cart_url()); ?>"
-            class="wcb-product-card__cta-mobile add_to_cart_button ajax_add_to_cart"
-            data-quantity="1"
-            data-product_id="<?php echo $product->get_id(); ?>"
-            data-product_sku="<?php echo esc_attr($product->get_sku()); ?>"
-            aria-label="Adicionar ao carrinho">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-            </svg>
-            Adicionar
-        </a>
             <?php endif; ?>
         <?php else: ?>
         <!-- Out of stock CTA -->

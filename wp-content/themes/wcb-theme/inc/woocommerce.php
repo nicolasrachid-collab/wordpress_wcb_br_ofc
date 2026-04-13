@@ -523,6 +523,22 @@ function wcb_product_columns()
 }
 add_filter('loop_shop_columns', 'wcb_product_columns');
 
+/**
+ * SSR: alinha o <ul.products> ao modo 3 colunas por defeito (igual ao toggle e loop_shop_columns).
+ * O JS remove .grid-3 se a preferência guardada for 4 colunas.
+ */
+function wcb_shop_loop_start_add_default_grid_class($html)
+{
+    if (!function_exists('is_shop') || (!is_shop() && !is_product_taxonomy())) {
+        return $html;
+    }
+    if (strpos($html, 'grid-3') !== false) {
+        return $html;
+    }
+    return preg_replace('/<ul\s+class="([^"]*)"/', '<ul class="$1 grid-3"', $html, 1);
+}
+add_filter('woocommerce_product_loop_start', 'wcb_shop_loop_start_add_default_grid_class', 25);
+
 /** Remove default result_count and catalog_ordering (handled by custom template) */
 function wcb_remove_shop_loop_hooks()
 {
@@ -2830,7 +2846,11 @@ function wcb_live_search_handler()
             set_transient('wcb_on_sale_ids', $on_sale_for_so, HOUR_IN_SECONDS);
         }
         if (!empty($on_sale_for_so)) {
-            $flash_cache_key = 'wcb_ls_flash_set_' . md5(wp_json_encode(array_values(array_map('intval', $on_sale_for_so))));
+            $flash_cfg = function_exists('wcb_super_ofertas_settings_cache_signature') ? wcb_super_ofertas_settings_cache_signature() : '';
+            $flash_cache_key = 'wcb_ls_flash_set_' . md5(wp_json_encode(array(
+                'sale' => array_values(array_map('intval', $on_sale_for_so)),
+                'cfg'  => $flash_cfg,
+            )));
             $flash_cached = get_transient($flash_cache_key);
             if (false !== $flash_cached && is_array($flash_cached)) {
                 $flash_id_set = array_fill_keys($flash_cached, true);

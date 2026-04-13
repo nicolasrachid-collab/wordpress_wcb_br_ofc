@@ -34,36 +34,52 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // ── Novidades: cache de 12h (ids + html); v3 = sem barra de estoque nos cards ──
-            $nov_cached = get_transient('wcb_home_novidades_v3');
+            // ── Novidades: cache 12h (ids + html); v4 = chave com hash da config do painel + motor wcb-home-vitrines-engine ──
+            $nov_transient_key = function_exists('wcb_home_vitrine_novidades_get_cache_transient_name')
+                ? wcb_home_vitrine_novidades_get_cache_transient_name()
+                : 'wcb_home_novidades_v3';
+            $nov_cached = get_transient($nov_transient_key);
             $nov_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($nov_cached) : false;
             if (false === $nov_pack) {
-                $novidades = new WP_Query(array(
-                    'post_type'      => 'product',
-                    'posts_per_page' => 30,
-                    'orderby'        => 'date',
-                    'order'          => 'DESC',
-                    'meta_query'     => array(
-                        array(
-                            'key'     => '_stock_status',
-                            'value'   => 'instock',
-                            'compare' => '=',
-                        ),
-                    ),
-                ));
                 $wcb_novidades_card_track = array(
                     'wcb_track'      => 'novidades',
                     'role'           => 'carousel',
                     'hide_stock_bar' => true,
                 );
-                $all_pairs = function_exists('wcb_carousel_pairs_from_query')
-                    ? wcb_carousel_pairs_from_query($novidades, $wcb_novidades_card_track)
-                    : array();
-                $nov_pack  = array(
+                if (function_exists('wcb_home_vitrine_novidades_resolve_final_ids')) {
+                    $final_nov_ids = wcb_home_vitrine_novidades_resolve_final_ids();
+                } else {
+                    $final_nov_ids = array();
+                }
+                if (empty($final_nov_ids)) {
+                    $all_pairs = array();
+                } else {
+                    $novidades = new WP_Query(array(
+                        'post_type'              => 'product',
+                        'post_status'            => 'publish',
+                        'post__in'               => $final_nov_ids,
+                        'orderby'                => 'post__in',
+                        'posts_per_page'         => count($final_nov_ids),
+                        'no_found_rows'          => true,
+                        'update_post_meta_cache' => true,
+                        'update_term_meta_cache' => false,
+                        'meta_query'             => array(
+                            array(
+                                'key'     => '_stock_status',
+                                'value'   => 'instock',
+                                'compare' => '=',
+                            ),
+                        ),
+                    ));
+                    $all_pairs = function_exists('wcb_carousel_pairs_from_query')
+                        ? wcb_carousel_pairs_from_query($novidades, $wcb_novidades_card_track)
+                        : array();
+                }
+                $nov_pack = array(
                     'ids'  => array_column($all_pairs, 'id'),
                     'html' => array_column($all_pairs, 'html'),
                 );
-                set_transient('wcb_home_novidades_v3', $nov_pack, 12 * HOUR_IN_SECONDS);
+                set_transient($nov_transient_key, $nov_pack, 12 * HOUR_IN_SECONDS);
             }
             $all_pairs_n = array();
             foreach ($nov_pack['ids'] as $ni => $nid) {
@@ -265,40 +281,43 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // ── Mais Vendidos: cache de 12h via transient ────────────────────
-            $v_cached = get_transient('wcb_home_vendidos');
+            // ── Mais Vendidos: cache 12h; v4 = chave com hash wcb_home_vitrine_vendidos_* + motor wcb-home-vitrines-engine ──
+            $v_transient_key = function_exists('wcb_home_vitrine_vendidos_get_cache_transient_name')
+                ? wcb_home_vitrine_vendidos_get_cache_transient_name()
+                : 'wcb_home_vendidos';
+            $v_cached = get_transient($v_transient_key);
             $v_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($v_cached) : false;
             if (is_array($v_cached) && isset($v_cached['html']) && empty($v_cached['html'])) {
-                delete_transient('wcb_home_vendidos');
+                delete_transient($v_transient_key);
                 $v_pack = false;
             }
             if (false === $v_pack) {
-                $vendidos = new WP_Query(array(
-                    'post_type'      => 'product',
-                    'posts_per_page' => 20,
-                    'post_status'    => 'publish',
-                    'meta_key'       => 'total_sales',
-                    'orderby'        => 'meta_value_num',
-                    'order'          => 'DESC',
-                ));
-                $v_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($vendidos) : array();
-
-                if (empty($v_pairs)) {
-                    $fallback = new WP_Query(array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 20,
-                        'post_status'    => 'publish',
-                        'orderby'        => 'date',
-                        'order'          => 'DESC',
+                if (function_exists('wcb_home_vitrine_vendidos_resolve_final_ids')) {
+                    $final_v_ids = wcb_home_vitrine_vendidos_resolve_final_ids();
+                } else {
+                    $final_v_ids = array();
+                }
+                if (empty($final_v_ids)) {
+                    $v_pairs = array();
+                } else {
+                    $vendidos = new WP_Query(array(
+                        'post_type'              => 'product',
+                        'post_status'            => 'publish',
+                        'post__in'               => $final_v_ids,
+                        'orderby'                => 'post__in',
+                        'posts_per_page'         => count($final_v_ids),
+                        'no_found_rows'          => true,
+                        'update_post_meta_cache' => true,
+                        'update_term_meta_cache' => false,
                     ));
-                    $v_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($fallback) : array();
+                    $v_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($vendidos) : array();
                 }
 
                 $v_pack = array(
                     'ids'  => array_column($v_pairs, 'id'),
                     'html' => array_column($v_pairs, 'html'),
                 );
-                set_transient('wcb_home_vendidos', $v_pack, 12 * HOUR_IN_SECONDS);
+                set_transient($v_transient_key, $v_pack, 12 * HOUR_IN_SECONDS);
             }
 
             $all_pairs_v = array();
@@ -528,17 +547,21 @@ $wcb_carousel_homepage_used_ids = array();
              * Se passarmos homepage_used como exclude, o pool pode ficar vazio e a secção some.
              * Dedupe real continua em wcb_carousel_pad_all_chunks + $wcb_carousel_homepage_used_ids.
              */
-            $so_cache_key = ( ! empty( $on_sale_ids ) && function_exists( 'wcb_super_ofertas_cache_key' ) )
+            $so_cache_key = function_exists( 'wcb_super_ofertas_cache_key' )
                 ? wcb_super_ofertas_cache_key( $on_sale_ids, array() )
                 : '';
 
             $so_ctx = false;
             if ( $so_cache_key !== '' ) {
                 $cached = get_transient( $so_cache_key );
-                $so_ctx = is_array( $cached ) && isset( $cached['hero_id'], $cached['carousel_ids'] ) ? $cached : false;
+                $so_ctx = is_array( $cached ) && isset( $cached['carousel_ids'] ) ? $cached : false;
             }
 
-            if ( false === $so_ctx && ! empty( $on_sale_ids ) && function_exists( 'wcb_super_ofertas_build_context' ) ) {
+            $so_needs_build = function_exists( 'wcb_super_ofertas_should_build_context' )
+                ? wcb_super_ofertas_should_build_context( $on_sale_ids )
+                : ! empty( $on_sale_ids );
+
+            if ( false === $so_ctx && $so_needs_build && function_exists( 'wcb_super_ofertas_build_context' ) ) {
                 $so_ctx = wcb_super_ofertas_build_context( $on_sale_ids, array() );
                 if ( $so_cache_key !== '' && is_array( $so_ctx ) ) {
                     set_transient( $so_cache_key, $so_ctx, 8 * HOUR_IN_SECONDS );
@@ -554,6 +577,7 @@ $wcb_carousel_homepage_used_ids = array();
                     'urgency_discount_pct' => 0,
                     'hero_badge'           => '',
                     'hero_badge_2'         => '',
+                    'skip_hero_prepend'    => false,
                 );
             }
 
@@ -563,22 +587,31 @@ $wcb_carousel_homepage_used_ids = array();
                 ? array_values( array_filter( array_map( 'intval', $so_ctx['carousel_ids'] ) ) )
                 : array();
 
+            $so_cap = function_exists( 'wcb_super_ofertas_effective_carousel_cap' )
+                ? wcb_super_ofertas_effective_carousel_cap()
+                : ( defined( 'WCB_SO_MAX_CAROUSEL' ) ? (int) WCB_SO_MAX_CAROUSEL : 24 );
+
+            $skip_hero_prepend = ! empty( $so_ctx['skip_hero_prepend'] );
+
             $so_hero_prepend = array();
-            foreach ( array( $ctx_hero_1, $ctx_hero_2 ) as $hid ) {
-                if ( $hid < 1 || in_array( $hid, $so_hero_prepend, true ) ) {
-                    continue;
+            if ( ! $skip_hero_prepend ) {
+                foreach ( array( $ctx_hero_1, $ctx_hero_2 ) as $hid ) {
+                    if ( $hid < 1 || in_array( $hid, $so_hero_prepend, true ) ) {
+                        continue;
+                    }
+                    $hp = wc_get_product( $hid );
+                    if ( $hp && $hp->is_in_stock() ) {
+                        $so_hero_prepend[] = $hid;
+                    }
                 }
-                $hp = wc_get_product( $hid );
-                if ( $hp && $hp->is_in_stock() ) {
-                    $so_hero_prepend[] = $hid;
+                if ( ! empty( $so_hero_prepend ) ) {
+                    $carousel_ids = array_values( array_unique( array_merge( $so_hero_prepend, $carousel_ids ) ) );
+                    if ( count( $carousel_ids ) > $so_cap ) {
+                        $carousel_ids = array_slice( $carousel_ids, 0, $so_cap );
+                    }
                 }
-            }
-            if ( ! empty( $so_hero_prepend ) ) {
-                $carousel_ids = array_values( array_unique( array_merge( $so_hero_prepend, $carousel_ids ) ) );
-                $cap            = defined( 'WCB_SO_MAX_CAROUSEL' ) ? (int) WCB_SO_MAX_CAROUSEL : 24;
-                if ( count( $carousel_ids ) > $cap ) {
-                    $carousel_ids = array_slice( $carousel_ids, 0, $cap );
-                }
+            } elseif ( count( $carousel_ids ) > $so_cap ) {
+                $carousel_ids = array_slice( $carousel_ids, 0, $so_cap );
             }
 
             /** @var int Cards por slide nos carrosséis desta secção (só Super Ofertas). */
@@ -609,9 +642,19 @@ $wcb_carousel_homepage_used_ids = array();
             $carousel_sale_pairs = $all_sale_pairs;
 
             if ( function_exists( 'wcb_carousel_get_dedupe_scope' ) && wcb_carousel_get_dedupe_scope() === 'homepage' ) {
-                foreach ( $so_hero_prepend as $hid ) {
-                    if ( ! in_array( $hid, $wcb_carousel_homepage_used_ids, true ) ) {
-                        $wcb_carousel_homepage_used_ids[] = $hid;
+                if ( ! empty( $so_hero_prepend ) ) {
+                    foreach ( $so_hero_prepend as $hid ) {
+                        if ( ! in_array( $hid, $wcb_carousel_homepage_used_ids, true ) ) {
+                            $wcb_carousel_homepage_used_ids[] = $hid;
+                        }
+                    }
+                } elseif ( $skip_hero_prepend && ! empty( $carousel_ids ) ) {
+                    $n_hi = min( 2, count( $carousel_ids ) );
+                    for ( $wcb_so_i = 0; $wcb_so_i < $n_hi; $wcb_so_i++ ) {
+                        $wcb_so_hid = (int) $carousel_ids[ $wcb_so_i ];
+                        if ( $wcb_so_hid > 0 && ! in_array( $wcb_so_hid, $wcb_carousel_homepage_used_ids, true ) ) {
+                            $wcb_carousel_homepage_used_ids[] = $wcb_so_hid;
+                        }
                     }
                 }
             }
