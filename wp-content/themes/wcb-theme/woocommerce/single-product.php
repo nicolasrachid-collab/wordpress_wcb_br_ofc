@@ -43,9 +43,18 @@ while (have_posts()):
     $review_count     = (int) $wcb_rating_stats['count'];
     $product_cats = get_the_terms($product_id, 'product_cat');
     $sku = $product->get_sku();
-    $wcb_pdp_offer_timer_scope = function_exists('wcb_pdp_get_offer_bar_timer_scope')
-        ? wcb_pdp_get_offer_bar_timer_scope($product_id, $product_cats)
-        : 'product';
+    /*
+     * Timers: campanhas ACF (wcb_get_product_flash_timer) têm prioridade absoluta.
+     * O campo wcb_pdp_offer_timer_scope só entra quando não há campanha ativa para o produto.
+     */
+    $wcb_pdp_flash_end_iso = function_exists( 'wcb_get_product_flash_timer' )
+        ? wcb_get_product_flash_timer( $product_id )
+        : null;
+    $wcb_pdp_has_flash_campaign = is_string( $wcb_pdp_flash_end_iso ) && $wcb_pdp_flash_end_iso !== '';
+    $wcb_pdp_offer_timer_scope  = 'product';
+    if ( ! $wcb_pdp_has_flash_campaign && function_exists( 'wcb_pdp_get_offer_bar_timer_scope' ) ) {
+        $wcb_pdp_offer_timer_scope = wcb_pdp_get_offer_bar_timer_scope( $product_id, $product_cats );
+    }
 
     // ─── Gallery images (WooCommerce nativo) ──────────────────
     $gallery_ids = $product->get_gallery_image_ids();
@@ -176,8 +185,10 @@ while (have_posts()):
                     <?php if ($is_on_sale && $saving_pct > 0): ?>
                     <div class="wcb-pdp-offer-bar wcb-pdp-offer-bar--buybox" role="status" aria-live="polite"
                         data-product-id="<?php echo esc_attr((string) $product_id); ?>"
+                        <?php if ( ! $wcb_pdp_has_flash_campaign ) : ?>
                         data-offer-duration-sec="7200"
-                        data-offer-timer-scope="<?php echo esc_attr($wcb_pdp_offer_timer_scope); ?>">
+                        data-offer-timer-scope="<?php echo esc_attr( $wcb_pdp_offer_timer_scope ); ?>"
+                        <?php endif; ?>>
                         <div class="wcb-pdp-offer-bar__inner">
                             <span class="wcb-pdp-offer-bar__icon" aria-hidden="true">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +198,16 @@ while (have_posts()):
                             </span>
                             <span class="wcb-pdp-offer-bar__text">Oferta por tempo limitado!</span>
                             <div class="wcb-pdp-offer-bar__timer-row">
-                                <span class="wcb-pdp-offer-bar__timer" id="wcb-pdp-countdown">02:00:00</span>
+                                <?php if ( $wcb_pdp_has_flash_campaign ) : ?>
+                                <div class="wcb-pdp-offer-bar__timer wcb-pdp-offer-bar__timer--flash" id="wcb-pdp-countdown" data-wcb-timer data-end="<?php echo esc_attr( $wcb_pdp_flash_end_iso ); ?>">
+                                    <span class="wcb-pdp-offer-bar__timer-prefix"><?php esc_html_e( 'Termina em', 'wcb-theme' ); ?></span>
+                                    <span class="wcb-pdp-offer-bar__timer-digits" aria-hidden="true">
+                                        <span data-days>00</span><span class="wcb-pdp-offer-bar__timer-sep">:</span><span data-hours>00</span><span class="wcb-pdp-offer-bar__timer-sep">:</span><span data-minutes>00</span><span class="wcb-pdp-offer-bar__timer-sep">:</span><span data-seconds>00</span>
+                                    </span>
+                                </div>
+                                <?php else : ?>
+                                <span class="wcb-pdp-offer-bar__timer" id="wcb-pdp-countdown" data-wcb-pdp-offer-legacy="1">02:00:00</span>
+                                <?php endif; ?>
                                 <span class="wcb-pdp-offer-bar__secondary">ou enquanto durarem os estoques</span>
                             </div>
                         </div>

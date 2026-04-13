@@ -92,6 +92,36 @@
         0 4px 12px rgba(0, 0, 0, 0.22);
 }
 
+/* PDP — fim fixo da campanha (mesma função PHP que os cards) */
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer--flash {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    line-height: 1.2;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer-prefix {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.92;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer-digits {
+    font-size: 1.02rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+}
+
+.wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer-sep {
+    opacity: 0.75;
+    font-weight: 600;
+    margin: 0 1px;
+}
+
 .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__secondary {
     display: inline;
     font-size: 0.75rem;
@@ -121,6 +151,10 @@
     .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer {
         font-size: 0.95rem;
         padding: 5px 11px;
+    }
+
+    .wcb-pdp #wcb-pdp-buybox .wcb-pdp-offer-bar--buybox .wcb-pdp-offer-bar__timer--flash .wcb-pdp-offer-bar__timer-digits {
+        font-size: 0.88rem;
     }
 }
 /* ── 2B. BUY BOX ── */

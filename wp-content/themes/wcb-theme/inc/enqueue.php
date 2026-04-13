@@ -84,6 +84,16 @@ function wcb_enqueue_assets() {
         WCB_VERSION
     );
 
+    $wcb_trust_marquee_path = WCB_DIR . '/css/wcb-trust-marquee.css';
+    if ( is_readable( $wcb_trust_marquee_path ) ) {
+        wp_enqueue_style(
+            'wcb-trust-marquee',
+            WCB_URI . '/css/wcb-trust-marquee.css',
+            array( 'wcb-paged-carousel-touch' ),
+            (string) filemtime( $wcb_trust_marquee_path )
+        );
+    }
+
     $wcb_wc_qv_scripts = class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_admin();
     $wcb_pdp_buybox_css = $wcb_wc_qv_scripts || ( function_exists( 'is_product' ) && is_product() );
     if ( $wcb_pdp_buybox_css ) {
@@ -378,6 +388,52 @@ function wcb_enqueue_variation_buybox_script() {
 add_action( 'wp_enqueue_scripts', 'wcb_enqueue_variation_buybox_script', 20 );
 
 add_action( 'wp_enqueue_scripts', 'wcb_enqueue_assets' );
+
+/**
+ * Trust bar — letreiro JS (home); carrega antes do script de debug.
+ */
+function wcb_enqueue_trust_marquee_run() {
+    if ( ! is_front_page() ) {
+        return;
+    }
+    $path = WCB_DIR . '/js/wcb-trust-marquee-run.js';
+    if ( ! is_readable( $path ) ) {
+        return;
+    }
+    wp_enqueue_script(
+        'wcb-trust-marquee-run',
+        WCB_URI . '/js/wcb-trust-marquee-run.js',
+        array(),
+        (string) filemtime( $path ),
+        true
+    );
+}
+add_action( 'wp_enqueue_scripts', 'wcb_enqueue_trust_marquee_run', 998 );
+
+/**
+ * Debug session 8eb372 — instrumentação .wcb-trust marquee (remover após diagnóstico).
+ */
+function wcb_enqueue_debug_trust_marquee() {
+    if ( ! is_front_page() ) {
+        return;
+    }
+    wp_enqueue_script(
+        'wcb-debug-trust-marquee',
+        WCB_URI . '/js/wcb-debug-trust-marquee.js',
+        array(),
+        WCB_VERSION,
+        true
+    );
+    wp_localize_script(
+        'wcb-debug-trust-marquee',
+        'wcbDbgTrust',
+        array(
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'wcb_dbg_8eb372' ),
+        )
+    );
+}
+add_action( 'wp_enqueue_scripts', 'wcb_enqueue_debug_trust_marquee', 999 );
 
 /* ============================================================
    PERFORMANCE — Defer non-critical scripts

@@ -971,66 +971,56 @@
     })();
 
     /* ============================================================
-       COUNTDOWN TIMER (Super Ofertas) — Premium v2
+       COUNTDOWN — data-wcb-timer + data-end (Super Ofertas, cards, PDP)
+       Um único setInterval para todos os nós.
        ============================================================ */
-    const countdownEl = document.getElementById('wcb-countdown');
-
-    if (countdownEl) {
-        const endDate = new Date(countdownEl.dataset.end).getTime();
-        const daysEl    = document.getElementById('countdown-days');
-        const hoursEl   = document.getElementById('countdown-hours');
-        const minutesEl = document.getElementById('countdown-minutes');
-        const secondsEl = document.getElementById('countdown-seconds');
+    (function wcbInitAllDataWcbTimers() {
+        const roots = document.querySelectorAll('[data-wcb-timer][data-end]');
+        if (!roots.length) return;
 
         function pad(n) { return n < 10 ? '0' + n : String(n); }
 
-        // Animação de flip quando o dígito muda
-        function flipUpdate(el, newVal) {
-            if (!el) return;
-            const formatted = pad(newVal);
-            if (el.textContent === formatted) return;
-            el.classList.add('wcb-cd-flip');
-            setTimeout(() => {
-                el.textContent = formatted;
-                el.classList.remove('wcb-cd-flip');
-            }, 120);
+        function tick() {
+            const now = Date.now();
+            roots.forEach((root) => {
+                const raw = root.getAttribute('data-end');
+                if (!raw) return;
+                const endMs = new Date(raw).getTime();
+                const diff = endMs - now;
+                const dEl = root.querySelector('[data-days]');
+                const hEl = root.querySelector('[data-hours]');
+                const mEl = root.querySelector('[data-minutes]');
+                const sEl = root.querySelector('[data-seconds]');
+                if (diff <= 0) {
+                    if (dEl) dEl.textContent = '00';
+                    if (hEl) hEl.textContent = '00';
+                    if (mEl) mEl.textContent = '00';
+                    if (sEl) sEl.textContent = '00';
+                    root.classList.remove('wcb-cd--warning', 'wcb-cd--urgent');
+                    root.classList.add('wcb-cd--done');
+                    return;
+                }
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                const totalMinutes = days * 1440 + hours * 60 + minutes;
+                if (dEl) dEl.textContent = pad(days);
+                if (hEl) hEl.textContent = pad(hours);
+                if (mEl) mEl.textContent = pad(minutes);
+                if (sEl) sEl.textContent = pad(seconds);
+                root.classList.remove('wcb-cd--warning', 'wcb-cd--urgent', 'wcb-cd--done');
+                if (totalMinutes < 10) {
+                    root.classList.add('wcb-cd--urgent');
+                } else if (totalMinutes < 60) {
+                    root.classList.add('wcb-cd--warning');
+                }
+            });
         }
 
-        function updateCountdown() {
-            const diff = endDate - Date.now();
-
-            if (diff <= 0) {
-                [daysEl, hoursEl, minutesEl, secondsEl].forEach(el => {
-                    if (el) { el.textContent = '00'; }
-                });
-                countdownEl.classList.remove('wcb-cd--warning', 'wcb-cd--urgent');
-                countdownEl.classList.add('wcb-cd--done');
-                return;
-            }
-
-            const days    = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours   = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            const totalMinutes = days * 1440 + hours * 60 + minutes;
-
-            flipUpdate(daysEl,    days);
-            flipUpdate(hoursEl,   hours);
-            flipUpdate(minutesEl, minutes);
-            flipUpdate(secondsEl, seconds);
-
-            // Transição de cor: azul (normal) → laranja (< 1h) → vermelho (< 10min)
-            countdownEl.classList.remove('wcb-cd--warning', 'wcb-cd--urgent', 'wcb-cd--done');
-            if (totalMinutes < 10) {
-                countdownEl.classList.add('wcb-cd--urgent');
-            } else if (totalMinutes < 60) {
-                countdownEl.classList.add('wcb-cd--warning');
-            }
-        }
-
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-    }
+        tick();
+        setInterval(tick, 1000);
+    })();
 
     /* ============================================================
        SINGLE PRODUCT — GALLERY THUMBNAILS (Suporta v1 e v2)
@@ -1298,7 +1288,8 @@
        Escopo global (ex.: categoria Ofertas Relâmpago) vs por produto — data-offer-timer-scope.
        ============================================================ */
     const pdpCountdown = document.getElementById('wcb-pdp-countdown');
-    if (pdpCountdown) {
+    /* Legado: só com sessionStorage se não for timer de campanha (data-wcb-timer + data-end). */
+    if (pdpCountdown && !pdpCountdown.hasAttribute('data-wcb-timer') && pdpCountdown.getAttribute('data-wcb-pdp-offer-legacy') === '1') {
         const offerBar = pdpCountdown.closest('.wcb-pdp-offer-bar--buybox');
         const productId = (offerBar && offerBar.dataset.productId) ? String(offerBar.dataset.productId) : '0';
         const durationSec = Math.max(60, parseInt(offerBar && offerBar.dataset.offerDurationSec, 10) || 7200);

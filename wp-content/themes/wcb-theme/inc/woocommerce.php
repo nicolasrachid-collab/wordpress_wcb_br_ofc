@@ -168,7 +168,10 @@ function wcb_shop_product_query_filter_categoria_param($q)
 }
 
 /**
- * Escopo do countdown da barra de oferta na PDP (sessionStorage no navegador).
+ * Escopo do countdown da barra de oferta na PDP (sessionStorage no navegador) — modo legado.
+ *
+ * Não usar quando {@see wcb_get_product_flash_timer()} devolver data válida: campanhas ACF têm prioridade
+ * e esse escopo deve ser ignorado (ver `single-product.php`).
  *
  * - Categoria “Super Ofertas” (flash): slugs filtráveis via `wcb_pdp_offer_flash_category_slugs`
  *   (por defeito `super-ofertas` e `ofertas-relampago`, equivalentes). Timer global partilhado na sessão.
@@ -2812,7 +2815,7 @@ function wcb_live_search_handler()
         wp_send_json([]);
     }
 
-    $cache_key = 'wcb_ls_v2_' . md5(strtolower($query));
+    $cache_key = 'wcb_ls_v4_' . md5(strtolower($query));
     $cached = get_transient($cache_key);
     if ($cached !== false && is_array($cached)) {
         wp_send_json($cached);
@@ -2898,6 +2901,7 @@ function wcb_live_search_handler()
         $sale = (float) $product->get_sale_price();
         $regular = (float) $product->get_regular_price();
 
+        $is_on_sale = $product->is_on_sale();
         if ($sale && $sale < $regular) {
             $price_display = wc_format_localized_price($sale);
             $price_old = wc_format_localized_price($regular);
@@ -2907,6 +2911,7 @@ function wcb_live_search_handler()
             $price_old = '';
             $discount_pct = 0;
         }
+        $saving_pct = ($is_on_sale && $regular > 0 && $sale > 0) ? (int) round((($regular - $sale) / $regular) * 100) : 0;
 
         $volume = $product->get_attribute('volume') ?: $product->get_attribute('pa_volume');
         $nic_type = '';
@@ -2941,9 +2946,20 @@ function wcb_live_search_handler()
         $wcb_rs       = wcb_get_product_rating_display_stats( $post_id );
         $rating       = (float) $wcb_rs['average'];
         $rating_count = (int) $wcb_rs['count'];
-        $total_sales = (int) get_post_meta($post_id, 'total_sales', true);
-        $is_bestseller = $total_sales > 20;
-        $is_trending = $total_sales > 5 && $total_sales <= 20;
+        $stock_qty_ls = $product->get_stock_quantity();
+        $low_stock_ls = $stock_qty_ls !== null && $stock_qty_ls > 0 && $stock_qty_ls <= 5;
+        $ls_ctx = array(
+            'is_on_sale' => $is_on_sale,
+            'saving'     => $saving_pct,
+            'low_stock'  => $low_stock_ls,
+            'in_stock'   => $product->is_in_stock(),
+        );
+        $is_bestseller = function_exists( 'wcb_product_should_show_bestseller_badge' )
+            ? wcb_product_should_show_bestseller_badge( $product, $ls_ctx, 'search' )
+            : false;
+        $is_trending = ! $is_bestseller && function_exists( 'wcb_product_is_trending_sales_band' )
+            ? wcb_product_is_trending_sales_band( $product )
+            : false;
         $days_ago = (time() - strtotime($post->post_date)) / DAY_IN_SECONDS;
         $is_new = $days_ago <= 30;
 
@@ -3051,7 +3067,6 @@ function wcb_quick_view_handler()
     }
 
     $pix_price = $current_price > 0 ? round($current_price * 0.95, 2) : 0;
-    $installments = $current_price > 0 ? ceil($current_price / 12) : 0;
 
     // ── Main image ────────────────────────────────────────────
     $image_id = $product->get_image_id();
@@ -3168,7 +3183,6 @@ function wcb_quick_view_handler()
                 $var_saving = round((($var_regular - $var_sale) / $var_regular) * 100);
             }
             $var_pix = $var_price > 0 ? round($var_price * 0.95, 2) : 0;
-            $var_install = $var_price > 0 ? ceil($var_price / 12) : 0;
 
             $var_image = $var['image']['url'] ?? '';
             $var_image_thumb = $var['image']['thumb_src'] ?? $var_image;
@@ -3182,7 +3196,7 @@ function wcb_quick_view_handler()
                 'regular_price' => $var_regular > 0 ? 'R$ ' . number_format($var_regular, 2, ',', '.') : '',
                 'current_price' => $var_price > 0 ? 'R$ ' . number_format($var_price, 2, ',', '.') : '',
                 'pix_price' => $var_pix > 0 ? 'R$ ' . number_format($var_pix, 2, ',', '.') : '',
-                'installments' => $var_price > 0 ? 'ou 12x no cartão' : '',
+                'installments' => $var_price > 0 ? __( 'ou em até 12x no cartão', 'wcb-theme' ) : '',
                 'is_on_sale' => $var_on_sale,
                 'saving' => $var_saving,
                 'image_url' => $var_image,
@@ -3213,7 +3227,7 @@ function wcb_quick_view_handler()
         'regular_price' => $regular_price > 0 ? 'R$ ' . number_format($regular_price, 2, ',', '.') : '',
         'current_price' => $current_price > 0 ? 'R$ ' . number_format($current_price, 2, ',', '.') : 'Consulte',
         'pix_price' => $pix_price > 0 ? 'R$ ' . number_format($pix_price, 2, ',', '.') : '',
-        'installments' => $current_price > 0 ? 'ou 12x no cartão' : '',
+        'installments' => $current_price > 0 ? __( 'ou em até 12x no cartão', 'wcb-theme' ) : '',
         'rating_count' => $rating_count,
         'avg_rating' => $avg_rating,
         'low_stock' => $low_stock,
@@ -3598,7 +3612,7 @@ function wcb_register_acf_pdp_offer_timer_fields()
                 'label' => __('Timer da oferta (countdown)', 'wcb-theme'),
                 'name' => 'wcb_pdp_offer_timer_scope',
                 'type' => 'select',
-                'instructions' => __('Automático: global para produtos na categoria Super Ofertas (slugs super-ofertas ou ofertas-relampago; filtrável); nos restantes, por produto.', 'wcb-theme'),
+                'instructions' => __('Só vale quando o produto não está numa campanha ativa (WooCommerce → Campanhas de Ofertas: crie/edite entradas do tipo campanha). Com campanha, o fim definido lá tem prioridade e este campo é ignorado na PDP. Automático: global para produtos na categoria Super Ofertas (slugs super-ofertas ou ofertas-relampago; filtrável); nos restantes, por produto.', 'wcb-theme'),
                 'choices' => array(
                     'auto' => __('Automático (Super Ofertas = global; resto = por produto)', 'wcb-theme'),
                     'global' => __('Global — mesmo tempo que outros PDPs em modo global (sessão do separador)', 'wcb-theme'),
@@ -3654,7 +3668,7 @@ function wcb_render_pdp_offer_timer_wc_field()
                 'product' => __('Por produto', 'wcb-theme'),
             ),
             'desc_tip' => true,
-            'description' => __('Categorias equivalentes: super-ofertas ou ofertas-relampago. Em Automático o countdown é global. Produtos → Categorias.', 'wcb-theme'),
+            'description' => __('Ignorado se o produto tiver campanha de timer ativa (Campanhas de Ofertas). Caso contrário: categorias equivalentes super-ofertas ou ofertas-relampago; em Automático o countdown é global.', 'wcb-theme'),
         )
     );
     echo '</div>';

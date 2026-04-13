@@ -2,7 +2,7 @@
 /**
  * WCB Theme — Product Card (fonte oficial de listagem)
  *
- * Hierarquia: Imagem → Nome → Avaliação → Preço (destaque) → CTA no hover
+ * Hierarquia: Imagem → Nome → Avaliação → Preço (PIX herói quando existe) → CTA no hover
  * BEM: .wcb-product-card, .wcb-product-card__*, modificadores --out-of-stock
  *
  * Legado .wcb-card5* foi unificado neste ficheiro; não duplicar markup noutros templates.
@@ -56,15 +56,25 @@ if ($is_on_sale && $regular_price > 0 && $sale_price > 0) {
     $saving = round((($regular_price - $sale_price) / $regular_price) * 100);
 }
 
-$pix_price    = $current_price > 0 ? $current_price * 0.95 : 0;
-$installments = $current_price > 0 ? ceil($current_price / 12) : 0;
+$pix_price = $current_price > 0 ? $current_price * 0.95 : 0;
+
+$wcb_price_block_class = 'wcb-product-card__price-block';
+if ( $pix_price > 0 ) {
+	$wcb_price_block_class .= ' wcb-product-card__price-block--has-pix';
+}
 
 /* ── Stock / Meta ──────────────────────────────────────── */
 $stock_qty   = $product->get_stock_quantity();
 $in_stock    = $product->is_in_stock();
 $low_stock   = $stock_qty !== null && $stock_qty > 0 && $stock_qty <= 5;
-$total_sales = (int) get_post_meta($product->get_id(), 'total_sales', true);
-$is_popular  = $total_sales >= 20;
+$wcb_bestseller_ctx = array(
+	'is_on_sale' => $is_on_sale,
+	'saving'     => $saving,
+	'low_stock'  => $low_stock,
+	'in_stock'   => $in_stock,
+);
+$wcb_show_bestseller_badge = function_exists( 'wcb_product_should_show_bestseller_badge' )
+	&& wcb_product_should_show_bestseller_badge( $product, $wcb_bestseller_ctx, 'card' );
 
 /* ── Stock bar: desativada em todos os cards (sem .wcb-stock-bar / __label) ── */
 
@@ -134,10 +144,16 @@ if ($product->is_type('variable')) {
             <?php if ($is_on_sale && $saving > 0): ?>
                 <span class="wcb-product-card__badge wcb-product-card__badge--sale">-<?php echo $saving; ?>%</span>
             <?php endif; ?>
-            <?php if ($low_stock): ?>
-                <span class="wcb-product-card__badge wcb-product-card__badge--low">Últimas und.</span>
-            <?php elseif ($is_popular && !($is_on_sale && $saving > 0)): ?>
-                <span class="wcb-product-card__badge wcb-product-card__badge--hot">🔥 Mais vendido</span>
+            <?php if ( $low_stock ) : ?>
+                <span class="wcb-product-card__badge wcb-product-card__badge--low"><?php esc_html_e( 'Últimas und.', 'wcb-theme' ); ?></span>
+            <?php endif; ?>
+            <?php if ( $wcb_show_bestseller_badge ) : ?>
+                <span class="wcb-product-card__badge wcb-product-card__badge--hot">
+                    <svg class="wcb-product-card__badge-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                    <?php esc_html_e( 'Mais vendido', 'wcb-theme' ); ?>
+                </span>
             <?php endif; ?>
             <?php if (!$in_stock): ?>
                 <span class="wcb-product-card__badge wcb-product-card__badge--sold-out">ESGOTADO</span>
@@ -244,10 +260,9 @@ if ($product->is_type('variable')) {
             <?php endif; ?>
         </div>
 
-<!-- ══ PRICE BLOCK ══════════════════════════════════ -->
-        <div class="wcb-product-card__price-block">
+        <!-- ══ PRICE BLOCK: De/Por (secundário com PIX) → herói PIX → parcelas ══ -->
+        <div class="<?php echo esc_attr( $wcb_price_block_class ); ?>">
 
-            <!-- Preço principal (grande + destaque) -->
             <div class="wcb-product-card__price-main">
                 <?php if ($is_on_sale && $regular_price > 0): ?>
                     <span class="wcb-product-card__price-old">R$ <?php echo number_format($regular_price, 2, ',', '.'); ?></span>
@@ -255,17 +270,20 @@ if ($product->is_type('variable')) {
                 <span class="wcb-product-card__price-current">R$ <?php echo number_format($current_price, 2, ',', '.'); ?></span>
             </div>
 
-            <!-- Micro detalhe PIX (-5%) -->
             <?php if ($pix_price > 0): ?>
                 <span class="wcb-product-card__pix-tag">
-                    <strong>R$ <?php echo number_format($pix_price, 2, ',', '.'); ?></strong> no PIX
+                    <strong>R$ <?php echo number_format($pix_price, 2, ',', '.'); ?></strong> <?php esc_html_e( 'no PIX', 'wcb-theme' ); ?>
                     <em>(-5%)</em>
                 </span>
             <?php endif; ?>
 
-            <!-- Parcelamento -->
             <?php if ($current_price > 0): ?>
-                <span class="wcb-product-card__installments">ou 12x no cartão</span>
+                <span class="wcb-product-card__installments">
+                    <?php
+                    /* Texto fixo: não exibir valor de parcela (juros / condições reais variam). */
+                    esc_html_e( 'ou em até 12x no cartão', 'wcb-theme' );
+                    ?>
+                </span>
             <?php endif; ?>
 
         </div>
@@ -280,7 +298,42 @@ if ($product->is_type('variable')) {
             </div>
         <?php endif; ?>
 
+        <?php
+		/*
+		 * Super Ofertas: timer da campanha (ACF) via wcb_get_product_flash_timer — mesma prioridade que na PDP
+		 * (campanha > wcb_pdp_offer_timer_scope; o scope do produto não afeta o card na home).
+		 */
+		$wcb_so_flash_end = null;
+		if ( $in_stock && is_array( $wcb_pc_track ) && isset( $wcb_pc_track['wcb_track'] ) && 'super-ofertas' === (string) $wcb_pc_track['wcb_track'] && function_exists( 'wcb_get_product_flash_timer' ) ) {
+			$wcb_so_flash_end = wcb_get_product_flash_timer( (int) $product->get_id() );
+		}
+		?>
+
         <?php if ($in_stock): ?>
+            <?php if ( is_string( $wcb_so_flash_end ) && $wcb_so_flash_end !== '' ) : ?>
+                <!-- Super Ofertas: countdown da campanha + carrinho compacto (mobile); desktop mantém hover na imagem -->
+                <div class="wcb-product-card__timer-row">
+                    <div class="wcb-product-card__timer" data-wcb-timer data-end="<?php echo esc_attr( $wcb_so_flash_end ); ?>">
+                        <span class="wcb-product-card__timer-label"><?php esc_html_e( 'Termina em', 'wcb-theme' ); ?></span>
+                        <span class="wcb-product-card__timer-digits" aria-hidden="true">
+                            <span data-days>00</span><span class="wcb-product-card__timer-sep">:</span><span data-hours>00</span><span class="wcb-product-card__timer-sep">:</span><span data-minutes>00</span><span class="wcb-product-card__timer-sep">:</span><span data-seconds>00</span>
+                        </span>
+                    </div>
+                    <a href="<?php echo esc_url( $product->add_to_cart_url() ); ?>"
+                        class="wcb-product-card__timer-cart add_to_cart_button ajax_add_to_cart"
+                        data-quantity="1"
+                        data-product_id="<?php echo esc_attr( (string) $product->get_id() ); ?>"
+                        data-product_sku="<?php echo esc_attr( $product->get_sku() ); ?>"
+                        aria-label="<?php echo esc_attr__( 'Adicionar ao carrinho', 'wcb-theme' ); ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1" />
+                            <circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                        </svg>
+                    </a>
+                </div>
+            <?php else : ?>
         <!-- CTA visível mobile (desktop usa hover) -->
         <a href="<?php echo esc_url($product->add_to_cart_url()); ?>"
             class="wcb-product-card__cta-mobile add_to_cart_button ajax_add_to_cart"
@@ -296,6 +349,7 @@ if ($product->is_type('variable')) {
             </svg>
             Adicionar
         </a>
+            <?php endif; ?>
         <?php else: ?>
         <!-- Out of stock CTA -->
         <a href="<?php the_permalink(); ?>" class="wcb-product-card__cta-soldout">

@@ -19,56 +19,9 @@ $wcb_carousel_homepage_used_ids = array();
 <section class="wcb-trust">
 <div class="wcb-container">
 <div class="wcb-trust__viewport" role="region" aria-label="<?php echo esc_attr__( 'Vantagens da loja', 'wcb-theme' ); ?>">
-<div class="wcb-trust__grid">
-
-  <div class="wcb-trust__item">
-      <div class="wcb-trust__icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-          </svg>
-      </div>
-      <div class="wcb-trust__text">
-          <strong>Frete Rápido para Todo o Brasil</strong>
-          <span>Entrega ágil e garantida</span>
-      </div>
-  </div>
-
-  <div class="wcb-trust__item">
-      <div class="wcb-trust__icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-      </div>
-      <div class="wcb-trust__text">
-          <strong>Compra Protegida</strong>
-          <span>Segurança total no pagamento</span>
-      </div>
-  </div>
-
-  <div class="wcb-trust__item">
-      <div class="wcb-trust__icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-      </div>
-      <div class="wcb-trust__text">
-          <strong>Experiência Sem Risco</strong>
-          <span>Troca simples, rápida e garantida</span>
-      </div>
-  </div>
-
-  <div class="wcb-trust__item">
-      <div class="wcb-trust__icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-          </svg>
-      </div>
-      <div class="wcb-trust__text">
-          <strong>Original de Verdade</strong>
-          <span>Sem réplicas, sem surpresas</span>
-      </div>
-  </div>
-
+<div class="wcb-trust__track">
+<?php get_template_part( 'template-parts/home/trust', 'items' ); ?>
+<?php get_template_part( 'template-parts/home/trust', 'items', array( 'marquee_clone' => true ) ); ?>
 </div>
 </div>
 </div>
@@ -702,18 +655,24 @@ $wcb_carousel_homepage_used_ids = array();
                         <?php esc_html_e( 'Super Ofertas', 'wcb-theme' ); ?>
                     </h2>
 
+                    <?php
+					$wcb_so_show_legacy_header_cd = ! function_exists( 'wcb_flash_campaigns_has_active_schedule' )
+						|| ! wcb_flash_campaigns_has_active_schedule();
+					?>
+                    <?php if ( $wcb_so_show_legacy_header_cd ) : ?>
                     <div class="wcb-flash-countdown-inline">
                         <span class="wcb-flash-countdown-inline__label"><?php esc_html_e( 'Acaba em', 'wcb-theme' ); ?></span>
-                        <div class="wcb-flash-countdown-inline__boxes" id="wcb-countdown" data-end="<?php echo esc_attr($sale_end); ?>">
-                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-days">00</span></div>
+                        <div class="wcb-flash-countdown-inline__boxes" id="wcb-countdown" data-wcb-timer data-end="<?php echo esc_attr( $sale_end ); ?>">
+                            <div class="wcb-flash-countdown-inline__box"><span data-days>00</span></div>
                             <span class="wcb-flash-countdown-inline__sep">:</span>
-                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-hours">00</span></div>
+                            <div class="wcb-flash-countdown-inline__box"><span data-hours>00</span></div>
                             <span class="wcb-flash-countdown-inline__sep">:</span>
-                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-minutes">00</span></div>
+                            <div class="wcb-flash-countdown-inline__box"><span data-minutes>00</span></div>
                             <span class="wcb-flash-countdown-inline__sep">:</span>
-                            <div class="wcb-flash-countdown-inline__box"><span id="countdown-seconds">00</span></div>
+                            <div class="wcb-flash-countdown-inline__box"><span data-seconds>00</span></div>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="wcb-section__actions">

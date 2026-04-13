@@ -178,6 +178,8 @@ function wcb_maybe_bust_home_product_card_transients() {
 	delete_transient( 'wcb_promo_dropdown_cards_promocoes' );
 	delete_transient( 'wcb_promo_dropdown_cards_promocoes_v2' );
 	delete_transient( 'wcb_promo_dropdown_cards_promocoes_v3' );
+	delete_transient( 'wcb_flash_campaigns_product_end_v1' );
+	delete_transient( 'wcb_flash_campaigns_product_end_v2' );
 
 	// Super Ofertas: chave dinâmica wcb_home_ofertas_{md5(...)} — remover todas as instâncias.
 	global $wpdb;
@@ -225,11 +227,13 @@ require_once WCB_DIR . '/inc/product-rating-display.php';
 require_once WCB_DIR . '/inc/nav-walker.php';
 require_once WCB_DIR . '/inc/mobile-menu-drilldown.php';
 require_once WCB_DIR . '/inc/enqueue.php';
+require_once WCB_DIR . '/inc/wcb-debug-trust-log.php';
 require_once WCB_DIR . '/inc/translations.php';
 require_once WCB_DIR . '/inc/cart-checkout.php';
 require_once WCB_DIR . '/inc/woocommerce/cart-mini-ajax.php';
 require_once WCB_DIR . '/inc/wcb-buybox-partials.php';
 require_once WCB_DIR . '/inc/woocommerce.php';
+require_once WCB_DIR . '/inc/wcb-bestseller-badge.php';
 require_once WCB_DIR . '/inc/wcb-quick-view-buybox.php';
 require_once WCB_DIR . '/inc/cart-page-blocks-extras.php';
 require_once WCB_DIR . '/inc/pdp-reviews.php';
@@ -237,6 +241,7 @@ require_once WCB_DIR . '/inc/wcb-attribute-swatches.php';
 require_once WCB_DIR . '/inc/customizer.php';
 require_once WCB_DIR . '/inc/carousel-backfill.php';
 require_once WCB_DIR . '/inc/super-ofertas-context.php';
+require_once WCB_DIR . '/inc/wcb-flash-campaigns.php';
 require_once WCB_DIR . '/inc/newsletter.php';
 require_once WCB_DIR . '/inc/widgets-sidebar.php';
 require_once WCB_DIR . '/inc/blog-single.php';
@@ -344,7 +349,11 @@ function wcb_flush_home_transients() {
          WHERE option_name LIKE '_transient_wcb_ls_v1_%'
             OR option_name LIKE '_transient_timeout_wcb_ls_v1_%'
             OR option_name LIKE '_transient_wcb_ls_v2_%'
-            OR option_name LIKE '_transient_timeout_wcb_ls_v2_%'"
+            OR option_name LIKE '_transient_timeout_wcb_ls_v2_%'
+            OR option_name LIKE '_transient_wcb_ls_v3_%'
+            OR option_name LIKE '_transient_timeout_wcb_ls_v3_%'
+            OR option_name LIKE '_transient_wcb_ls_v4_%'
+            OR option_name LIKE '_transient_timeout_wcb_ls_v4_%'"
     );
 }
 

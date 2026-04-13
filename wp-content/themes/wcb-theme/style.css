@@ -1035,7 +1035,7 @@ button {
     letter-spacing: 0.05em;
 }
 
-/* Badges row — bestseller / trending (estilos em .wcb-search-dropdown .wcb-badge, secção BADGES) */
+/* Badges row — bestseller / em alta (estilos em .wcb-search-dropdown .wcb-badge, secção BADGES) */
 .wcb-search-item__badges {
     display: flex;
     gap: 0.3rem;
@@ -3439,7 +3439,7 @@ button {
 .wcb-product-card__badge--sold-out {
     background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
     color: #fff !important;
-    font-size: 0.68rem;
+    font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.08em;
     padding: 5px 12px;
@@ -3771,7 +3771,7 @@ button {
 
 .wcb-product-card__badge {
     display: inline-block;
-    font-size: 0.6rem;
+    font-size: 10px;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 4px;
@@ -3787,11 +3787,24 @@ button {
 }
 
 .wcb-product-card__badge--hot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     background: #111111;
     color: rgba(255, 255, 255, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+.wcb-product-card__badge--hot .wcb-product-card__badge-icon {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    display: block;
+    color: #ffb020;
+    filter: drop-shadow(0 0 2px rgba(255, 160, 40, 0.95))
+        drop-shadow(0 0 5px rgba(249, 115, 22, 0.55));
 }
 
 .wcb-product-card__badge--stock {
@@ -8392,7 +8405,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
 
 /* ============================================================
-   TRUST BAR
+   TRUST BAR — desktop: grelha 4 colunas | ≤1118px: letreiro ∞ (→ esquerda)
    ============================================================ */
 .wcb-trust {
     padding: 1rem 0;
@@ -8400,9 +8413,17 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     background: #fff;
 }
 
-/* Desktop: wrapper não afeta o layout (filhos participam do .wcb-container). */
+/* Larguras > 1118px: viewport não cria caixa; só a 1.ª grelha é visível. */
 .wcb-trust__viewport {
     display: contents;
+}
+
+.wcb-trust__track {
+    display: block;
+}
+
+.wcb-trust__grid--marquee-clone {
+    display: none !important;
 }
 
 .wcb-trust__grid {
@@ -8468,14 +8489,62 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     line-height: 1.2;
 }
 
-/* ≤1110px: grelha 2×2 (alinhada ao layout em ~700px de largura). */
-@media (max-width: 1110px) {
+@keyframes wcb-trust-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* ≤1118px: uma fila + loop infinito (duas sequências no HTML), sem scroll horizontal na página. */
+@media (max-width: 1118px) {
+    .wcb-trust {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    .wcb-trust .wcb-container {
+        max-width: 100%;
+        overflow-x: hidden;
+        min-width: 0;
+    }
+
+    .wcb-trust__viewport {
+        display: block;
+        overflow: hidden;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        position: relative;
+    }
+
+    .wcb-trust__track {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        width: max-content;
+        will-change: transform;
+        animation: wcb-trust-marquee 36s linear infinite !important;
+    }
+
     .wcb-trust__grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.5rem;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: max-content;
+        flex-shrink: 0;
+    }
+
+    .wcb-trust__grid--marquee-clone {
+        display: flex !important;
     }
 
     .wcb-trust__item {
+        flex-shrink: 0;
         border-right: none;
         border: 1px solid #f1f3f8;
         box-sizing: border-box;
@@ -8483,6 +8552,20 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
     .wcb-trust__item:last-child {
         border-right: 1px solid #f1f3f8;
+    }
+}
+
+/* Pausa só com rato fino — em touch, :hover colado congelava o letreiro. */
+@media (max-width: 1118px) and (hover: hover) and (pointer: fine) {
+    .wcb-trust__viewport:hover .wcb-trust__track {
+        animation-play-state: paused;
+    }
+}
+
+@media (max-width: 1118px) and (prefers-reduced-motion: reduce) {
+    .wcb-trust__track {
+        animation: none !important;
+        will-change: auto;
     }
 }
 
@@ -10619,7 +10702,7 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
 
 .wcb-product-card__badge {
     display: inline-block;
-    font-size: 0.6rem;
+    font-size: 10px;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 4px;
@@ -10634,11 +10717,24 @@ nav.woocommerce-pagination ul.page-numbers li span.dots {
 }
 
 .wcb-product-card__badge--hot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     background: #111111;
     color: rgba(255, 255, 255, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+.wcb-product-card__badge--hot .wcb-product-card__badge-icon {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    display: block;
+    color: #ffb020;
+    filter: drop-shadow(0 0 2px rgba(255, 160, 40, 0.95))
+        drop-shadow(0 0 5px rgba(249, 115, 22, 0.55));
 }
 
 .wcb-product-card__badge--stock {
@@ -15228,7 +15324,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
 
 /* ============================================================
-   TRUST BAR
+   TRUST BAR — desktop: grelha 4 colunas | ≤1118px: letreiro ∞ (→ esquerda)
    ============================================================ */
 .wcb-trust {
     padding: 1rem 0;
@@ -15236,9 +15332,17 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     background: #fff;
 }
 
-/* Desktop: wrapper não afeta o layout (filhos participam do .wcb-container). */
+/* Larguras > 1118px: viewport não cria caixa; só a 1.ª grelha é visível. */
 .wcb-trust__viewport {
     display: contents;
+}
+
+.wcb-trust__track {
+    display: block;
+}
+
+.wcb-trust__grid--marquee-clone {
+    display: none !important;
 }
 
 .wcb-trust__grid {
@@ -15304,14 +15408,62 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     line-height: 1.2;
 }
 
-/* ≤1110px: grelha 2×2 (alinhada ao layout em ~700px de largura). */
-@media (max-width: 1110px) {
+@keyframes wcb-trust-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* ≤1118px: uma fila + loop infinito (duas sequências no HTML), sem scroll horizontal na página. */
+@media (max-width: 1118px) {
+    .wcb-trust {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    .wcb-trust .wcb-container {
+        max-width: 100%;
+        overflow-x: hidden;
+        min-width: 0;
+    }
+
+    .wcb-trust__viewport {
+        display: block;
+        overflow: hidden;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        position: relative;
+    }
+
+    .wcb-trust__track {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        width: max-content;
+        will-change: transform;
+        animation: wcb-trust-marquee 36s linear infinite !important;
+    }
+
     .wcb-trust__grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.5rem;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: max-content;
+        flex-shrink: 0;
+    }
+
+    .wcb-trust__grid--marquee-clone {
+        display: flex !important;
     }
 
     .wcb-trust__item {
+        flex-shrink: 0;
         border-right: none;
         border: 1px solid #f1f3f8;
         box-sizing: border-box;
@@ -15319,6 +15471,20 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
     .wcb-trust__item:last-child {
         border-right: 1px solid #f1f3f8;
+    }
+}
+
+/* Pausa só com rato fino — em touch, :hover colado congelava o letreiro. */
+@media (max-width: 1118px) and (hover: hover) and (pointer: fine) {
+    .wcb-trust__viewport:hover .wcb-trust__track {
+        animation-play-state: paused;
+    }
+}
+
+@media (max-width: 1118px) and (prefers-reduced-motion: reduce) {
+    .wcb-trust__track {
+        animation: none !important;
+        will-change: auto;
     }
 }
 
@@ -17203,7 +17369,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
     align-items: center;
     padding: 2px 7px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1.4;
 }
@@ -17219,11 +17385,24 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 }
 
 .wcb-product-card__badge--hot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     background: #111111;
     color: rgba(255, 255, 255, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+.wcb-product-card__badge--hot .wcb-product-card__badge-icon {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    display: block;
+    color: #ffb020;
+    filter: drop-shadow(0 0 2px rgba(255, 160, 40, 0.95))
+        drop-shadow(0 0 5px rgba(249, 115, 22, 0.55));
 }
 
 /* Favorito top-right */
@@ -25575,11 +25754,24 @@ html {
 }
 
 .wcb-product-card__badge--hot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     background: #111111;
     color: rgba(255, 255, 255, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+.wcb-product-card__badge--hot .wcb-product-card__badge-icon {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    display: block;
+    color: #ffb020;
+    filter: drop-shadow(0 0 2px rgba(255, 160, 40, 0.95))
+        drop-shadow(0 0 5px rgba(249, 115, 22, 0.55));
 }
 
 .wcb-product-card__badge--stock {
@@ -26336,20 +26528,33 @@ html {
     opacity: 0.92;
 }
 
-/* CTA “Ver todas” — mesmo tom escuro do badge “Mais vendido”; altura/padding iguais a .wcb-section__link */
+/* CTA “Ver todas” — escuro + acento promo (#e05506), gradiente e profundidade */
 #wcb-super-ofertas .wcb-section__link--ofertas {
     color: #fff !important;
-    background: #111111 !important;
-    border-color: #111111 !important;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2) !important;
+    background: linear-gradient(180deg, #1c1c1c 0%, #0f0f0f 100%) !important;
+    border: 2px solid rgba(224, 85, 6, 0.65) !important;
+    padding: 0.55rem 1.5rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.1) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+        0 2px 14px rgba(0, 0, 0, 0.22),
+        0 0 24px rgba(224, 85, 6, 0.18) !important;
     justify-content: center;
 }
 
 #wcb-super-ofertas .wcb-section__link--ofertas:hover {
-    background: #262626 !important;
+    background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%) !important;
     color: #fff !important;
-    border-color: #262626 !important;
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28) !important;
+    border-color: #e05506 !important;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14) inset,
+        0 0 0 1px rgba(0, 0, 0, 0.25) inset,
+        0 8px 28px rgba(0, 0, 0, 0.32),
+        0 0 32px rgba(224, 85, 6, 0.35) !important;
     transform: translateY(-2px);
 }
 
@@ -26857,7 +27062,7 @@ html {
 #wcb-super-ofertas .wcb-product-card__badge--hero-discount {
     background: var(--wcb-so-orange, #e05506) !important;
     color: #fff !important;
-    font-size: 0.62rem !important;
+    font-size: 10px !important;
     font-weight: 800 !important;
     padding: 5px 10px !important;
     letter-spacing: 0.04em !important;
@@ -27397,7 +27602,7 @@ html {
     background: var(--wcb-so-orange, #e05506) !important;
     color: #fff !important;
     font-weight: 800 !important;
-    font-size: 0.58rem !important;
+    font-size: 10px !important;
     padding: 4px 8px !important;
     border-radius: 6px !important;
     letter-spacing: 0.03em !important;
@@ -27407,10 +27612,13 @@ html {
 
 #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__badge--low,
 #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__badge--hot {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35em !important;
     background: var(--wcb-so-status-bg, #1e293b) !important;
     color: var(--wcb-so-status-text, #f8fafc) !important;
     font-weight: 700 !important;
-    font-size: 0.52rem !important;
+    font-size: 10px !important;
     padding: 4px 8px !important;
     border-radius: 6px !important;
     letter-spacing: 0.05em !important;
@@ -27478,7 +27686,7 @@ html {
     font-size: 0.75rem !important;
 }
 
-/* Bloco de preço: hierarquia vertical (De → Por → PIX | parcelas) — leitura tipo e-commerce */
+/* Bloco de preço: vertical — com PIX, herói = linha PIX (laranja SO); De/Por = secundário */
 #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block {
     margin: 0 !important;
     display: grid;
@@ -27513,14 +27721,24 @@ html {
     min-width: 0;
 }
 
-#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-current {
+/* Sem PIX: “por” continua herói laranja (CTA). Com PIX: herói = valor PIX (abaixo) */
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__price-current {
     font-size: 20px !important;
     font-weight: 900 !important;
-    /* Mesmo tom do CTA “Adicionar” (--wcb-so-orange) */
     color: var(--wcb-so-orange, #e05506) !important;
     margin: 0 !important;
     line-height: 1.08 !important;
     letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__price-current {
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    color: var(--wcb-gray-700, #374151) !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 }
 
@@ -27537,8 +27755,47 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
-/* PIX: mesmo padrão de cor/tipo que .wcb-product-card__pix-tag (Mais Vendidos / global) */
-#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__pix-tag {
+/* PIX herói: laranja SO + tipografia grande; chip verde só quando não há classe --has-pix (legado) */
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    display: inline-flex !important;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.35rem;
+    max-width: 100%;
+    width: fit-content;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    font-size: 0.6875rem !important;
+    font-weight: 500 !important;
+    line-height: 1.1 !important;
+    color: var(--wcb-card-muted) !important;
+    opacity: 1 !important;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag strong {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: var(--wcb-so-orange, #e05506) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.035em;
+    line-height: 1.08 !important;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag em {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.625rem !important;
+    color: rgba(13, 143, 56, 1) !important;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__pix-tag {
     grid-column: 1;
     grid-row: 2;
     justify-self: start;
@@ -27561,7 +27818,7 @@ html {
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
 }
 
-#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__pix-tag strong {
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__pix-tag strong {
     color: var(--wcb-green-dark, #008f5d) !important;
     font-weight: 800 !important;
     font-size: 0.6875rem;
@@ -27569,7 +27826,7 @@ html {
     letter-spacing: -0.02em;
 }
 
-#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__pix-tag em {
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__pix-tag em {
     font-style: normal;
     font-weight: 500;
     font-size: 0.5625rem;
@@ -27639,6 +27896,107 @@ html {
     background: var(--wcb-so-orange-active, #c73d0e) !important;
 }
 
+/* Super Ofertas — campanha: countdown no lugar do CTA largo + ícone carrinho */
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-sizing: border-box;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer.wcb-cd--urgent {
+    border-color: rgba(220, 38, 38, 0.45);
+    background: rgba(254, 226, 226, 0.55);
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer.wcb-cd--warning {
+    border-color: rgba(234, 88, 12, 0.4);
+    background: rgba(255, 237, 213, 0.55);
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-label {
+    font-size: 0.5625rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--wcb-gray-600, #475569);
+    line-height: 1.1;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-digits {
+    font-size: 1rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--wcb-so-orange, #e05506);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer.wcb-cd--warning .wcb-product-card__timer-digits {
+    color: var(--wcb-so-orange-dark, #9a3412);
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer.wcb-cd--urgent .wcb-product-card__timer-digits {
+    color: #b91c1c;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-sep {
+    opacity: 0.55;
+    font-weight: 600;
+    margin: 0 2px;
+    color: inherit;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-cart {
+    flex: 0 0 48px;
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: var(--wcb-so-orange, #e05506) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition:
+        transform 0.22s ease,
+        background-color 0.22s ease;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-cart:hover {
+    transform: translateY(-2px);
+    background: var(--wcb-so-orange-hover, #ff8324) !important;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-cart:active {
+    background: var(--wcb-so-orange-active, #c73d0e) !important;
+}
+
+#wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-cart svg {
+    flex-shrink: 0;
+}
+
 /* Carrossel Super Ofertas — desktop: título/preço/stock + CTA ao fundo (mídia 1:1 nas regras globais) */
 @media (min-width: 1025px) {
 
@@ -27706,7 +28064,8 @@ html {
     }
 
     #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__cta-mobile,
-    #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__cta-soldout {
+    #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__cta-soldout,
+    #wcb-super-ofertas .wcb-flash-ofertas-layout .wcb-paged-carousel .wcb-product-card__timer-row {
         margin-top: auto !important;
         flex-shrink: 0;
     }
@@ -27722,7 +28081,7 @@ html {
    PRODUCT CARD v5 — DESIGN SYSTEM (3 zonas, sem alterar HTML)
    [1] Mídia: .wcb-product-card__img-wrap
    [2] Info:  .wcb-product-card__cat + __title + __rating — espaçamento: --wcb-card-body-gap
-   [3] Comercial: __price-block (--wcb-card-price-block-gap / --wcb-card-price-main-gap) + teor/stock + CTA
+   [3] Comercial: __price-block (--wcb-card-price-block-gap / --wcb-card-price-main-gap); com PIX: herói = valor PIX (--wcb-card-price-hero-fs)
    Desktop: margin-top:auto no preço (hover/CTA oculto). Mobile: auto no CTA.
    ================================================================ */
 
@@ -27746,6 +28105,10 @@ html {
     --wcb-card-stock-label-fs: 0.625rem;
     --wcb-card-stock-label-lh: 1.35;
     --wcb-card-installments-fs: 12px;
+    /* Preço: com --has-pix, herói = PIX; "por" (price-current) = secundário */
+    --wcb-card-price-hero-fs: 20px;
+    --wcb-card-price-secondary-fs: 0.8125rem;
+    --wcb-card-price-pix-suffix-fs: 0.6875rem;
     /* Cinza único: categoria, preço antigo, parcelas (e contextos SO / carrossel) */
     --wcb-card-muted: var(--wcb-gray-500, #6b7280);
     position: relative;
@@ -27963,7 +28326,7 @@ header .wcb-product-card:hover .wcb-product-card__img-primary,
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.54rem;
+    font-size: 10px;
     font-weight: 700;
     padding: 4px 8px;
     border-radius: 5px;
@@ -27981,11 +28344,24 @@ header .wcb-product-card:hover .wcb-product-card__img-primary,
 }
 
 .wcb-product-card__badge--hot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     background: var(--wcb-gray-900, #111827);
     color: var(--wcb-white, #fff);
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+}
+
+.wcb-product-card__badge--hot .wcb-product-card__badge-icon {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    display: block;
+    color: #ffb020;
+    filter: drop-shadow(0 0 2px rgba(255, 160, 40, 0.95))
+        drop-shadow(0 0 5px rgba(249, 115, 22, 0.55));
 }
 
 .wcb-product-card__badge--low {
@@ -28232,7 +28608,7 @@ header .wcb-product-card:hover .wcb-product-card__img-primary,
     flex-shrink: 0;
 }
 
-/* Coluna: preço riscado acima, atual em destaque — alinhamento estável com/sem promo */
+/* Coluna: preço riscado + atual; com PIX o atual passa a secundário (ver --has-pix) */
 .wcb-product-card__price-main {
     display: flex;
     flex-direction: column;
@@ -28294,6 +28670,48 @@ header .wcb-product-card:hover .wcb-product-card__img-primary,
     font-weight: 500;
     font-size: 0.5625rem;
     color: var(--wcb-card-muted);
+}
+
+/* Com PIX: hierarquia e-commerce — melhor preço (PIX) = herói; chip vira linha tipográfica */
+.wcb-product-card__price-block--has-pix .wcb-product-card__price-current {
+    font-size: var(--wcb-card-price-secondary-fs, 0.8125rem);
+    font-weight: 700;
+    color: var(--wcb-gray-700, #374151);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 0.35rem;
+    max-width: 100%;
+    margin-top: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    line-height: 1.1;
+    font-size: var(--wcb-card-price-pix-suffix-fs, 0.6875rem);
+    font-weight: 500;
+    color: var(--wcb-card-muted);
+}
+
+.wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag strong {
+    font-size: var(--wcb-card-price-hero-fs, 20px);
+    font-weight: 900;
+    color: var(--wcb-gray-900, #111827);
+    letter-spacing: -0.035em;
+    line-height: 1.08;
+    font-variant-numeric: tabular-nums;
+}
+
+.wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag em {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: rgba(13, 143, 56, 1);
 }
 
 /* Installments — terciário (hierarquia abaixo de PIX / rating) */
@@ -28963,12 +29381,22 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
     min-width: 0;
 }
 
-#wcb-estoque-carousel .wcb-product-card__price-current {
+#wcb-estoque-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__price-current {
     font-size: 20px !important;
     font-weight: 900 !important;
     margin: 0 !important;
     line-height: 1.08 !important;
     letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+}
+
+#wcb-estoque-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__price-current {
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    color: var(--wcb-gray-700, #374151) !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 }
 
@@ -28985,11 +29413,50 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
     font-variant-numeric: tabular-nums;
 }
 
-#wcb-estoque-carousel .wcb-product-card__pix-tag {
+#wcb-estoque-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag {
     grid-column: 1;
     grid-row: 2;
     justify-self: start;
-    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.35rem;
+    max-width: 100%;
+    width: fit-content;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    font-size: 0.6875rem !important;
+    font-weight: 500 !important;
+    line-height: 1.1 !important;
+    color: var(--wcb-card-muted) !important;
+    opacity: 1 !important;
+}
+
+#wcb-estoque-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag strong {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: rgba(17, 24, 39, 1) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.035em;
+    line-height: 1.08 !important;
+}
+
+#wcb-estoque-carousel .wcb-product-card__price-block--has-pix .wcb-product-card__pix-tag em {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.625rem !important;
+    color: rgba(13, 143, 56, 1) !important;
+}
+
+#wcb-estoque-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__pix-tag {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    font-size: 0.625rem !important;
     margin: 0 !important;
     padding: 0.3125rem 0.4375rem !important;
     background: var(--wcb-green-pale, #f0fdf8) !important;
@@ -29008,18 +29475,18 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
 }
 
-#wcb-estoque-carousel .wcb-product-card__pix-tag strong {
+#wcb-estoque-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__pix-tag strong {
     color: var(--wcb-green-dark, #008f5d) !important;
     font-weight: 800 !important;
-    font-size: 14px !important;
+    font-size: 0.6875rem !important;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
 }
 
-#wcb-estoque-carousel .wcb-product-card__pix-tag em {
+#wcb-estoque-carousel .wcb-product-card__price-block:not(.wcb-product-card__price-block--has-pix) .wcb-product-card__pix-tag em {
     font-style: normal;
     font-weight: 500;
-    font-size: 14px !important;
+    font-size: 0.5625rem !important;
     color: var(--wcb-card-muted);
 }
 
@@ -29357,6 +29824,7 @@ a.wcb-announcement__content:hover .wcb-announcement__arrow {
     font-size: 14px !important;
     font-weight: 600 !important;
     margin-top: 16px !important;
+    margin-bottom: 16px !important;
     width: fit-content !important;
     text-decoration: none !important;
     transition: background 0.18s ease !important;
