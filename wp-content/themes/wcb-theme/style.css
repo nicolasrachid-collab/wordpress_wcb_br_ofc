@@ -10552,7 +10552,7 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
 
 nav.woocommerce-pagination,
 .woocommerce-pagination {
-    --wcb-pag-gap: 0.375rem;
+    --wcb-pag-gap: 0.75rem;
     --wcb-pag-pad-x: 0.875rem;
     --wcb-pag-min-size: 44px;
     --wcb-pag-radius: 6px;
@@ -10581,7 +10581,7 @@ nav.woocommerce-pagination ul.page-numbers,
     gap: var(--wcb-pag-gap);
     list-style: none !important;
     margin: 0 !important;
-    padding: 0.35rem 0.45rem !important;
+    padding: 0.5rem 0.65rem !important;
     background: var(--wcb-pag-track-bg);
     border-radius: 6px;
     border: 1px solid var(--wcb-gray-200, #e5e7eb);
@@ -17748,6 +17748,19 @@ body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-ro
         width: 100%;
         max-width: 100%;
         min-width: 0;
+    }
+}
+
+/*
+ * Tablet com sidebar em drawer: miolo largo (~100% viewport). Só 2 colunas → imagens ~400px+.
+ * 3 colunas aproxima a largura de card ao desktop com sidebar visível.
+ * Deve vir DEPOIS do bloco (max-width: 1023px) acima para sobrepor o repeat(2, …).
+ */
+@media (max-width: 1023px) and (min-width: 600px) {
+    .wcb-shop__main ul.products,
+    .wcb-shop__main ul.products.grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: clamp(8px, 1.5vw, 12px) !important;
     }
 }
 

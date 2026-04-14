@@ -1679,6 +1679,7 @@
     let debounceTimer = null;
     let activeIndex = -1;
     let currentResults = [];
+    let liveSearchAbort = null;
 
     // --- Position the body-mounted dropdown below the search form ---
     function positionDropdown() {
@@ -1892,6 +1893,10 @@
         clearTimeout(debounceTimer);
 
         if (q.length < 2) {
+            if (liveSearchAbort) {
+                liveSearchAbort.abort();
+                liveSearchAbort = null;
+            }
             hideDropdown();
             return;
         }
@@ -1899,16 +1904,28 @@
         renderSkeleton();
 
         debounceTimer = setTimeout(() => {
-            fetch(`${ajaxUrl}?action=wcb_live_search&q=${encodeURIComponent(q)}&nonce=${pubNonce}`)
+            if (liveSearchAbort) {
+                liveSearchAbort.abort();
+            }
+            liveSearchAbort = new AbortController();
+            const thisController = liveSearchAbort;
+            fetch(`${ajaxUrl}?action=wcb_live_search&q=${encodeURIComponent(q)}&nonce=${pubNonce}`, {
+                signal: thisController.signal,
+                credentials: 'same-origin',
+            })
                 .then(r => r.json())
                 .then(data => {
+                    if (thisController.signal.aborted) return;
                     if (!Array.isArray(data)) {
                         hideDropdown();
                         return;
                     }
                     renderResults(data, q);
                 })
-                .catch(() => hideDropdown());
+                .catch((err) => {
+                    if (err && err.name === 'AbortError') return;
+                    hideDropdown();
+                });
         }, 300);
     });
 

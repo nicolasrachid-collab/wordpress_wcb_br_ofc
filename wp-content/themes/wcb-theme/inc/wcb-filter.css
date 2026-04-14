@@ -97,10 +97,50 @@
   gap: 1px;
 }
 
+/* Subcategorias: hierarquia visual (guia + escala tipográfica) */
 .wcb-filter__sublist {
   list-style: none;
-  margin: 0;
-  padding: 0 0 0 22px;
+  margin: 8px 0 4px 0;
+  padding: 0 0 0 12px;
+  border-left: 2px solid #e2e8f0;
+  margin-left: 10px;
+}
+
+.wcb-filter__item:has(.wcb-filter__sublist) > .wcb-filter__checkbox-label {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.wcb-filter__sublist .wcb-filter__checkbox-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  padding: 5px 6px 5px 4px;
+  gap: 7px;
+}
+
+.wcb-filter__sublist .wcb-filter__checkbox-label:hover {
+  background: #f1f5f9;
+}
+
+.wcb-filter__sublist .wcb-filter__checkmark {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+}
+
+.wcb-filter__sublist .wcb-filter__checkmark::after {
+  width: 7px;
+  height: 7px;
+}
+
+.wcb-filter__sublist .wcb-filter__count {
+  font-size: 0.62rem;
+  padding: 1px 6px;
+}
+
+.wcb-filter__sublist .wcb-filter__checkbox-label:has(input:checked) {
+  color: #1e40af;
+  background: #eff6ff;
 }
 
 /* Attribute list — compact scrollable */

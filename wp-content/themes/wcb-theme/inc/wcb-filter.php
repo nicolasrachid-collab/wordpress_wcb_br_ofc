@@ -466,6 +466,27 @@ function wcb_apply_native_filters($q) {
     }
 }
 
+/**
+ * Aplica ordenação de catálogo WooCommerce a argumentos de WP_Query (ex.: AJAX do filtro).
+ *
+ * @param array  $args           Args da query (serão modificados).
+ * @param string $orderby_param  Valor de `orderby` (slug WC, ex. price-desc).
+ */
+function wcb_filter_apply_wc_catalog_ordering( array &$args, $orderby_param ) {
+    if ( ! function_exists( 'WC' ) || ! WC()->query ) {
+        return;
+    }
+
+    $orderby_param = is_string( $orderby_param ) ? sanitize_text_field( $orderby_param ) : '';
+    $ordering      = WC()->query->get_catalog_ordering_args( $orderby_param, '' );
+
+    $args['orderby'] = $ordering['orderby'];
+    $args['order']   = $ordering['order'];
+    if ( ! empty( $ordering['meta_key'] ) ) {
+        $args['meta_key'] = $ordering['meta_key'];
+    }
+}
+
 
 /* ================================================================
    3. AJAX HANDLER — Filter products without page reload
@@ -540,7 +561,14 @@ function wcb_ajax_filter_products() {
         }
     }
 
-    $query = new WP_Query($args);
+    $orderby_ajax = isset( $_POST['orderby'] ) ? sanitize_text_field( wp_unslash( $_POST['orderby'] ) ) : '';
+    wcb_filter_apply_wc_catalog_ordering( $args, $orderby_ajax );
+
+    $query = new WP_Query( $args );
+
+    if ( function_exists( 'WC' ) && WC()->query ) {
+        WC()->query->remove_ordering_args();
+    }
 
     ob_start();
 

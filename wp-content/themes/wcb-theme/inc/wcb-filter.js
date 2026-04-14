@@ -192,6 +192,20 @@
     if (minInput) data.append('wcb_min', minInput.value);
     if (maxInput) data.append('wcb_max', maxInput.value);
 
+    // Ordenação do catálogo (toolbar): o AJAX deve respeitar o mesmo orderby da URL / select
+    var orderbyVal = '';
+    var orderSel = document.querySelector('form.woocommerce-ordering select.orderby');
+    if (orderSel && orderSel.value) {
+      orderbyVal = orderSel.value;
+    }
+    if (!orderbyVal && typeof window.location !== 'undefined' && window.location.search) {
+      var params = new URLSearchParams(window.location.search);
+      orderbyVal = params.get('orderby') || '';
+    }
+    if (orderbyVal) {
+      data.append('orderby', orderbyVal);
+    }
+
     // Send AJAX
     fetch(ajaxUrl, {
       method: 'POST',

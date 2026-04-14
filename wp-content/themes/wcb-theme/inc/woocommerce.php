@@ -2823,6 +2823,138 @@ function wcb_gift_progress_bar()
 add_action('wp_footer', 'wcb_gift_progress_bar', 99);
 
 /* ============================================================
+   LIVE SEARCH — helpers (performance: 1× SQL IDs, warm caches, sem N+1)
+   ============================================================ */
+
+/**
+ * Verifica se existe índice FULLTEXT em wp_posts.post_title (ativar com filtro wcb_live_search_use_fulltext).
+ *
+ * @return bool
+ */
+function wcb_live_search_fulltext_index_exists() {
+    global $wpdb;
+    static $exists = null;
+    if (null !== $exists) {
+        return $exists;
+    }
+    $table = str_replace('`', '', $wpdb->posts);
+    $row   = $wpdb->get_row(
+        $wpdb->prepare(
+            'SELECT 1 FROM information_schema.STATISTICS
+             WHERE table_schema = %s AND table_name = %s AND index_type = %s AND column_name = %s
+             LIMIT 1',
+            DB_NAME,
+            $table,
+            'FULLTEXT',
+            'post_title'
+        ),
+        ARRAY_A
+    );
+    $exists = ! empty($row);
+    return $exists;
+}
+
+/**
+ * IDs via MATCH(post_title) — requer FULLTEXT em post_title e filtro wcb_live_search_use_fulltext = true.
+ *
+ * @param wpdb   $wpdb  Global wpdb.
+ * @param string $query Termo sanitizado.
+ * @return int[]
+ */
+function wcb_live_search_get_product_ids_fulltext( $wpdb, $query ) {
+    $query = trim((string) $query);
+    if (strlen($query) < 2) {
+        return array();
+    }
+    $tokens = preg_split('/\s+/u', $query, -1, PREG_SPLIT_NO_EMPTY);
+    $parts  = array();
+    foreach ($tokens as $t) {
+        $t = preg_replace('/[^\p{L}\p{N}-]+/u', '', $t);
+        if (strlen($t) < 2) {
+            continue;
+        }
+        $parts[] = '+' . $t . '*';
+    }
+    if (empty($parts)) {
+        return array();
+    }
+    $against = implode(' ', $parts);
+    $sql       = "SELECT ID FROM {$wpdb->posts}
+        WHERE post_type = 'product' AND post_status = 'publish'
+        AND MATCH (post_title) AGAINST (%s IN BOOLEAN MODE)
+        LIMIT 8";
+    $col       = $wpdb->get_col($wpdb->prepare($sql, $against));
+    return array_map('intval', is_array($col) ? $col : array());
+}
+
+/**
+ * Uma única query: título OU nome de termo (tag / marca / categoria). Prioriza match no título.
+ *
+ * @param wpdb   $wpdb  Global wpdb.
+ * @param string $query Termo sanitizado.
+ * @return int[]
+ */
+function wcb_live_search_get_product_ids_like( $wpdb, $query ) {
+    $like = '%' . $wpdb->esc_like($query) . '%';
+    $sql  = "SELECT DISTINCT p.ID
+        FROM {$wpdb->posts} p
+        WHERE p.post_type = 'product' AND p.post_status = 'publish'
+        AND (
+            p.post_title LIKE %s
+            OR EXISTS (
+                SELECT 1 FROM {$wpdb->term_relationships} tr
+                INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+                INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
+                WHERE tr.object_id = p.ID
+                AND tt.taxonomy IN ('product_tag', 'pa_marca', 'product_cat')
+                AND t.name LIKE %s
+            )
+        )
+        ORDER BY (p.post_title LIKE %s) DESC, p.post_title ASC
+        LIMIT 8";
+    $prepared = $wpdb->prepare($sql, $like, $like, $like);
+    $col      = $wpdb->get_col($prepared);
+    return array_map('intval', is_array($col) ? $col : array());
+}
+
+/**
+ * Resolve IDs para live search (FULLTEXT se ativo + índice existir; senão LIKE unificado).
+ *
+ * @param wpdb   $wpdb  Global wpdb.
+ * @param string $query Termo sanitizado.
+ * @return int[]
+ */
+function wcb_live_search_resolve_product_ids( $wpdb, $query ) {
+    $use_ft = (bool) apply_filters('wcb_live_search_use_fulltext', false);
+    if ($use_ft && wcb_live_search_fulltext_index_exists()) {
+        $ids = wcb_live_search_get_product_ids_fulltext($wpdb, $query);
+        if (! empty($ids)) {
+            return $ids;
+        }
+    }
+    return wcb_live_search_get_product_ids_like($wpdb, $query);
+}
+
+/**
+ * Média e contagem de reviews a partir da meta WooCommerce (evita N+1 em comments).
+ * Depois de update_postmeta_cache(), get_post_meta não dispara query extra.
+ *
+ * @param int $product_id ID do produto.
+ * @return array{average: float, count: int}
+ */
+function wcb_live_search_wc_rating_meta( $product_id ) {
+    $product_id = absint($product_id);
+    if ($product_id < 1) {
+        return array('average' => 0.0, 'count' => 0);
+    }
+    $avg_raw = get_post_meta($product_id, '_wc_average_rating', true);
+    $cnt_raw = get_post_meta($product_id, '_wc_review_count', true);
+    $avg     = is_numeric($avg_raw) ? round((float) $avg_raw, 1) : 0.0;
+    $cnt     = is_numeric($cnt_raw) ? (int) $cnt_raw : 0;
+    return array('average' => $avg, 'count' => $cnt);
+}
+
+/* ============================================================
    LIVE SEARCH — AJAX Handler
    ============================================================ */
 function wcb_live_search_handler()
@@ -2833,135 +2965,139 @@ function wcb_live_search_handler()
     global $wpdb;
 
     $query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
+    $query = trim($query);
     if (strlen($query) < 2) {
-        wp_send_json([]);
+        wp_send_json(array());
     }
 
-    $cache_key = 'wcb_ls_v4_' . md5(strtolower($query));
-    $cached = get_transient($cache_key);
-    if ($cached !== false && is_array($cached)) {
+    $cache_key = 'wcb_ls_v5_' . md5(strtolower($query));
+    $cached    = get_transient($cache_key);
+    if (false !== $cached && is_array($cached)) {
         wp_send_json($cached);
     }
 
-    // Super Ofertas (sem exclusões da homepage) — cache curto por lista em promoção.
+    // --- Fase 1: IDs primeiro (rápido). Super Ofertas só se intersectar com produtos em promoção ---
+    $ids = wcb_live_search_resolve_product_ids($wpdb, $query);
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+
+    if (empty($ids)) {
+        set_transient($cache_key, array(), 10 * MINUTE_IN_SECONDS);
+        wp_send_json(array());
+    }
+
     $flash_id_set = array();
-    if (function_exists('wcb_super_ofertas_build_context')) {
-        $on_sale_for_so = get_transient('wcb_on_sale_ids');
-        if (false === $on_sale_for_so) {
-            $on_sale_for_so = wc_get_product_ids_on_sale();
-            set_transient('wcb_on_sale_ids', $on_sale_for_so, HOUR_IN_SECONDS);
-        }
-        if (!empty($on_sale_for_so)) {
-            $flash_cfg = function_exists('wcb_super_ofertas_settings_cache_signature') ? wcb_super_ofertas_settings_cache_signature() : '';
-            $flash_cache_key = 'wcb_ls_flash_set_' . md5(wp_json_encode(array(
-                'sale' => array_values(array_map('intval', $on_sale_for_so)),
-                'cfg'  => $flash_cfg,
-            )));
-            $flash_cached = get_transient($flash_cache_key);
-            if (false !== $flash_cached && is_array($flash_cached)) {
-                $flash_id_set = array_fill_keys($flash_cached, true);
-            } else {
-                $so_ctx_quick = wcb_super_ofertas_build_context($on_sale_for_so, array());
-                $fid = array();
-                if (is_array($so_ctx_quick)) {
-                    if (!empty($so_ctx_quick['hero_id'])) {
-                        $fid[] = (int) $so_ctx_quick['hero_id'];
-                    }
-                    if (!empty($so_ctx_quick['hero_id_2'])) {
-                        $fid[] = (int) $so_ctx_quick['hero_id_2'];
-                    }
-                    if (!empty($so_ctx_quick['carousel_ids']) && is_array($so_ctx_quick['carousel_ids'])) {
-                        foreach ($so_ctx_quick['carousel_ids'] as $cid) {
-                            $fid[] = (int) $cid;
-                        }
-                    }
-                }
-                $fid = array_values(array_unique(array_filter($fid)));
-                set_transient($flash_cache_key, $fid, 15 * MINUTE_IN_SECONDS);
-                $flash_id_set = array_fill_keys($fid, true);
-            }
+    $on_sale_for_so = get_transient('wcb_on_sale_ids');
+    if (false === $on_sale_for_so) {
+        $on_sale_for_so = wc_get_product_ids_on_sale();
+        set_transient('wcb_on_sale_ids', $on_sale_for_so, HOUR_IN_SECONDS);
+    }
+    $on_sale_lookup = array_fill_keys(array_map('intval', (array) $on_sale_for_so), true);
+    $needs_so_flash = false;
+    foreach ($ids as $pid) {
+        if (isset($on_sale_lookup[(int) $pid])) {
+            $needs_so_flash = true;
+            break;
         }
     }
 
-    $like = '%' . $wpdb->esc_like($query) . '%';
+    if ($needs_so_flash && function_exists('wcb_super_ofertas_build_context') && ! empty($on_sale_for_so)) {
+        $flash_cfg       = function_exists('wcb_super_ofertas_settings_cache_signature') ? wcb_super_ofertas_settings_cache_signature() : '';
+        $flash_cache_key = 'wcb_ls_flash_set_' . md5(
+            wp_json_encode(
+                array(
+                    'sale' => array_values(array_map('intval', $on_sale_for_so)),
+                    'cfg'  => $flash_cfg,
+                )
+            )
+        );
+        $flash_cached = get_transient($flash_cache_key);
+        if (false !== $flash_cached && is_array($flash_cached)) {
+            $flash_id_set = array_fill_keys($flash_cached, true);
+        } else {
+            $so_ctx_quick = wcb_super_ofertas_build_context($on_sale_for_so, array());
+            $fid          = array();
+            if (is_array($so_ctx_quick)) {
+                if (! empty($so_ctx_quick['hero_id'])) {
+                    $fid[] = (int) $so_ctx_quick['hero_id'];
+                }
+                if (! empty($so_ctx_quick['hero_id_2'])) {
+                    $fid[] = (int) $so_ctx_quick['hero_id_2'];
+                }
+                if (! empty($so_ctx_quick['carousel_ids']) && is_array($so_ctx_quick['carousel_ids'])) {
+                    foreach ($so_ctx_quick['carousel_ids'] as $cid) {
+                        $fid[] = (int) $cid;
+                    }
+                }
+            }
+            $fid = array_values(array_unique(array_filter($fid)));
+            set_transient($flash_cache_key, $fid, 15 * MINUTE_IN_SECONDS);
+            $flash_id_set = array_fill_keys($fid, true);
+        }
+    }
 
-    $title_ids = $wpdb->get_col(
-        $wpdb->prepare(
-            "SELECT DISTINCT p.ID FROM {$wpdb->posts} p
-             WHERE p.post_type = 'product' AND p.post_status = 'publish' AND p.post_title LIKE %s
-             ORDER BY p.post_title ASC LIMIT 8",
-            $like
-        )
-    );
+    // --- Pré-carrega meta e relações termo → get_post_meta / get_the_terms sem N+1 ---
+    update_postmeta_cache($ids);
+    update_object_term_cache($ids, 'product');
 
-    $tag_ids = $wpdb->get_col(
-        $wpdb->prepare(
-            "SELECT DISTINCT p.ID FROM {$wpdb->posts} p
-             INNER JOIN {$wpdb->term_relationships} tr ON p.ID = tr.object_id
-             INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-             INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
-             WHERE p.post_type = 'product' AND p.post_status = 'publish'
-               AND tt.taxonomy IN ('product_tag', 'pa_marca', 'product_cat') AND t.name LIKE %s
-             ORDER BY p.post_title ASC LIMIT 8",
-            $like
-        )
-    );
-
-    $ids = array_unique(array_merge($title_ids, $tag_ids));
-    $ids = array_slice($ids, 0, 8);
-    $results = [];
+    $results = array();
+    $now     = time();
 
     foreach ($ids as $post_id) {
         $post = get_post($post_id);
-        $product = wc_get_product($post_id);
-        if (!$product || !$post || trim($post->post_title) === '')
+        if (! $post || 'product' !== $post->post_type || 'publish' !== $post->post_status || trim($post->post_title) === '') {
             continue;
+        }
 
-        $thumb_id = $product->get_image_id();
+        $product = wc_get_product($post_id);
+        if (! $product) {
+            continue;
+        }
+
+        $thumb_id  = $product->get_image_id();
         $thumb_url = $thumb_id ? wp_get_attachment_image_url($thumb_id, 'thumbnail') : wc_placeholder_img_src('thumbnail');
 
-        $terms = get_the_terms($post_id, 'product_cat');
-        $cat_name = (!empty($terms) && !is_wp_error($terms)) ? $terms[0]->name : '';
+        $terms    = get_the_terms($post_id, 'product_cat');
+        $cat_name = (! empty($terms) && ! is_wp_error($terms)) ? $terms[0]->name : '';
 
-        $price = (float) $product->get_price();
-        $sale = (float) $product->get_sale_price();
+        $price   = (float) $product->get_price();
+        $sale    = (float) $product->get_sale_price();
         $regular = (float) $product->get_regular_price();
 
         $is_on_sale = $product->is_on_sale();
         if ($sale && $sale < $regular) {
             $price_display = wc_format_localized_price($sale);
-            $price_old = wc_format_localized_price($regular);
-            $discount_pct = $regular > 0 ? round((1 - $sale / $regular) * 100) : 0;
+            $price_old     = wc_format_localized_price($regular);
+            $discount_pct  = $regular > 0 ? (int) round((1 - $sale / $regular) * 100) : 0;
         } else {
             $price_display = wc_format_localized_price($price ?: $regular);
-            $price_old = '';
-            $discount_pct = 0;
+            $price_old     = '';
+            $discount_pct  = 0;
         }
-        $saving_pct = ($is_on_sale && $regular > 0 && $sale > 0) ? (int) round((($regular - $sale) / $regular) * 100) : 0;
 
         $volume = $product->get_attribute('volume') ?: $product->get_attribute('pa_volume');
+
         $nic_type = '';
-        foreach (['nicotina', 'nic-type', 'tipo-de-nicotina', 'pa_nicotina'] as $attr) {
+        foreach (array('nicotina', 'nic-type', 'tipo-de-nicotina', 'pa_nicotina') as $attr) {
             $v = $product->get_attribute($attr);
             if ($v) {
                 $nic_type = sanitize_text_field($v);
                 break;
             }
         }
-        if (!$nic_type) {
+        if (! $nic_type) {
             $tags_terms = get_the_terms($post_id, 'product_tag');
-            if ($tags_terms && !is_wp_error($tags_terms)) {
+            if ($tags_terms && ! is_wp_error($tags_terms)) {
                 foreach ($tags_terms as $tag) {
                     $slug = strtolower($tag->slug);
-                    if (strpos($slug, 'nic-salt') !== false || strpos($slug, 'salt') !== false) {
+                    if (false !== strpos($slug, 'nic-salt') || false !== strpos($slug, 'salt')) {
                         $nic_type = 'Nic Salt';
                         break;
                     }
-                    if (strpos($slug, 'freebase') !== false) {
+                    if (false !== strpos($slug, 'freebase')) {
                         $nic_type = 'Freebase';
                         break;
                     }
-                    if (strpos($slug, 'zero') !== false) {
+                    if (false !== strpos($slug, 'zero')) {
                         $nic_type = 'Zero Nic';
                         break;
                     }
@@ -2969,36 +3105,23 @@ function wcb_live_search_handler()
             }
         }
 
-        $wcb_rs       = wcb_get_product_rating_display_stats( $post_id );
+        $wcb_rs       = wcb_live_search_wc_rating_meta($post_id);
         $rating       = (float) $wcb_rs['average'];
         $rating_count = (int) $wcb_rs['count'];
-        $stock_qty_ls = $product->get_stock_quantity();
-        $low_stock_ls = $stock_qty_ls !== null && $stock_qty_ls > 0 && $stock_qty_ls <= 5;
-        $ls_ctx = array(
-            'is_on_sale' => $is_on_sale,
-            'saving'     => $saving_pct,
-            'low_stock'  => $low_stock_ls,
-            'in_stock'   => $product->is_in_stock(),
-        );
-        $is_bestseller = function_exists( 'wcb_product_should_show_bestseller_badge' )
-            ? wcb_product_should_show_bestseller_badge( $product, $ls_ctx, 'search' )
-            : false;
-        $is_trending = ! $is_bestseller && function_exists( 'wcb_product_is_trending_sales_band' )
-            ? wcb_product_is_trending_sales_band( $product )
-            : false;
-        $days_ago = (time() - strtotime($post->post_date)) / DAY_IN_SECONDS;
-        $is_new = $days_ago <= 30;
+
+        $days_ago = ($now - (int) strtotime($post->post_date)) / DAY_IN_SECONDS;
+        $is_new   = $days_ago <= 30;
 
         $brand = '';
-        foreach (['product_brand', 'pa_marca', 'brand', 'pwb-brand'] as $tax) {
+        foreach (array('product_brand', 'pa_marca', 'brand', 'pwb-brand') as $tax) {
             $b_terms = get_the_terms($post_id, $tax);
-            if ($b_terms && !is_wp_error($b_terms)) {
+            if ($b_terms && ! is_wp_error($b_terms)) {
                 $brand = $b_terms[0]->name;
                 break;
             }
         }
-        if (!$brand) {
-            foreach (['marca', 'brand', 'fabricante'] as $attr) {
+        if (! $brand) {
+            foreach (array('marca', 'brand', 'fabricante') as $attr) {
                 $v = $product->get_attribute($attr);
                 if ($v) {
                     $brand = sanitize_text_field($v);
@@ -3006,35 +3129,39 @@ function wcb_live_search_handler()
                 }
             }
         }
-        if (!$brand) {
+        if (! $brand) {
             $first_word = strtok($post->post_title, ' ');
-            if (ctype_upper(str_replace(['-', '_'], '', $first_word)))
+            if ($first_word && ctype_upper(str_replace(array('-', '_'), '', $first_word))) {
                 $brand = $first_word;
+            }
         }
 
-        $results[] = [
-            'id' => $post_id,
-            'title' => $post->post_title,
-            'url' => get_permalink($post_id),
-            'thumb' => $thumb_url,
-            'price' => $price_display,
-            'price_old' => $price_old,
-            'discount_pct' => $discount_pct,
-            'category' => $cat_name,
-            'volume' => $volume,
-            'nic_type' => $nic_type,
-            'rating' => $rating,
-            'rating_count' => $rating_count,
-            'is_bestseller' => $is_bestseller,
-            'is_trending' => $is_trending,
-            'is_new' => $is_new,
-            'brand' => $brand,
-            'in_stock' => $product->is_in_stock(),
-            'is_flash_offer' => isset($flash_id_set[$post_id]),
-        ];
+        // Quick win: badges pesados omitidos na dropdown (filtros Promo/Flash/Novidades mantêm-se).
+        $results[] = array(
+            'id'             => $post_id,
+            'title'          => $post->post_title,
+            'url'            => get_permalink($post_id),
+            'thumb'          => $thumb_url,
+            'price'          => $price_display,
+            'price_old'      => $price_old,
+            'discount_pct'   => $discount_pct,
+            'category'       => $cat_name,
+            'volume'         => $volume,
+            'nic_type'       => $nic_type,
+            'rating'         => $rating,
+            'rating_count'   => $rating_count,
+            'is_bestseller'  => false,
+            'is_trending'    => false,
+            'is_new'         => $is_new,
+            'brand'          => $brand,
+            'in_stock'       => $product->is_in_stock(),
+            'is_flash_offer' => isset($flash_id_set[ $post_id ]),
+        );
     }
 
-    set_transient($cache_key, $results, 5 * MINUTE_IN_SECONDS);
+    $ttl = (int) apply_filters('wcb_live_search_transient_ttl', 10 * MINUTE_IN_SECONDS);
+    set_transient($cache_key, $results, max(60, $ttl));
+
     wp_send_json($results);
 }
 add_action('wp_ajax_wcb_live_search', 'wcb_live_search_handler');
