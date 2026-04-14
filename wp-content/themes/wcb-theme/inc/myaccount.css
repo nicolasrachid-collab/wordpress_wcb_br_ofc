@@ -1520,6 +1520,7 @@ mark.status-refunded,   mark.refunded   { background: #ede9fe; color: #5b21b6; }
 /* Links da conta (azul + sublinhado) não podem sobrepor o card da home */
 .woocommerce-MyAccount-content .wcb-wl-grid .wcb-product-card a.wcb-product-card__title {
   color: #1a1a2e !important;
+  font-size: 16px !important;
   font-weight: 650 !important;
   text-decoration: none !important;
 }

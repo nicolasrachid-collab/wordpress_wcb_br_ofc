@@ -322,12 +322,16 @@ function wcb_render_native_filter() {
                     <div class="wcb-filter__price-slider" id="wcb-price-slider">
                         <div class="wcb-filter__price-track"></div>
                         <div class="wcb-filter__price-fill"></div>
+                        <label class="screen-reader-text" for="wcb-filter-min"><?php echo esc_html__( 'Preço mínimo', 'wcb-theme' ); ?></label>
                         <input type="range" class="wcb-filter__range wcb-filter__range--min"
+                               id="wcb-filter-min"
                                min="<?php echo esc_attr($min_price); ?>"
                                max="<?php echo esc_attr($max_price); ?>"
                                value="<?php echo esc_attr($active_min); ?>"
                                name="wcb_min">
+                        <label class="screen-reader-text" for="wcb-filter-max"><?php echo esc_html__( 'Preço máximo', 'wcb-theme' ); ?></label>
                         <input type="range" class="wcb-filter__range wcb-filter__range--max"
+                               id="wcb-filter-max"
                                min="<?php echo esc_attr($min_price); ?>"
                                max="<?php echo esc_attr($max_price); ?>"
                                value="<?php echo esc_attr($active_max); ?>"

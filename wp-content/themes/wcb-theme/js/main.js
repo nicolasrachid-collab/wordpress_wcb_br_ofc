@@ -3122,14 +3122,16 @@
     });
 
     /* ── Busca inline nos mega menus ────────────────────── */
-    document.querySelectorAll('.wcb-mega__inner').forEach(function (inner) {
+    document.querySelectorAll('.wcb-mega__inner').forEach(function (inner, index) {
 
-        // Cria barra de busca
+        // Cria barra de busca (id + label + aria-label para a11y / DevTools)
+        var inputId = 'wcb-mega-search-' + index;
         var searchWrap = document.createElement('div');
         searchWrap.className = 'wcb-mega-search';
         searchWrap.innerHTML =
-            '<svg class="wcb-mega-search__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>' +
-            '<input type="text" class="wcb-mega-search__input" placeholder="Buscar marca ou sabor..." autocomplete="off">';
+            '<svg class="wcb-mega-search__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>' +
+            '<label class="screen-reader-text" for="' + inputId + '">Filtrar itens do menu</label>' +
+            '<input type="text" id="' + inputId + '" name="wcb-mega-filter-' + index + '" class="wcb-mega-search__input" placeholder="Buscar marca ou sabor..." autocomplete="off" aria-label="Filtrar itens do menu">';
 
         // Inserir antes das colunas (tenta .wcb-mega__columns ou .wcb-mega__simple ou .wcb-mega__header)
         var insertBefore = inner.querySelector('.wcb-mega__columns') || inner.querySelector('.wcb-mega__header') || inner.querySelector('.wcb-mega__simple');

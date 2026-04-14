@@ -10,6 +10,31 @@ get_header();
 
 /** @var int[] IDs já usados na homepage (desduplicação “homepage” nos carrosséis) */
 $wcb_carousel_homepage_used_ids = array();
+
+/**
+ * Prioridade comercial na home: Super Ofertas → Novidades → Mais Vendidos → Estoque.
+ * Com dedupe em âmbito homepage, a SO “consome” primeiro; as outras vitrinas excluem esses IDs.
+ *
+ * @var array<string,mixed>|null
+ */
+$wcb_so_home_preload = null;
+/** @var bool */
+$wcb_use_home_vitrine_priority = false;
+
+if ( class_exists( 'WooCommerce' ) && function_exists( 'wcb_carousel_get_dedupe_scope' ) && wcb_carousel_get_dedupe_scope() === 'homepage' && function_exists( 'wcb_super_ofertas_load_home_context_state' ) ) {
+	$wcb_use_home_vitrine_priority = true;
+	$on_sale_ids_wcb_prio = get_transient( 'wcb_on_sale_ids' );
+	if ( false === $on_sale_ids_wcb_prio ) {
+		$on_sale_ids_wcb_prio = wc_get_product_ids_on_sale();
+		set_transient( 'wcb_on_sale_ids', $on_sale_ids_wcb_prio, HOUR_IN_SECONDS );
+	}
+	$wcb_so_home_preload = wcb_super_ofertas_load_home_context_state( $on_sale_ids_wcb_prio );
+	$wcb_carousel_homepage_used_ids = array_values(
+		array_unique(
+			array_map( 'intval', isset( $wcb_so_home_preload['carousel_ids'] ) ? $wcb_so_home_preload['carousel_ids'] : array() )
+		)
+	);
+}
 ?>
 
 <?php get_template_part( 'template-parts/home/hero' ); ?>
@@ -34,10 +59,16 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // ── Novidades: cache 12h (ids + html); v4 = chave com hash da config do painel + motor wcb-home-vitrines-engine ──
-            $nov_transient_key = function_exists('wcb_home_vitrine_novidades_get_cache_transient_name')
-                ? wcb_home_vitrine_novidades_get_cache_transient_name()
-                : 'wcb_home_novidades_v3';
+            // ── Novidades: cache 12h (ids + html). v5 = inclui sufixo da SO (prioridade global homepage). v4 = só config. ──
+            if ( $wcb_use_home_vitrine_priority && function_exists( 'wcb_home_vitrine_novidades_get_cache_transient_name_v5' ) && is_array( $wcb_so_home_preload ) ) {
+                $nov_transient_key = wcb_home_vitrine_novidades_get_cache_transient_name_v5(
+                    isset( $wcb_so_home_preload['carousel_ids'] ) ? $wcb_so_home_preload['carousel_ids'] : array()
+                );
+            } else {
+                $nov_transient_key = function_exists( 'wcb_home_vitrine_novidades_get_cache_transient_name' )
+                    ? wcb_home_vitrine_novidades_get_cache_transient_name()
+                    : 'wcb_home_novidades_v3';
+            }
             $nov_cached = get_transient($nov_transient_key);
             $nov_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($nov_cached) : false;
             if (false === $nov_pack) {
@@ -46,7 +77,9 @@ $wcb_carousel_homepage_used_ids = array();
                     'role'           => 'carousel',
                     'hide_stock_bar' => true,
                 );
-                if (function_exists('wcb_home_vitrine_novidades_resolve_final_ids')) {
+                if ( $wcb_use_home_vitrine_priority && function_exists( 'wcb_home_vitrine_novidades_resolve_final_ids_with_exclude' ) ) {
+                    $final_nov_ids = wcb_home_vitrine_novidades_resolve_final_ids_with_exclude( $wcb_carousel_homepage_used_ids );
+                } elseif (function_exists('wcb_home_vitrine_novidades_resolve_final_ids')) {
                     $final_nov_ids = wcb_home_vitrine_novidades_resolve_final_ids();
                 } else {
                     $final_nov_ids = array();
@@ -281,10 +314,14 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // ── Mais Vendidos: cache 12h; v4 = chave com hash wcb_home_vitrine_vendidos_* + motor wcb-home-vitrines-engine ──
-            $v_transient_key = function_exists('wcb_home_vitrine_vendidos_get_cache_transient_name')
-                ? wcb_home_vitrine_vendidos_get_cache_transient_name()
-                : 'wcb_home_vendidos';
+            // ── Mais Vendidos: cache 12h. v5 = sufixo dos IDs já usados (SO + Novidades + pad). v4 = só config. ──
+            if ( $wcb_use_home_vitrine_priority && function_exists( 'wcb_home_vitrine_vendidos_get_cache_transient_name_v5' ) ) {
+                $v_transient_key = wcb_home_vitrine_vendidos_get_cache_transient_name_v5( $wcb_carousel_homepage_used_ids );
+            } else {
+                $v_transient_key = function_exists( 'wcb_home_vitrine_vendidos_get_cache_transient_name' )
+                    ? wcb_home_vitrine_vendidos_get_cache_transient_name()
+                    : 'wcb_home_vendidos';
+            }
             $v_cached = get_transient($v_transient_key);
             $v_pack   = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($v_cached) : false;
             if (is_array($v_cached) && isset($v_cached['html']) && empty($v_cached['html'])) {
@@ -292,7 +329,9 @@ $wcb_carousel_homepage_used_ids = array();
                 $v_pack = false;
             }
             if (false === $v_pack) {
-                if (function_exists('wcb_home_vitrine_vendidos_resolve_final_ids')) {
+                if ( $wcb_use_home_vitrine_priority && function_exists( 'wcb_home_vitrine_vendidos_resolve_final_ids_with_exclude' ) ) {
+                    $final_v_ids = wcb_home_vitrine_vendidos_resolve_final_ids_with_exclude( $wcb_carousel_homepage_used_ids );
+                } elseif (function_exists('wcb_home_vitrine_vendidos_resolve_final_ids')) {
                     $final_v_ids = wcb_home_vitrine_vendidos_resolve_final_ids();
                 } else {
                     $final_v_ids = array();
@@ -543,75 +582,86 @@ $wcb_carousel_homepage_used_ids = array();
 
             <?php
             /*
-             * Super Ofertas: cache só por lista em promoção (sem excluir IDs já usados noutras secções).
-             * Se passarmos homepage_used como exclude, o pool pode ficar vazio e a secção some.
-             * Dedupe real continua em wcb_carousel_pad_all_chunks + $wcb_carousel_homepage_used_ids.
+             * Super Ofertas: com prioridade global (homepage), reutiliza wcb_super_ofertas_load_home_context_state
+             * já calculado no topo do template; caso contrário, carrega contexto aqui como antes.
              */
-            $so_cache_key = function_exists( 'wcb_super_ofertas_cache_key' )
-                ? wcb_super_ofertas_cache_key( $on_sale_ids, array() )
-                : '';
+            if ( $wcb_use_home_vitrine_priority && is_array( $wcb_so_home_preload ) ) {
+                $so_ctx         = $wcb_so_home_preload['ctx'];
+                $carousel_ids   = isset( $wcb_so_home_preload['carousel_ids'] ) ? $wcb_so_home_preload['carousel_ids'] : array();
+                $so_cache_key   = isset( $wcb_so_home_preload['cache_key'] ) ? $wcb_so_home_preload['cache_key'] : '';
+                $so_hero_prepend = isset( $wcb_so_home_preload['hero_prepend_ids'] ) && is_array( $wcb_so_home_preload['hero_prepend_ids'] )
+                    ? $wcb_so_home_preload['hero_prepend_ids']
+                    : array();
+                $skip_hero_prepend = ! empty( $wcb_so_home_preload['skip_hero_prepend'] );
+                $ctx_hero_1       = (int) ( $so_ctx['hero_id'] ?? 0 );
+                $ctx_hero_2       = (int) ( $so_ctx['hero_id_2'] ?? 0 );
+            } else {
+                $so_cache_key = function_exists( 'wcb_super_ofertas_cache_key' )
+                    ? wcb_super_ofertas_cache_key( $on_sale_ids, array() )
+                    : '';
 
-            $so_ctx = false;
-            if ( $so_cache_key !== '' ) {
-                $cached = get_transient( $so_cache_key );
-                $so_ctx = is_array( $cached ) && isset( $cached['carousel_ids'] ) ? $cached : false;
-            }
-
-            $so_needs_build = function_exists( 'wcb_super_ofertas_should_build_context' )
-                ? wcb_super_ofertas_should_build_context( $on_sale_ids )
-                : ! empty( $on_sale_ids );
-
-            if ( false === $so_ctx && $so_needs_build && function_exists( 'wcb_super_ofertas_build_context' ) ) {
-                $so_ctx = wcb_super_ofertas_build_context( $on_sale_ids, array() );
-                if ( $so_cache_key !== '' && is_array( $so_ctx ) ) {
-                    set_transient( $so_cache_key, $so_ctx, 8 * HOUR_IN_SECONDS );
+                $so_ctx = false;
+                if ( $so_cache_key !== '' ) {
+                    $cached = get_transient( $so_cache_key );
+                    $so_ctx  = is_array( $cached ) && isset( $cached['carousel_ids'] ) ? $cached : false;
                 }
-            }
 
-            if ( ! is_array( $so_ctx ) ) {
-                $so_ctx = array(
-                    'hero_id'              => 0,
-                    'hero_id_2'            => 0,
-                    'carousel_ids'         => array(),
-                    'urgency_type'         => 'default',
-                    'urgency_discount_pct' => 0,
-                    'hero_badge'           => '',
-                    'hero_badge_2'         => '',
-                    'skip_hero_prepend'    => false,
-                );
-            }
+                $so_needs_build = function_exists( 'wcb_super_ofertas_should_build_context' )
+                    ? wcb_super_ofertas_should_build_context( $on_sale_ids )
+                    : ! empty( $on_sale_ids );
 
-            $ctx_hero_1 = (int) ( $so_ctx['hero_id'] ?? 0 );
-            $ctx_hero_2 = (int) ( $so_ctx['hero_id_2'] ?? 0 );
-            $carousel_ids = isset( $so_ctx['carousel_ids'] ) && is_array( $so_ctx['carousel_ids'] )
-                ? array_values( array_filter( array_map( 'intval', $so_ctx['carousel_ids'] ) ) )
-                : array();
-
-            $so_cap = function_exists( 'wcb_super_ofertas_effective_carousel_cap' )
-                ? wcb_super_ofertas_effective_carousel_cap()
-                : ( defined( 'WCB_SO_MAX_CAROUSEL' ) ? (int) WCB_SO_MAX_CAROUSEL : 24 );
-
-            $skip_hero_prepend = ! empty( $so_ctx['skip_hero_prepend'] );
-
-            $so_hero_prepend = array();
-            if ( ! $skip_hero_prepend ) {
-                foreach ( array( $ctx_hero_1, $ctx_hero_2 ) as $hid ) {
-                    if ( $hid < 1 || in_array( $hid, $so_hero_prepend, true ) ) {
-                        continue;
-                    }
-                    $hp = wc_get_product( $hid );
-                    if ( $hp && $hp->is_in_stock() ) {
-                        $so_hero_prepend[] = $hid;
+                if ( false === $so_ctx && $so_needs_build && function_exists( 'wcb_super_ofertas_build_context' ) ) {
+                    $so_ctx = wcb_super_ofertas_build_context( $on_sale_ids, array() );
+                    if ( $so_cache_key !== '' && is_array( $so_ctx ) ) {
+                        set_transient( $so_cache_key, $so_ctx, 8 * HOUR_IN_SECONDS );
                     }
                 }
-                if ( ! empty( $so_hero_prepend ) ) {
-                    $carousel_ids = array_values( array_unique( array_merge( $so_hero_prepend, $carousel_ids ) ) );
-                    if ( count( $carousel_ids ) > $so_cap ) {
-                        $carousel_ids = array_slice( $carousel_ids, 0, $so_cap );
-                    }
+
+                if ( ! is_array( $so_ctx ) ) {
+                    $so_ctx = array(
+                        'hero_id'              => 0,
+                        'hero_id_2'            => 0,
+                        'carousel_ids'         => array(),
+                        'urgency_type'         => 'default',
+                        'urgency_discount_pct' => 0,
+                        'hero_badge'           => '',
+                        'hero_badge_2'         => '',
+                        'skip_hero_prepend'    => false,
+                    );
                 }
-            } elseif ( count( $carousel_ids ) > $so_cap ) {
-                $carousel_ids = array_slice( $carousel_ids, 0, $so_cap );
+
+                $ctx_hero_1 = (int) ( $so_ctx['hero_id'] ?? 0 );
+                $ctx_hero_2 = (int) ( $so_ctx['hero_id_2'] ?? 0 );
+                $carousel_ids = isset( $so_ctx['carousel_ids'] ) && is_array( $so_ctx['carousel_ids'] )
+                    ? array_values( array_filter( array_map( 'intval', $so_ctx['carousel_ids'] ) ) )
+                    : array();
+
+                $so_cap = function_exists( 'wcb_super_ofertas_effective_carousel_cap' )
+                    ? wcb_super_ofertas_effective_carousel_cap()
+                    : ( defined( 'WCB_SO_MAX_CAROUSEL' ) ? (int) WCB_SO_MAX_CAROUSEL : 24 );
+
+                $skip_hero_prepend = ! empty( $so_ctx['skip_hero_prepend'] );
+
+                $so_hero_prepend = array();
+                if ( ! $skip_hero_prepend ) {
+                    foreach ( array( $ctx_hero_1, $ctx_hero_2 ) as $hid ) {
+                        if ( $hid < 1 || in_array( $hid, $so_hero_prepend, true ) ) {
+                            continue;
+                        }
+                        $hp = wc_get_product( $hid );
+                        if ( $hp && $hp->is_in_stock() ) {
+                            $so_hero_prepend[] = $hid;
+                        }
+                    }
+                    if ( ! empty( $so_hero_prepend ) ) {
+                        $carousel_ids = array_values( array_unique( array_merge( $so_hero_prepend, $carousel_ids ) ) );
+                        if ( count( $carousel_ids ) > $so_cap ) {
+                            $carousel_ids = array_slice( $carousel_ids, 0, $so_cap );
+                        }
+                    }
+                } elseif ( count( $carousel_ids ) > $so_cap ) {
+                    $carousel_ids = array_slice( $carousel_ids, 0, $so_cap );
+                }
             }
 
             /** @var int Cards por slide nos carrosséis desta secção (só Super Ofertas). */
@@ -817,31 +867,59 @@ $wcb_carousel_homepage_used_ids = array();
         <div class="wcb-container">
 
             <?php
-            // ── De Volta ao Estoque: cache de 12h (ids + html) ─────────────
-            $q_cached = get_transient('wcb_home_estoque');
-            $q_pack     = function_exists('wcb_carousel_normalize_cache') ? wcb_carousel_normalize_cache($q_cached) : false;
-            if (false === $q_pack) {
-                $queridinhos = new WP_Query(array(
-                    'post_type'      => 'product',
-                    'posts_per_page' => 20,
-                    'meta_key'       => '_wc_average_rating',
-                    'orderby'        => 'meta_value_num',
-                    'order'          => 'DESC',
-                    'meta_query'     => array(
-                        'relation' => 'AND',
+            // ── De Volta ao Estoque: cache 12h. v2 = sufixo dos IDs já usados (prioridade global homepage). ──
+            if ( $wcb_use_home_vitrine_priority && function_exists( 'wcb_home_vitrine_priority_cache_suffix' ) ) {
+                $q_transient_key = 'wcb_home_estoque_v2_' . wcb_home_vitrine_priority_cache_suffix( $wcb_carousel_homepage_used_ids );
+            } else {
+                $q_transient_key = 'wcb_home_estoque';
+            }
+            $q_cached = get_transient( $q_transient_key );
+            $q_pack   = function_exists( 'wcb_carousel_normalize_cache' ) ? wcb_carousel_normalize_cache( $q_cached ) : false;
+            if ( false === $q_pack ) {
+                if ( $wcb_use_home_vitrine_priority && function_exists( 'wcb_home_vitrine_estoque_resolve_final_ids_with_exclude' ) ) {
+                    $final_q_ids = wcb_home_vitrine_estoque_resolve_final_ids_with_exclude( $wcb_carousel_homepage_used_ids, 20 );
+                    if ( empty( $final_q_ids ) ) {
+                        $q_pairs = array();
+                    } else {
+                        $queridinhos = new WP_Query(
+                            array(
+                                'post_type'              => 'product',
+                                'post_status'            => 'publish',
+                                'post__in'               => $final_q_ids,
+                                'orderby'                => 'post__in',
+                                'posts_per_page'         => count( $final_q_ids ),
+                                'no_found_rows'          => true,
+                                'update_post_meta_cache' => true,
+                                'update_term_meta_cache' => false,
+                            )
+                        );
+                        $q_pairs = function_exists( 'wcb_carousel_pairs_from_query' ) ? wcb_carousel_pairs_from_query( $queridinhos ) : array();
+                    }
+                } else {
+                    $queridinhos = new WP_Query(
                         array(
-                            'key'     => '_stock_status',
-                            'value'   => 'instock',
-                            'compare' => '=',
-                        ),
-                    ),
-                ));
-                $q_pairs = function_exists('wcb_carousel_pairs_from_query') ? wcb_carousel_pairs_from_query($queridinhos) : array();
-                $q_pack  = array(
-                    'ids'  => array_column($q_pairs, 'id'),
-                    'html' => array_column($q_pairs, 'html'),
+                            'post_type'      => 'product',
+                            'posts_per_page' => 20,
+                            'meta_key'       => '_wc_average_rating',
+                            'orderby'        => 'meta_value_num',
+                            'order'          => 'DESC',
+                            'meta_query'     => array(
+                                'relation' => 'AND',
+                                array(
+                                    'key'     => '_stock_status',
+                                    'value'   => 'instock',
+                                    'compare' => '=',
+                                ),
+                            ),
+                        )
+                    );
+                    $q_pairs = function_exists( 'wcb_carousel_pairs_from_query' ) ? wcb_carousel_pairs_from_query( $queridinhos ) : array();
+                }
+                $q_pack = array(
+                    'ids'  => array_column( $q_pairs, 'id' ),
+                    'html' => array_column( $q_pairs, 'html' ),
                 );
-                set_transient('wcb_home_estoque', $q_pack, 12 * HOUR_IN_SECONDS);
+                set_transient( $q_transient_key, $q_pack, 12 * HOUR_IN_SECONDS );
             }
             $all_pairs_q = array();
             foreach ($q_pack['ids'] as $qi => $qid) {

@@ -242,7 +242,7 @@ function wcb_mm_root_promo_cta_config() {
 }
 
 /**
- * URL de categoria de produto por slug (para atalhos “Comprar rápido”).
+ * URL de categoria de produto por slug (para atalhos “Mais pesquisados”).
  *
  * @param string $slug Slug de product_cat.
  * @return string URL ou string vazia.
@@ -261,7 +261,7 @@ function wcb_mm_product_category_url_by_slug( $slug ) {
 }
 
 /**
- * Itens padrão do bloco “Comprar rápido” (slug → URL resolvida depois).
+ * Itens padrão do bloco “Mais pesquisados” (slug → URL resolvida depois).
  *
  * @return array<int, array{label: string, slug: string}>
  */
@@ -287,7 +287,7 @@ function wcb_mm_root_quick_buy_default_items() {
 }
 
 /**
- * Links finais do “Comprar rápido” (após resolver slugs / filtro).
+ * Links finais do “Mais pesquisados” (após resolver slugs / filtro).
  *
  * @return array<int, array{label: string, url: string}>
  */
@@ -873,8 +873,10 @@ function wcb_mobile_drilldown_menu_html( $theme_location = 'primary' ) {
 					<?php wcb_mm_root_quick_buy_markup( $mm_uid ); ?>
 					<div class="wcb-mm-root-block wcb-mm-root-block--categories">
 					<?php wcb_mm_root_categories_section_markup(); ?>
+					<div class="wcb-mm-root-categories-shell">
 					<?php echo $root_ul; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<?php wcb_mm_root_all_categories_cta_markup(); ?>
+					</div>
 					</div>
 					<?php wcb_mm_root_services_markup(); ?>
 					</div>
@@ -906,6 +908,7 @@ function wcb_mobile_drilldown_fallback_html() {
 					<?php wcb_mm_root_quick_buy_markup( $mm_uid ); ?>
 					<div class="wcb-mm-root-block wcb-mm-root-block--categories">
 					<?php wcb_mm_root_categories_section_markup(); ?>
+					<div class="wcb-mm-root-categories-shell">
 					<ul class="wcb-mobile-menu__list wcb-mm-list" role="list">
 						<li class="wcb-mm-item menu-item"><div class="wcb-mm-row wcb-mm-row--leaf"><a class="wcb-mm-link wcb-mm-link--leaf" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Início', 'wcb-theme' ); ?></a></div></li>
 						<?php
@@ -921,6 +924,7 @@ function wcb_mobile_drilldown_fallback_html() {
 						<?php endif; ?>
 					</ul>
 					<?php wcb_mm_root_all_categories_cta_markup(); ?>
+					</div>
 					</div>
 					<?php wcb_mm_root_services_markup(); ?>
 					</div>

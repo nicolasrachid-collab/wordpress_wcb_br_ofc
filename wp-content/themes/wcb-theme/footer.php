@@ -34,11 +34,16 @@ $wcb_nl4_nonce = wp_create_nonce( 'wcb_nl4' );
                     <div class="wcb-nl4__avatars wcb-nl4__avatars--animated" aria-hidden="true">
                         <?php
                         /**
-                         * Fotos de rosto (pravatar.cc — conjunto fixo para demo; troque por imagens locais em /images/ se preferir).
+                         * Avatares no mesmo estilo dos depoimentos (DiceBear notionists — ver section-depoimentos.php).
                          */
-                        $wcb_nl4_avatar_ids = array( 12, 33, 47, 58 );
-                        foreach ( $wcb_nl4_avatar_ids as $wcb_av_img ) {
-                            $wcb_av_url = 'https://i.pravatar.cc/128?img=' . (int) $wcb_av_img;
+                        $wcb_nl4_avatar_seeds = array(
+                            'Ana Souza',
+                            'Bruno Costa',
+                            'Camila Dias',
+                            'Diego Lima',
+                        );
+                        foreach ( $wcb_nl4_avatar_seeds as $wcb_nl4_seed ) {
+                            $wcb_av_url = 'https://api.dicebear.com/7.x/notionists/png?seed=' . rawurlencode( $wcb_nl4_seed ) . '&size=128';
                             echo '<img class="wcb-nl4__av" src="' . esc_url( $wcb_av_url ) . '" alt="" width="34" height="34" loading="lazy" decoding="async" />';
                         }
                         ?>

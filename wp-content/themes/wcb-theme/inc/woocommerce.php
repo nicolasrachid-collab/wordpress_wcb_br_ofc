@@ -573,13 +573,19 @@ add_filter('get_custom_logo', 'wcb_custom_logo_remove_dimensions');
    ============================================================ */
 function wcb_search_form($form)
 {
-    $form = '<form role="search" method="get" class="wcb-header__search-form" action="' . esc_url(home_url('/')) . '">';
-    $form .= '<input type="search" class="wcb-header__search-input" placeholder="' . esc_attr__('Buscar produtos...', 'wcb-theme') . '" value="' . get_search_query() . '" name="s" />';
+    $form  = '<form role="search" method="get" class="wcb-header__search-form" action="' . esc_url( home_url( '/' ) ) . '"';
+    $form .= ' aria-label="' . esc_attr__( 'Buscar no site', 'wcb-theme' ) . '">';
+    $form .= '<label class="screen-reader-text" for="wcb-search-input">' . esc_html__( 'Buscar produtos', 'wcb-theme' ) . '</label>';
+    $form .= '<input type="search" class="wcb-header__search-input" id="wcb-search-input"';
+    $form .= ' placeholder="' . esc_attr__( 'Buscar produtos...', 'wcb-theme' ) . '"';
+    $form .= ' value="' . esc_attr( get_search_query() ) . '" name="s" autocomplete="off"';
+    $form .= ' aria-label="' . esc_attr__( 'Buscar produtos', 'wcb-theme' ) . '" />';
     if (class_exists('WooCommerce')) {
         $form .= '<input type="hidden" name="post_type" value="product" />';
     }
-    $form .= '<button type="submit" class="wcb-header__search-btn" aria-label="Buscar">';
-    $form .= '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+    $form .= '<button type="submit" class="wcb-header__search-btn" aria-label="' . esc_attr__( 'Buscar', 'wcb-theme' ) . '">';
+    $form .= '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    $form .= '<circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>';
     $form .= '</button>';
     $form .= '</form>';
     return $form;

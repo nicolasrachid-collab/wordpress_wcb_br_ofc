@@ -29,7 +29,7 @@ if ( ! defined( 'WCB_DEV' ) ) {
 	define( 'WCB_DEV', false );
 }
 
-define( 'WCB_VERSION', '1.5.0' );
+define( 'WCB_VERSION', '1.5.3' );
 define( 'WCB_DIR', get_template_directory() );
 define( 'WCB_URI', get_template_directory_uri() );
 /** Transient do carrossel "Promoções" no header (v3: igual à query da página categoria promocoes — só em oferta). */

@@ -174,6 +174,205 @@ function wcb_home_vitrine_apply_cap( array $ids, $cap ) {
 }
 
 /**
+ * Sufixo estável para chaves de cache encadeadas (prioridade entre vitrines na home).
+ *
+ * @param int[] $ids
+ * @return string
+ */
+function wcb_home_vitrine_priority_cache_suffix( array $ids ) {
+	$ids = array_values(
+		array_unique(
+			array_filter(
+				array_map( 'intval', $ids ),
+				static function ( $id ) {
+					return $id > 0;
+				}
+			)
+		)
+	);
+	sort( $ids, SORT_NUMERIC );
+	return md5( wp_json_encode( $ids ) );
+}
+
+/**
+ * Remove IDs excluídos mantendo a ordem.
+ *
+ * @param int[] $ids
+ * @param int[] $exclude_ids
+ * @return int[]
+ */
+function wcb_home_vitrine_filter_exclude_ordered( array $ids, array $exclude_ids ) {
+	$ex = array_fill_keys(
+		array_map( 'intval', $exclude_ids ),
+		true
+	);
+	$out = array();
+	foreach ( $ids as $id ) {
+		$id = (int) $id;
+		if ( $id < 1 || isset( $ex[ $id ] ) ) {
+			continue;
+		}
+		$out[] = $id;
+	}
+	return $out;
+}
+
+/**
+ * Completa até ao cap com o pool automático (automatic / hybrid), respeitando exclusão global.
+ *
+ * @param int[] $current         IDs já escolhidos (ordem preservada).
+ * @param int   $cap
+ * @param int[] $exclude_global  IDs de vitrines prioritárias (não reutilizar).
+ * @param int[] $auto_pool       Lista automática da secção (ordem de preferência).
+ * @return int[]
+ */
+function wcb_home_vitrine_backfill_from_auto_pool( array $current, $cap, array $exclude_global, array $auto_pool ) {
+	$cap = max( 1, (int) $cap );
+	$seen = array_fill_keys( array_map( 'intval', $exclude_global ), true );
+	foreach ( $current as $id ) {
+		$seen[ (int) $id ] = true;
+	}
+	$out = array_values( $current );
+	foreach ( $auto_pool as $id ) {
+		if ( count( $out ) >= $cap ) {
+			break;
+		}
+		$id = (int) $id;
+		if ( $id < 1 || isset( $seen[ $id ] ) ) {
+			continue;
+		}
+		$seen[ $id ] = true;
+		$out[]       = $id;
+	}
+	return $out;
+}
+
+/**
+ * Transient Novidades v5 — depende da assinatura da lista SO (prioridade comercial).
+ *
+ * @param int[] $super_ofertas_carousel_ids
+ * @return string
+ */
+function wcb_home_vitrine_novidades_get_cache_transient_name_v5( array $super_ofertas_carousel_ids ) {
+	return 'wcb_home_novidades_v5_' . wcb_home_vitrine_settings_cache_signature( 'novidades' ) . '_' . wcb_home_vitrine_priority_cache_suffix( $super_ofertas_carousel_ids );
+}
+
+/**
+ * Transient Mais Vendidos v5 — depende dos IDs já consumidos antes desta vitrine (SO + Novidades + pad).
+ *
+ * @param int[] $homepage_used_snapshot
+ * @return string
+ */
+function wcb_home_vitrine_vendidos_get_cache_transient_name_v5( array $homepage_used_snapshot ) {
+	return 'wcb_home_vendidos_v5_' . wcb_home_vitrine_settings_cache_signature( 'vendidos' ) . '_' . wcb_home_vitrine_priority_cache_suffix( $homepage_used_snapshot );
+}
+
+/**
+ * IDs finais Novidades com exclusão global (vitrines prioritárias).
+ *
+ * @param int[] $exclude_global_ids
+ * @return int[]
+ */
+function wcb_home_vitrine_novidades_resolve_final_ids_with_exclude( array $exclude_global_ids ) {
+	$cfg    = wcb_home_vitrine_get_normalized_config( 'novidades' );
+	$auto   = wcb_home_vitrine_novidades_get_auto_ids();
+	$manual = wcb_home_vitrine_novidades_validate_manual_ids( $cfg['manual_ids_parsed'] );
+	$merged = wcb_home_vitrine_merge_by_mode(
+		$manual,
+		$auto,
+		$cfg['assembly_mode'],
+		$cfg['hybrid_priority']
+	);
+	$filtered = wcb_home_vitrine_filter_exclude_ordered( $merged, $exclude_global_ids );
+	$cap      = (int) $cfg['carousel_max'];
+	$out      = wcb_home_vitrine_apply_cap( $filtered, $cap );
+	if ( count( $out ) < $cap && 'manual_only' !== $cfg['assembly_mode'] ) {
+		$out = wcb_home_vitrine_backfill_from_auto_pool( $out, $cap, $exclude_global_ids, $auto );
+	}
+	return $out;
+}
+
+/**
+ * IDs finais Mais Vendidos com exclusão global.
+ *
+ * @param int[] $exclude_global_ids
+ * @return int[]
+ */
+function wcb_home_vitrine_vendidos_resolve_final_ids_with_exclude( array $exclude_global_ids ) {
+	$cfg    = wcb_home_vitrine_get_normalized_config( 'vendidos' );
+	$auto   = wcb_home_vitrine_vendidos_get_auto_ids();
+	$manual = wcb_home_vitrine_vendidos_validate_manual_ids( $cfg['manual_ids_parsed'] );
+	$merged = wcb_home_vitrine_merge_by_mode(
+		$manual,
+		$auto,
+		$cfg['assembly_mode'],
+		$cfg['hybrid_priority']
+	);
+	$filtered = wcb_home_vitrine_filter_exclude_ordered( $merged, $exclude_global_ids );
+	$cap      = (int) $cfg['carousel_max'];
+	$out      = wcb_home_vitrine_apply_cap( $filtered, $cap );
+	if ( count( $out ) < $cap && 'manual_only' !== $cfg['assembly_mode'] ) {
+		$out = wcb_home_vitrine_backfill_from_auto_pool( $out, $cap, $exclude_global_ids, $auto );
+	}
+	return $out;
+}
+
+/**
+ * Pool candidatos “De volta ao Estoque” (rating), alinhado à query legada da home.
+ *
+ * @return int[]
+ */
+function wcb_home_vitrine_estoque_get_candidate_ids() {
+	$q = new WP_Query(
+		array(
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'posts_per_page'         => 60,
+			'fields'                 => 'ids',
+			'meta_key'               => '_wc_average_rating',
+			'orderby'                => 'meta_value_num',
+			'order'                  => 'DESC',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_term_meta_cache' => false,
+			'meta_query'             => array(
+				array(
+					'key'     => '_stock_status',
+					'value'   => 'instock',
+					'compare' => '=',
+				),
+			),
+		)
+	);
+	$ids = array_map( 'intval', $q->posts );
+	wp_reset_postdata();
+	return array_values(
+		array_filter(
+			$ids,
+			static function ( $id ) {
+				return $id > 0;
+			}
+		)
+	);
+}
+
+/**
+ * IDs finais Estoque com exclusão global e cap.
+ *
+ * @param int[] $exclude_global_ids
+ * @param int   $cap
+ * @return int[]
+ */
+function wcb_home_vitrine_estoque_resolve_final_ids_with_exclude( array $exclude_global_ids, $cap = 20 ) {
+	$cap  = max( 1, (int) $cap );
+	$pool = wcb_home_vitrine_estoque_get_candidate_ids();
+	return wcb_home_vitrine_apply_cap(
+		wcb_home_vitrine_filter_exclude_ordered( $pool, $exclude_global_ids ),
+		$cap
+	);
+}
+
+/**
  * Assinatura para futuras chaves de cache por secção (Fase 3).
  *
  * @param string $section
@@ -294,16 +493,7 @@ function wcb_home_vitrine_novidades_validate_manual_ids( array $ordered_ids ) {
  * @return int[]
  */
 function wcb_home_vitrine_novidades_resolve_final_ids() {
-	$cfg = wcb_home_vitrine_get_normalized_config( 'novidades' );
-	$auto = wcb_home_vitrine_novidades_get_auto_ids();
-	$manual = wcb_home_vitrine_novidades_validate_manual_ids( $cfg['manual_ids_parsed'] );
-	$merged = wcb_home_vitrine_merge_by_mode(
-		$manual,
-		$auto,
-		$cfg['assembly_mode'],
-		$cfg['hybrid_priority']
-	);
-	return wcb_home_vitrine_apply_cap( $merged, $cfg['carousel_max'] );
+	return wcb_home_vitrine_novidades_resolve_final_ids_with_exclude( array() );
 }
 
 /**
@@ -438,16 +628,7 @@ function wcb_home_vitrine_vendidos_validate_manual_ids( array $ordered_ids ) {
  * @return int[]
  */
 function wcb_home_vitrine_vendidos_resolve_final_ids() {
-	$cfg    = wcb_home_vitrine_get_normalized_config( 'vendidos' );
-	$auto   = wcb_home_vitrine_vendidos_get_auto_ids();
-	$manual = wcb_home_vitrine_vendidos_validate_manual_ids( $cfg['manual_ids_parsed'] );
-	$merged = wcb_home_vitrine_merge_by_mode(
-		$manual,
-		$auto,
-		$cfg['assembly_mode'],
-		$cfg['hybrid_priority']
-	);
-	return wcb_home_vitrine_apply_cap( $merged, $cfg['carousel_max'] );
+	return wcb_home_vitrine_vendidos_resolve_final_ids_with_exclude( array() );
 }
 
 /**
@@ -478,4 +659,24 @@ function wcb_home_vitrines_bust_home_section_caches() {
 			$like_vo
 		)
 	);
+
+	$like_n5  = $wpdb->esc_like( '_transient_wcb_home_novidades_v5_' ) . '%';
+	$like_n5o = $wpdb->esc_like( '_transient_timeout_wcb_home_novidades_v5_' ) . '%';
+	$like_v5  = $wpdb->esc_like( '_transient_wcb_home_vendidos_v5_' ) . '%';
+	$like_v5o = $wpdb->esc_like( '_transient_timeout_wcb_home_vendidos_v5_' ) . '%';
+	$like_e2  = $wpdb->esc_like( '_transient_wcb_home_estoque_v2_' ) . '%';
+	$like_e2o = $wpdb->esc_like( '_transient_timeout_wcb_home_estoque_v2_' ) . '%';
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+			$like_n5,
+			$like_n5o,
+			$like_v5,
+			$like_v5o,
+			$like_e2,
+			$like_e2o
+		)
+	);
+
+	delete_transient( 'wcb_home_estoque' );
 }
